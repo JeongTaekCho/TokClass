@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { Hand, Lock, LockOpen, MessageCircle, MessagesSquare, Megaphone, Gauge, Users, Focus } from "lucide-react";
+import { FolderOpen, Hand, Lock, LockOpen, MessageCircle, MessagesSquare, Megaphone, Gauge, Users, Focus } from "lucide-react";
 
 import { AnnouncementBar, AnnouncementManager } from "@/components/room/announcements";
 import { ChatPanel } from "@/components/room/chat-panel";
 import { ConnectionBadge } from "@/components/room/connection-badge";
 import { QaPanel } from "@/components/room/qa-panel";
+import { ResourcesPanel } from "@/components/room/resources-panel";
 import { ActivityPanel } from "@/components/instructor/live/activity-panel";
 import { DmInbox } from "@/components/instructor/live/dm-inbox";
 import { HelpQueue } from "@/components/instructor/live/help-queue";
@@ -65,6 +66,13 @@ export function LiveShell() {
         <div className="flex min-w-0 flex-col gap-4">
           <InstructorSlides />
           <ActivityPanel />
+          <details className="group rounded-2xl border border-border bg-card shadow-soft">
+            <summary className="flex min-h-12 cursor-pointer items-center gap-2 px-4 font-bold">
+              <FolderOpen className="size-4 text-primary" aria-hidden /> 자료실 관리
+              <span className="text-sm font-normal text-muted-foreground">다운로드 파일·실습 링크</span>
+            </summary>
+            <ResourcesPanel manage />
+          </details>
         </div>
 
         <aside className="flex min-h-[560px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft lg:sticky lg:top-20 lg:h-[calc(100dvh-7rem)]">

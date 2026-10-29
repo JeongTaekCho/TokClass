@@ -17,7 +17,7 @@ export type SessionLostReason = "kicked" | "replaced" | "reissued" | "expired";
 type Ctx = {
   roomId: string;
   room: PublicRoom;
-  setRoom: (r: PublicRoom) => void;
+  setRoom: React.Dispatch<React.SetStateAction<PublicRoom>>;
   me: Me;
   status: ConnectionStatus;
   online: Map<string, PresenceMember>;
@@ -123,6 +123,9 @@ export function RoomProvider({ initialRoom, me, children }: { initialRoom: Publi
       if (me.kind === "instructor") {
         const { data } = await client.auth.getSession();
         if (data.session) await client.realtime.setAuth(data.session.access_token);
+      } else {
+        // accessToken 콜백 적용 전에 join하면 anon 키로 구독을 시도해서 거부돼요. 먼저 토큰을 설정합니다.
+        await client.realtime.setAuth();
       }
       if (disposed) return;
       const channel = client.channel(roomTopic(roomId), {
@@ -131,6 +134,10 @@ export function RoomProvider({ initialRoom, me, children }: { initialRoom: Publi
       channelRef.current = channel;
       channel.on("broadcast", { event: "*" }, (msg: { event: string; payload: unknown }) => {
         if (msg.event === "room.updated") setRoom((msg.payload as RoomEvents["room.updated"]).room);
+        if (msg.event === "slide.page") {
+          const p = msg.payload as RoomEvents["slide.page"];
+          setRoom((r) => ({ ...r, currentMaterialId: p.materialId, currentPage: p.page }));
+        }
         if (msg.event === "participant.session" && me.kind === "participant") {
           const p = msg.payload as RoomEvents["participant.session"];
           if (p.participantId === me.id) {

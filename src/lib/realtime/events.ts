@@ -21,7 +21,7 @@ export type RoomEvents = {
   "resource.changed": Record<string, never>;
   "reaction.float": { emoji: string; materialId: string | null; page: number | null };
   "pins.changed": { materialId: string };
-  "understanding.counts": { counts: UnderstandingCounts };
+  "understanding.counts": { counts: UnderstandingCounts; reset?: boolean };
   "help.changed": { participantId: string; status: "open" | "resolved" };
   "activity.changed": { activity: Activity };
   "activity.results": { activityId: string; results: ActivityResults | null };

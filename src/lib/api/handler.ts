@@ -7,7 +7,7 @@ import { resolveActor, type Actor, type ActorKind } from "@/lib/auth/actor";
 import { ApiError, forbidden, notFound, unauthorized } from "@/lib/api/errors";
 import { db } from "@/lib/supabase/admin";
 
-type RouteCtx = { params: Promise<Record<string, string | string[] | undefined>> };
+type RouteCtx = { params?: Promise<Record<string, string | string[] | undefined>> };
 
 export type RoomCtx<B> = {
   req: NextRequest;
@@ -47,9 +47,9 @@ async function readJson(req: NextRequest) {
   }
 }
 
-function flatParams(p: Record<string, string | string[] | undefined>) {
+function flatParams(p: Record<string, string | string[] | undefined> | undefined) {
   const out: Record<string, string> = {};
-  for (const [k, v] of Object.entries(p)) if (typeof v === "string") out[k] = v;
+  for (const [k, v] of Object.entries(p ?? {})) if (typeof v === "string") out[k] = v;
   return out;
 }
 

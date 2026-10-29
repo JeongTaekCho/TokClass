@@ -40,7 +40,7 @@ export const POST = apiHandler({ body: joinPasswordSchema }, async ({ req, body 
   if (!participant) {
     const { retryAfterSec, remaining } = await recordFailure(room.id, keys);
     if (retryAfterSec > 0) {
-      throw new ApiError(429, `비밀번호를 5번 틀렸어요. ${retryAfterSec}초 뒤에 다시 시도해 주세요.`, "locked", { retryAfterSec });
+      throw new ApiError(429, `비밀번호를 여러 번 틀렸어요. ${retryAfterSec}초 뒤에 다시 시도해 주세요.`, "locked", { retryAfterSec });
     }
     throw new ApiError(401, `비밀번호가 맞지 않아요. (남은 시도 ${remaining}번)`, "wrong_password", { remaining });
   }

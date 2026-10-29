@@ -34,7 +34,7 @@ export default async function DashboardPage() {
   const [{ data: rooms, error }, { data: templates }] = await Promise.all([
     db()
       .from("rooms")
-      .select("id, title, join_code, status, template, starts_at, created_at, capacity, participants(count)")
+      .select("id, title, join_code, status, template, starts_at, created_at, capacity, participants!participants_room_id_fkey(count)")
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false })
       .returns<RoomListRow[]>(),

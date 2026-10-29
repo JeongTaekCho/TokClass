@@ -2,14 +2,14 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
-import { checkLock, registerFailure, remainingAttempts, type AttemptState } from "@/lib/auth/rate-limit";
+import { checkLock, MAX_FAILED_ATTEMPTS, MAX_FAILED_ATTEMPTS_PER_IP, registerFailure, remainingAttempts, type AttemptState } from "@/lib/auth/rate-limit";
 import { db } from "@/lib/supabase/admin";
 
 function hashKey(kind: string, value: string) {
   return `${kind}:${createHash("sha256").update(value).digest("hex").slice(0, 32)}`;
 }
 
-/** 같은 방에서 IP 기준·기기 기준 두 키로 시도를 기록해요. */
+/** 같은 방에서 IP 기준(20회)·기기 기준(5회) 두 키로 시도를 기록해요. */
 export function attemptKeys(ip: string, deviceId: string) {
   return [hashKey("ip", ip || "unknown"), hashKey("dev", deviceId)];
 }
@@ -40,9 +40,10 @@ export async function recordFailure(roomId: string, keys: string[], now = new Da
   let wait = 0;
   let remaining = Infinity;
   const rows = keys.map((k) => {
-    const next = registerFailure(states.get(k) ?? null, now);
+    const max = k.startsWith("ip:") ? MAX_FAILED_ATTEMPTS_PER_IP : MAX_FAILED_ATTEMPTS;
+    const next = registerFailure(states.get(k) ?? null, now, max);
     wait = Math.max(wait, checkLock(next, now).retryAfterSec);
-    remaining = Math.min(remaining, remainingAttempts(next));
+    remaining = Math.min(remaining, remainingAttempts(next, max));
     return {
       room_id: roomId,
       key: k,

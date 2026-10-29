@@ -49,3 +49,4 @@ supabase/.branches
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+/public/pdf.worker.min.mjs
