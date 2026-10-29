@@ -39,6 +39,10 @@ export function QaPanel({ readOnly = false }: { readOnly?: boolean }) {
       }, 500);
       return;
     }
+    if (!data) {
+      void mutate();
+      return;
+    }
     void mutate(
       (prev) => {
         const list = prev?.questions ?? [];

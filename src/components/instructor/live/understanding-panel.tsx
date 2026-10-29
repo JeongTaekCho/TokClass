@@ -21,7 +21,8 @@ export function UnderstandingPanel() {
   const { data, mutate } = useSWR<Data>(`/api/rooms/${roomId}/understanding`, fetcher);
   const { data: pData, mutate: mutateP } = useSWR<{ participants: ParticipantLite[] }>(`/api/rooms/${roomId}/participants`, fetcher);
   useRoomEvent("understanding.counts", ({ counts }) => {
-    void mutate((prev) => (prev ? { ...prev, counts } : prev), { revalidate: false });
+    if (data) void mutate({ ...data, counts }, { revalidate: false });
+    else void mutate();
     void mutateP();
   });
 
@@ -108,7 +109,7 @@ export function UnderstandingPanel() {
         onConfirm={async () => {
           try {
             const res = await api<{ counts: UnderstandingCounts }>(`/api/rooms/${roomId}/understanding`, { method: "DELETE" });
-            await mutate((prev) => (prev ? { ...prev, counts: res.counts } : prev), { revalidate: false });
+            if (data) await mutate({ ...data, counts: res.counts }, { revalidate: false });
             void mutateP();
           } catch (e) {
             toastError(e);
