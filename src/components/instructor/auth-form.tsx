@@ -26,7 +26,14 @@ export function AuthForm({ mode, next }: { mode: "login" | "signup"; next?: stri
         <Input id="email" name="email" type="email" autoComplete="email" required placeholder="you@example.com" />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="password">비밀번호</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">비밀번호</Label>
+          {mode === "login" && (
+            <Link href="/forgot" className="text-sm text-muted-foreground hover:text-primary hover:underline">
+              비밀번호를 잊으셨나요?
+            </Link>
+          )}
+        </div>
         <Input
           id="password"
           name="password"

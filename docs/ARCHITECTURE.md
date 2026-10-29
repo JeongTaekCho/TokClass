@@ -87,7 +87,7 @@ auth.users (강사)
 | rooms | owner_id, title, starts_at, capacity(≤100), template, join_code, status(active/ended), locked, focus_mode, settings(jsonb), current_material_id, current_page, readonly_token | `join_code`는 `status='active'`인 방끼리 partial unique |
 | room_templates | owner_id, name, base_template, settings | 내 방을 템플릿으로 저장 |
 | participants | room_id, nickname, password_hmac, session_version, kicked, group_id, last_active_at | unique(room_id, lower(nickname)), unique(room_id, password_hmac) |
-| login_attempts | room_id, key, failed_count, locked_until | 비밀번호 시도 제한 (IP 키·기기 키 각각 기록) |
+| login_attempts | room_id, key, failed_count, locked_until | 비밀번호 시도 제한 (기기 키 5회·IP 키 20회) |
 | messages | room_id, group_id, participant_id(null=강사), body, image_path, hidden | 전체/조 채팅 |
 | announcements | room_id, body | 상단 고정 공지 |
 | direct_messages | room_id, participant_id, from_instructor, body | 강사 ↔ 수강생 1:1 |
@@ -125,12 +125,12 @@ auth.users (강사)
 ## 4. 인증과 권한
 
 ### 강사
-Supabase Auth(이메일+비밀번호). `@supabase/ssr`로 쿠키 세션을 쓰고 `src/proxy.ts`에서 세션을 갱신합니다. Route Handler에서는 `auth.getUser()`로 확인한 뒤 `rooms.owner_id`와 비교합니다.
+Supabase Auth(이메일+비밀번호). 인증·비밀번호 재설정 메일 링크는 `/auth/callback`에서 세션으로 바꿔요. `@supabase/ssr`로 쿠키 세션을 쓰고 `src/proxy.ts`에서 세션을 갱신합니다. Route Handler에서는 `auth.getUser()`로 확인한 뒤 `rooms.owner_id`와 비교합니다.
 
 ### 수강생 (계정 없음)
 - 참여코드 → 닉네임으로 새로 참여 → 서버가 `crypto.randomInt`로 비밀번호(대문자+숫자 6자리, 0/O/1/I/L 제외) 생성.
 - DB에는 `HMAC-SHA256(PARTICIPANT_PASSWORD_SECRET, room_id + ":" + password)`만 저장. 비밀번호만으로 참여자를 찾을 수 있도록 (room_id, password_hmac) unique 인덱스로 조회합니다. 원문은 어디에도 저장하지 않습니다 (본인 브라우저 sessionStorage에만 보관해 "비밀번호 다시 보기"에 사용).
-- 시도 제한: `login_attempts`에 (방, IP 해시)와 (방, 기기 ID 해시) 두 키로 실패 횟수를 기록. 어느 키든 5회 연속 실패하면 1분 잠금. 성공 시 초기화.
+- 시도 제한: `login_attempts`에 (방, IP 해시)와 (방, 기기 ID 해시) 두 키로 실패 횟수를 기록. 기기 기준 5회, IP 기준 20회 연속 실패하면 1분 잠금(강의실은 여러 명이 같은 공인 IP를 쓰는 경우가 많아서). 성공 시 초기화.
 - 세션: `tk_p_{roomId}` httpOnly·secure·sameSite=lax 쿠키에 HS256 서명 토큰 `{pid, rid, sv}`. 요청마다 participants에서 `session_version`과 `kicked`를 확인합니다. [이 기기 기억 안 함]을 고르면 브라우저 세션 쿠키(만료 없음)로 발급합니다.
 - 1인 1접속: 비밀번호로 로그인하면 `session_version`을 1 올리고 `participant.session` 이벤트를 보냅니다. 이전 기기는 이벤트를 받아(또는 다음 요청에서 401) 연결을 끊고 입장 화면으로 이동합니다.
 - 재발급: 강사가 재발급하면 새 HMAC 저장 + `session_version` 증가 → 기존 비밀번호·세션 즉시 무효.

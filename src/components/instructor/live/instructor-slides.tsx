@@ -49,6 +49,9 @@ export function InstructorSlides() {
     }, 800);
   });
   useRoomEvent("material.changed", () => void mutate());
+  useRoomEvent("qa.changed", ({ question }) => {
+    if (question?.materialId === material?.id) void mutateQ();
+  });
 
   function go(materialId: string, nextPage: number) {
     const m = materials.find((x) => x.id === materialId);

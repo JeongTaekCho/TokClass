@@ -15,7 +15,7 @@ export function SubmissionCard({ s, onOpen }: { s: Submission; onOpen: () => voi
         s.isBest ? "border-coral ring-2 ring-coral/30" : "border-border",
         s.hidden && "opacity-60",
       )}
-      aria-label={`${s.author.nickname}님의 ${s.title || "산출물"} 자세히 보기`}
+      aria-haspopup="dialog"
     >
       {s.kind === "image" && s.fileUrl && <img src={s.fileUrl} alt="" loading="lazy" className="aspect-[4/3] w-full bg-muted object-cover" />}
       {s.kind === "file" && (

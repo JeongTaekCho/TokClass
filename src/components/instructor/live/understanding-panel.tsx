@@ -51,9 +51,7 @@ export function UnderstandingPanel() {
         <div className="mt-3 flex h-8 overflow-hidden rounded-xl bg-muted" role="img" aria-label={SIGNALS.map((s) => `${s.label} ${counts[s.status]}명`).join(", ")}>
           {SIGNALS.map((s) =>
             counts[s.status] > 0 ? (
-              <div key={s.status} className={cn("flex items-center justify-center text-xs font-bold text-white transition-all", s.color)} style={{ width: `${pct(counts[s.status])}%` }}>
-                {pct(counts[s.status]) >= 12 && `${pct(counts[s.status])}%`}
-              </div>
+              <div key={s.status} className={cn("transition-all", s.color)} style={{ width: `${pct(counts[s.status])}%` }} />
             ) : null,
           )}
         </div>
@@ -62,6 +60,7 @@ export function UnderstandingPanel() {
             <li key={s.status} className={cn("rounded-xl border p-2", s.soft, s.status === "red" && alert && "ring-2 ring-coral")}>
               <span aria-hidden>{s.emoji}</span> {s.short}
               <span className="block text-lg font-extrabold">{counts[s.status]}명</span>
+              <span className="block text-xs">{pct(counts[s.status])}%</span>
             </li>
           ))}
         </ul>

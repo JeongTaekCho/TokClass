@@ -83,14 +83,14 @@ test("강사 방 생성 → 수강생 닉네임 입장 → 채팅 → 투표 →
   await expect(s2).toHaveURL(new RegExp(`/r/${code}$`));
   await expect(s1.getByText("다른 기기에서 들어왔어요")).toBeVisible();
 
-  // 8) 이전 기록이 그대로: 내 채팅, 내 투표
-  await openChat(s2);
-  const myMessage = s2.getByRole("log").getByText(chatText);
-  await expect(myMessage).toBeVisible();
+  // 8) 이전 기록이 그대로: 진행 중 투표 팝업에 내 선택, 채팅에 내 메시지
   const popup = s2.getByRole("dialog");
   await expect(popup.getByText("가장 좋아하는 언어는?")).toBeVisible();
   await expect(popup.getByRole("radio", { name: /TypeScript/ })).toHaveAttribute("aria-checked", "true");
   await expect(popup.getByText("내 선택")).toBeVisible();
+  await popup.getByRole("button", { name: "닫기" }).click();
+  await openChat(s2);
+  await expect(s2.getByRole("log").getByText(chatText)).toBeVisible();
 
   // 9) 정리: 방 삭제
   const roomUrl = page.url().replace(/\/live$/, "/settings");

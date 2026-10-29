@@ -26,6 +26,12 @@ export const POST = roomHandler({ body: chatPostSchema }, async ({ actor, roomId
   if (actor.kind === "participant" && actor.room.focus_mode) {
     throw new ApiError(423, "지금은 집중 모드라 채팅이 잠겨 있어요.");
   }
+  if (actor.kind === "participant") {
+    // 도배 방지: 10초에 8개까지
+    const since = new Date(Date.now() - 10_000).toISOString();
+    const { count } = await db().from("messages").select("id", { count: "exact", head: true }).eq("participant_id", actor.participant.id).gte("created_at", since);
+    if ((count ?? 0) >= 8) throw new ApiError(429, "메시지를 너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.");
+  }
   const groupId = resolveGroupScope(actor, body.groupId);
   if (body.imagePath) {
     try {
