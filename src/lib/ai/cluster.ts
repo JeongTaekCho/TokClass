@@ -26,8 +26,12 @@ export function mergeClusters(result: ClusterResult, byId: Map<string, ClusterSo
   const used = new Set<string>();
   const clusters: QuestionCluster[] = [];
   for (const c of result.clusters) {
-    const items = c.questionIds.filter((id) => byId.has(id) && !used.has(id));
-    items.forEach((id) => used.add(id));
+    const items: string[] = [];
+    for (const id of c.questionIds) {
+      if (!byId.has(id) || used.has(id)) continue;
+      used.add(id);
+      items.push(id);
+    }
     if (items.length === 0) continue;
     const srcs = items.map((id) => byId.get(id)!);
     clusters.push({

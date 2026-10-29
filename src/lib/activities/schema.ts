@@ -60,7 +60,8 @@ export function parseResponse(type: ActivityType, config: ActivityConfig, raw: u
     case "poll":
     case "quiz": {
       const n = config.options?.length ?? 0;
-      const sel = z.array(z.number().int().min(0).max(n - 1)).min(1, "하나 이상 골라 주세요.").max(n).safeParse(obj.selected);
+      const rawSel = Array.isArray(obj.selected) ? [...new Set(obj.selected)] : obj.selected;
+      const sel = z.array(z.number().int().min(0).max(n - 1)).min(1, "하나 이상 골라 주세요.").max(n).safeParse(rawSel);
       if (!sel.success) fail("선택지를 골라 주세요.");
       const selected = [...new Set(sel.data!)].sort((a, b) => a - b);
       if (type === "poll" && !config.multiple && selected.length > 1) fail("하나만 고를 수 있어요.");
