@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 64" role="img" aria-label="톡클">
+  <defs>
+    <clipPath id="tk-coral-h"><path d="M24 9a17 17 0 1 1-10.6 30.3L6 43l2.6-8.1A17 17 0 0 1 24 9z"/></clipPath>
+  </defs>
+  <path d="M24 9a17 17 0 1 1-10.6 30.3L6 43l2.6-8.1A17 17 0 0 1 24 9z" fill="#FF6B4A"/>
+  <path d="M40 21a17 17 0 1 0 10.6 30.3L58 55l-2.6-8.1A17 17 0 0 0 40 21z" fill="#4F46E5"/>
+  <path clip-path="url(#tk-coral-h)" d="M40 21a17 17 0 1 0 10.6 30.3L58 55l-2.6-8.1A17 17 0 0 0 40 21z" fill="#8B3FB8"/>
+  <circle cx="13.5" cy="22" r="2.2" fill="#fff"/>
+  <circle cx="19.5" cy="22" r="2.2" fill="#fff"/>
+  <circle cx="25.5" cy="22" r="2.2" fill="#fff"/>
+  <path d="M40.5 43.5c2.6 3 7.4 3 10 0" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+  <text x="72" y="44" font-family="Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif" font-size="34" font-weight="800" letter-spacing="-1" fill="#1F1B3A">톡클</text>
+</svg>

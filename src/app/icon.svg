@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="톡클 심볼">
+  <defs>
+    <clipPath id="tk-coral"><path d="M24 9a17 17 0 1 1-10.6 30.3L6 43l2.6-8.1A17 17 0 0 1 24 9z"/></clipPath>
+  </defs>
+  <!-- 강사 말풍선 (코랄) -->
+  <path d="M24 9a17 17 0 1 1-10.6 30.3L6 43l2.6-8.1A17 17 0 0 1 24 9z" fill="#FF6B4A"/>
+  <!-- 수강생 말풍선 (인디고) -->
+  <path d="M40 21a17 17 0 1 0 10.6 30.3L58 55l-2.6-8.1A17 17 0 0 0 40 21z" fill="#4F46E5"/>
+  <!-- 겹친 부분 (보라) -->
+  <path clip-path="url(#tk-coral)" d="M40 21a17 17 0 1 0 10.6 30.3L58 55l-2.6-8.1A17 17 0 0 0 40 21z" fill="#8B3FB8"/>
+  <!-- 말하는 중 (점 세 개) -->
+  <circle cx="13.5" cy="22" r="2.2" fill="#fff"/>
+  <circle cx="19.5" cy="22" r="2.2" fill="#fff"/>
+  <circle cx="25.5" cy="22" r="2.2" fill="#fff"/>
+  <!-- 반응 (웃는 선) -->
+  <path d="M40.5 43.5c2.6 3 7.4 3 10 0" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
+</svg>

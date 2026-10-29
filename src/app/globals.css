@@ -1,26 +1,121 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
+/* 톡클 디자인 토큰: 밝은 라벤더 배경 + 보라 메인 (다크 모드는 MVP 제외) */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --radius: 1rem;
+
+  --background: #f8f7fc;
+  --foreground: #1f1b3a;
+  --card: #ffffff;
+  --card-foreground: #1f1b3a;
+  --popover: #ffffff;
+  --popover-foreground: #1f1b3a;
+
+  --primary: #7c3aed;
+  --primary-hover: #5b21b6;
+  --primary-foreground: #ffffff;
+  --primary-soft: #ede9fe;
+
+  --secondary: #f1eff8;
+  --secondary-foreground: #1f1b3a;
+  --muted: #f1eff8;
+  --muted-foreground: #6b6880;
+  --accent: #ede9fe;
+  --accent-foreground: #5b21b6;
+  --accent-coral: #ff6b4a;
+  --accent-coral-soft: #fff0ec;
+
+  --destructive: #dc2626;
+  --border: #e7e4f2;
+  --input: #e7e4f2;
+  --ring: #7c3aed;
+
+  /* 이해도 신호등 (색 + 텍스트 + 아이콘을 함께 표시) */
+  --signal-green: #16a34a;
+  --signal-yellow: #ca8a04;
+  --signal-red: #dc2626;
+
+  --brand-coral: #ff6b4a;
+  --brand-indigo: #4f46e5;
+  --brand-mix: #8b3fb8;
 }
 
 @theme inline {
+  --font-sans: var(--font-pretendard), "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 6px);
+  --radius-lg: calc(var(--radius) - 4px);
+  --radius-xl: var(--radius);
+  --radius-2xl: calc(var(--radius) + 4px);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-coral: var(--accent-coral);
+  --color-coral-soft: var(--accent-coral-soft);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-signal-green: var(--signal-green);
+  --color-signal-yellow: var(--signal-yellow);
+  --color-signal-red: var(--signal-red);
+  --color-brand-coral: var(--brand-coral);
+  --color-brand-indigo: var(--brand-indigo);
+  --color-brand-mix: var(--brand-mix);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --shadow-soft: 0 1px 2px rgb(31 27 58 / 0.04), 0 4px 16px rgb(31 27 58 / 0.06);
+  --shadow-lifted: 0 2px 4px rgb(31 27 58 / 0.05), 0 12px 32px rgb(31 27 58 / 0.1);
+
+  --animate-float-up: float-up 2.4s ease-out forwards;
+  @keyframes float-up {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    15% { opacity: 1; transform: translateY(-20px) scale(1.1); }
+    100% { transform: translateY(-220px) scale(1); opacity: 0; }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.6;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
