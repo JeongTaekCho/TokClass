@@ -4,6 +4,9 @@ import { looksLikeQuestion, mergeClusters, toPromptInput, type ClusterSource } f
 import { getLlmProvider } from "@/lib/ai/provider";
 import { db } from "@/lib/supabase/admin";
 
+// AI 응답을 기다리는 동안 서버리스 함수가 끊기지 않도록 여유를 둬요 (Vercel).
+export const maxDuration = 60;
+
 /** [질문 정리하기]: Q&A + 채팅 질문을 비슷한 것끼리 묶어요 (서버에서만 호출, 방당 일일 한도). */
 export const POST = roomHandler({ roles: ["instructor"], allowEnded: true }, async ({ roomId, actor }) => {
   const provider = getLlmProvider();
