@@ -15,7 +15,7 @@ export type MessageRow = {
   participant?: { nickname: string } | null;
 };
 
-export const MESSAGE_SELECT = "id, room_id, group_id, participant_id, body, image_path, hidden, created_at, participant:participants(nickname)";
+export const MESSAGE_SELECT = "id, room_id, group_id, participant_id, body, image_path, hidden, created_at, participant:participants!messages_participant_id_fkey(nickname)";
 
 export async function toChatMessages(rows: MessageRow[], viewer: "instructor" | "participant"): Promise<ChatMessage[]> {
   const urls = await signedUrls(

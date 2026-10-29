@@ -25,3 +25,8 @@ export function formatBytes(n: number) {
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)}KB`;
   return `${(n / 1024 / 1024).toFixed(1)}MB`;
 }
+
+const fullFmt = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: "Asia/Seoul" });
+export function formatDateTimeFull(iso: string) {
+  return fullFmt.format(new Date(iso));
+}

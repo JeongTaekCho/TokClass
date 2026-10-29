@@ -35,7 +35,7 @@ export async function loadActivity(roomId: string, id: string) {
 /** 방 전체 퀴즈 점수판 (상위 10명) */
 export async function quizLeaderboard(roomId: string) {
   const rows = must(
-    await db().from("activity_responses").select("score, participant:participants(nickname), activity:activities!inner(type)").eq("room_id", roomId).eq("activity.type", "quiz"),
+    await db().from("activity_responses").select("score, participant:participants!activity_responses_participant_id_fkey(nickname), activity:activities!activity_responses_activity_id_fkey!inner(type)").eq("room_id", roomId).eq("activity.type", "quiz"),
   ) as unknown as { score: number; participant: { nickname: string } | null }[];
   const sum = new Map<string, number>();
   for (const r of rows) {
@@ -51,7 +51,7 @@ export async function quizLeaderboard(roomId: string) {
 export async function computeActivityResults(row: ActivityRow, viewer: Viewer): Promise<ActivityResults> {
   const d = db();
   const responses = must(
-    await d.from("activity_responses").select("id, participant_id, data, score, created_at, participant:participants(nickname)").eq("activity_id", row.id).order("created_at").limit(2000),
+    await d.from("activity_responses").select("id, participant_id, data, score, created_at, participant:participants!activity_responses_participant_id_fkey(nickname)").eq("activity_id", row.id).order("created_at").limit(2000),
   ) as unknown as { id: string; participant_id: string; data: Record<string, unknown>; score: number; created_at: string; participant: { nickname: string } | null }[];
   const inputs: ResponseInput[] = responses.map((r) => ({ id: r.id, participantId: r.participant_id, nickname: r.participant?.nickname ?? "", data: r.data, score: r.score, createdAt: r.created_at }));
 
@@ -59,7 +59,7 @@ export async function computeActivityResults(row: ActivityRow, viewer: Viewer): 
   let liked: Set<string> | undefined;
   if (row.type === "ideas") {
     const rows = must(
-      await d.from("idea_notes").select("id, participant_id, body, color, like_count, participant:participants(nickname)").eq("activity_id", row.id).order("created_at").limit(500),
+      await d.from("idea_notes").select("id, participant_id, body, color, like_count, participant:participants!idea_notes_participant_id_fkey(nickname)").eq("activity_id", row.id).order("created_at").limit(500),
     ) as unknown as { id: string; participant_id: string | null; body: string; color: string; like_count: number; participant: { nickname: string } | null }[];
     ideas = rows.map((i) => ({ id: i.id, participantId: i.participant_id, nickname: i.participant?.nickname ?? (i.participant_id ? null : "강사"), body: i.body, color: i.color, likeCount: i.like_count }));
     if (viewer.kind === "participant" && rows.length > 0) {

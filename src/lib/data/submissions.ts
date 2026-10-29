@@ -28,7 +28,7 @@ export type SubmissionRow = {
   participant?: { nickname: string } | null;
 };
 
-export const SUBMISSION_SELECT = "*, participant:participants(nickname)";
+export const SUBMISSION_SELECT = "*, participant:participants!submissions_participant_id_fkey(nickname)";
 
 export async function toSubmissions(rows: SubmissionRow[], actor: Actor | null): Promise<Submission[]> {
   const d = db();

@@ -23,8 +23,8 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId }) =
     return { request: data ? toHelp(data as Row) : null };
   }
   const [open, done] = await Promise.all([
-    d.from("help_requests").select("*, participant:participants(nickname)").eq("room_id", roomId).eq("status", "open").order("created_at"),
-    d.from("help_requests").select("*, participant:participants(nickname)").eq("room_id", roomId).eq("status", "resolved").order("resolved_at", { ascending: false }).limit(10),
+    d.from("help_requests").select("*, participant:participants!help_requests_participant_id_fkey(nickname)").eq("room_id", roomId).eq("status", "open").order("created_at"),
+    d.from("help_requests").select("*, participant:participants!help_requests_participant_id_fkey(nickname)").eq("room_id", roomId).eq("status", "resolved").order("resolved_at", { ascending: false }).limit(10),
   ]);
   return { open: (must(open) as Row[]).map(toHelp), resolved: (must(done) as Row[]).map(toHelp) };
 });

@@ -21,7 +21,7 @@ export type QuestionRow = {
   participant?: { nickname: string } | null;
 };
 
-export const QUESTION_SELECT = "*, participant:participants(nickname)";
+export const QUESTION_SELECT = "*, participant:participants!questions_participant_id_fkey(nickname)";
 
 /**
  * 보는 사람에 맞게 질문을 변환해요.

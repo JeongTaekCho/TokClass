@@ -12,7 +12,7 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId, par
   if (!isUuid(params.id)) throw notFound();
   const sub = await loadSubmission(roomId, params.id);
   if (!sub || !canSeeSubmission(sub, actor)) throw notFound();
-  let q = db().from("submission_comments").select("id, participant_id, body, hidden, created_at, participant:participants(nickname)").eq("submission_id", sub.id).order("created_at").limit(300);
+  let q = db().from("submission_comments").select("id, participant_id, body, hidden, created_at, participant:participants!submission_comments_participant_id_fkey(nickname)").eq("submission_id", sub.id).order("created_at").limit(300);
   if (actor.kind === "participant") q = q.eq("hidden", false);
   const rows = must(await q) as unknown as Row[];
   const comments: SubmissionComment[] = rows.map((r) => ({
