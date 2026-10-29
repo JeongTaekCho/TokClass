@@ -32,5 +32,5 @@ export async function uploadFile(roomId: string, purpose: UploadPurpose, origina
     console.error("[upload] 업로드 실패", error);
     throw new ClientApiError(500, "파일을 올리지 못했어요. 다시 시도해 주세요.");
   }
-  return { path: ticket.path, name: original.name, mime, size: file.size };
+  return { path: ticket.path, name: file.name, mime, size: file.size };
 }

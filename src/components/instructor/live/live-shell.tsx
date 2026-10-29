@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { FolderOpen, Hand, Lock, LockOpen, MessageCircle, MessagesSquare, Megaphone, Gauge, Users, Focus } from "lucide-react";
 
 import { AnnouncementBar, AnnouncementManager } from "@/components/room/announcements";
+import { BoardPanel } from "@/components/room/board/board-panel";
 import { ChatPanel } from "@/components/room/chat-panel";
 import { ConnectionBadge } from "@/components/room/connection-badge";
 import { QaPanel } from "@/components/room/qa-panel";
@@ -66,6 +67,12 @@ export function LiveShell() {
         <div className="flex min-w-0 flex-col gap-4">
           <InstructorSlides />
           <ActivityPanel />
+          <section aria-labelledby="board-title" className="flex h-[680px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+            <h2 id="board-title" className="border-b border-border px-4 py-3 text-lg font-bold">
+              산출물 보드
+            </h2>
+            <BoardPanel />
+          </section>
           <details className="group rounded-2xl border border-border bg-card shadow-soft">
             <summary className="flex min-h-12 cursor-pointer items-center gap-2 px-4 font-bold">
               <FolderOpen className="size-4 text-primary" aria-hidden /> 자료실 관리
