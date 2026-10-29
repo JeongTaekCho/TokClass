@@ -17,6 +17,7 @@ import { ResourcesPanel } from "@/components/room/resources-panel";
 import { StudentSlides } from "@/components/room/slides/student-slides";
 import { ActivityPopup } from "@/components/student/activity-popup";
 import { BottomBar } from "@/components/student/bottom-bar";
+import { GroupBanner } from "@/components/student/group-banner";
 import { SessionLost } from "@/components/student/session-lost";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -136,6 +137,7 @@ export function StudentShell({ code }: { code: string }) {
       </header>
 
       <AnnouncementBar />
+      <GroupBanner me={me} />
 
       {room.status === "ended" && (
         <div className="bg-muted px-4 py-2 text-center text-sm">
