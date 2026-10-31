@@ -31,6 +31,11 @@ begin
     'email', now(), now(), now()
   ) on conflict do nothing;
 
+  -- 가입 트리거가 승인 대기로 만든 프로필을 승인 + 관리자로 바꿔요 (로컬 전용)
+  insert into public.instructor_profiles (user_id, email, name, status, is_admin, reviewed_at, reviewed_by)
+  values (v_user, 'demo@tokclass.dev', '데모 강사', 'approved', true, now(), 'seed')
+  on conflict (user_id) do update set status = 'approved', is_admin = true, reviewed_at = now(), reviewed_by = 'seed';
+
   insert into public.rooms (id, owner_id, title, starts_at, capacity, template, join_code, settings)
   values (
     v_room, v_user, '생성형 AI 실무 활용 1회차 (데모)', now(), 100, 'practice', '123456',

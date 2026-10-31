@@ -34,6 +34,8 @@ test("강사 방 생성 → 수강생 닉네임 입장 → 채팅 → 투표 →
   expect(code).toMatch(/^\d{6}$/);
 
   // 3) 투표 활동 미리 만들기
+  // 활동 운영은 강사 도구 패널에 있어요 (수강생 화면에는 없음)
+  await page.getByRole("tab", { name: /활동/ }).click();
   await page.getByRole("button", { name: "활동 만들기" }).click();
   await page.getByRole("radio", { name: /투표/ }).click();
   await page.getByLabel("질문").fill("가장 좋아하는 언어는?");

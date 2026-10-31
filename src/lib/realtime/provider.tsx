@@ -12,7 +12,7 @@ import type { Me, PublicRoom } from "@/lib/types";
 export type ConnectionStatus = "connecting" | "connected" | "reconnecting";
 export type PresenceMember = { id: string; kind: "instructor" | "participant"; nickname: string };
 type Handler<E extends RoomEventName> = (payload: RoomEvents[E]) => void;
-export type SessionLostReason = "kicked" | "replaced" | "reissued" | "expired";
+export type SessionLostReason = "kicked" | "replaced" | "reissued" | "signed_out" | "expired";
 
 type Ctx = {
   roomId: string;

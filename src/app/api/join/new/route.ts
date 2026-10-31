@@ -1,10 +1,10 @@
-import { apiHandler, must } from "@/lib/api/handler";
+import { apiHandler, must, roomSuspended } from "@/lib/api/handler";
 import { ApiError, notFound } from "@/lib/api/errors";
 import { generatePassword, hmacPassword } from "@/lib/auth/password";
 import { setParticipantSessionCookie } from "@/lib/auth/participant-session";
 import { serverEnv } from "@/lib/env";
 import { broadcast } from "@/lib/realtime/server";
-import { findRoomByCode } from "@/lib/rooms/lookup";
+import { findRoomByCode, isRoomOwnerBlocked } from "@/lib/rooms/lookup";
 import { db } from "@/lib/supabase/admin";
 import { joinNewSchema } from "@/lib/validation/join";
 
@@ -12,6 +12,7 @@ import { joinNewSchema } from "@/lib/validation/join";
 export const POST = apiHandler({ body: joinNewSchema }, async ({ body }) => {
   const room = await findRoomByCode(body.code);
   if (!room || room.status !== "active") throw notFound("진행 중인 수업을 찾지 못했어요. 참여코드를 확인해 주세요.");
+  if (await isRoomOwnerBlocked(room.owner_id)) throw roomSuspended();
   if (room.locked) throw new ApiError(403, "입장이 마감됐어요. 전에 참여했다면 [비밀번호로 참여하기]를 눌러 주세요.", "locked");
 
   const { count } = await db().from("participants").select("id", { count: "exact", head: true }).eq("room_id", room.id).eq("kicked", false);

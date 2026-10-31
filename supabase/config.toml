@@ -224,7 +224,8 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+# 톡클: 운영과 같이 켜요 (이메일 인증 → 관리자 승인). 로컬 메일은 Inbucket(http://127.0.0.1:54324)에서 확인해요.
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
@@ -243,6 +244,15 @@ otp_expiry = 3600
 # pass = "env(SENDGRID_API_KEY)"
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
+
+# 톡클 이메일 템플릿 (운영 프로젝트는 대시보드에 같은 HTML을 붙여 넣어요. README 참고)
+[auth.email.template.confirmation]
+subject = "[톡클] 이메일 인증을 완료해 주세요"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "[톡클] 비밀번호 재설정 안내"
+content_path = "./supabase/templates/recovery.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]

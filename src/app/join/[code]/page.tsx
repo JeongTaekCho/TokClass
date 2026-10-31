@@ -7,7 +7,7 @@ import { JoinFlow } from "@/components/student/join-flow";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/supabase/admin";
 import { loadParticipantFromSession } from "@/lib/auth/actor";
-import { findRoomByCode } from "@/lib/rooms/lookup";
+import { findRoomByCode, isRoomOwnerBlocked } from "@/lib/rooms/lookup";
 
 export const metadata: Metadata = { title: "수업 입장" };
 
@@ -28,14 +28,16 @@ export default async function JoinCodePage({ params }: PageProps<"/join/[code]">
     );
   }
 
+  // 정지된 강사의 방: 기록은 보존하고 입장만 막아요.
+  const blocked = await isRoomOwnerBlocked(room.owner_id);
   // 같은 브라우저에 유효한 세션이 있으면 비밀번호 없이 이어서 입장
-  if (await loadParticipantFromSession(room.id)) redirect(`/r/${code}`);
+  if (!blocked && (await loadParticipantFromSession(room.id))) redirect(`/r/${code}`);
 
   const { count } = await db().from("participants").select("id", { count: "exact", head: true }).eq("room_id", room.id).eq("kicked", false);
   return (
     <JoinFlow
       code={code}
-      room={{ id: room.id, title: room.title, status: room.status, locked: room.locked, full: (count ?? 0) >= room.capacity }}
+      room={{ id: room.id, title: room.title, status: room.status, locked: room.locked, full: (count ?? 0) >= room.capacity, blocked }}
     />
   );
 }

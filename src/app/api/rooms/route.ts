@@ -1,14 +1,12 @@
-import { apiHandler } from "@/lib/api/handler";
-import { ApiError, unauthorized } from "@/lib/api/errors";
+import { instructorHandler } from "@/lib/api/handler";
+import { ApiError } from "@/lib/api/errors";
 import { withUniqueJoinCode } from "@/lib/rooms/join-code";
 import { BUILTIN_TEMPLATES, defaultSettings, normalizeSettings, type BuiltinTemplate } from "@/lib/rooms/templates";
 import { db } from "@/lib/supabase/admin";
-import { getInstructor } from "@/lib/supabase/server";
 import { roomCreateSchema } from "@/lib/validation/room";
 
-export const POST = apiHandler({ body: roomCreateSchema }, async ({ body }) => {
-  const user = await getInstructor();
-  if (!user) throw unauthorized("로그인이 필요해요.");
+export const POST = instructorHandler({ body: roomCreateSchema }, async ({ body, access }) => {
+  const { user } = access;
 
   let template = "custom";
   let settings = defaultSettings("lecture");

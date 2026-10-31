@@ -1,11 +1,12 @@
 import { jwtVerify } from "jose";
 import { z } from "zod";
 
-import { apiHandler, must } from "@/lib/api/handler";
+import { apiHandler, must, roomSuspended } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
 import { setParticipantSessionCookie } from "@/lib/auth/participant-session";
 import { serverEnv } from "@/lib/env";
 import { broadcast } from "@/lib/realtime/server";
+import { isRoomOwnerBlocked } from "@/lib/rooms/lookup";
 import { db } from "@/lib/supabase/admin";
 
 const schema = z.object({ ticket: z.string().min(10).max(2000), remember: z.boolean().default(true) });
@@ -24,6 +25,8 @@ export const POST = apiHandler({ body: schema }, async ({ body }) => {
 
   const { data: current } = await db().from("participants").select("session_version, kicked").eq("id", pid).eq("room_id", rid).maybeSingle();
   if (!current || current.kicked) throw new ApiError(403, "입장할 수 없어요. 강사님께 문의해 주세요.");
+  const { data: room } = await db().from("rooms").select("owner_id").eq("id", rid).maybeSingle();
+  if (!room || (await isRoomOwnerBlocked(room.owner_id as string))) throw roomSuspended();
 
   const row = must(
     await db()

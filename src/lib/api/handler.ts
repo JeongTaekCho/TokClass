@@ -5,7 +5,9 @@ import { ZodError, type ZodType } from "zod";
 
 import { resolveActor, type Actor, type ActorKind } from "@/lib/auth/actor";
 import { ApiError, forbidden, notFound, unauthorized } from "@/lib/api/errors";
+import { isRoomOwnerBlocked } from "@/lib/rooms/lookup";
 import { db } from "@/lib/supabase/admin";
+import { getInstructorAccess, type InstructorAccess } from "@/lib/supabase/server";
 
 type RouteCtx = { params?: Promise<Record<string, string | string[] | undefined>> };
 
@@ -67,6 +69,7 @@ export function roomHandler<B = undefined>(
       const actor = await resolveActor(roomId, prefer);
       if (!actor) throw unauthorized();
       if (opts.roles && !opts.roles.includes(actor.kind)) throw forbidden();
+      if (actor.kind === "participant" && (await isRoomOwnerBlocked(actor.room.owner_id))) throw roomSuspended();
       const isWrite = req.method !== "GET";
       if (isWrite && actor.kind === "participant" && actor.room.status === "ended" && !opts.allowEnded) {
         throw new ApiError(409, "수업이 끝나서 더 이상 참여할 수 없어요.");
@@ -108,6 +111,28 @@ export function apiHandler<B = undefined>(
     }
   };
 }
+
+type InstructorCtx<B> = { req: NextRequest; body: B; params: Record<string, string>; access: InstructorAccess };
+
+/** 승인된 강사만 쓰는 API (방과 무관). 승인 전·거절·정지 상태면 403 */
+export function instructorHandler<B = undefined>(opts: { body?: ZodType<B> }, fn: (ctx: InstructorCtx<B>) => Promise<unknown>) {
+  return apiHandler(opts, async (ctx) => {
+    const access = await getInstructorAccess();
+    if (!access) throw unauthorized("로그인이 필요해요.");
+    if (access.profile.status !== "approved") throw new ApiError(403, "관리자 승인 후 이용할 수 있어요.", "not_approved");
+    return fn({ ...ctx, access });
+  });
+}
+
+/** 관리자 API: 승인된 강사 + is_admin */
+export function adminHandler<B = undefined>(opts: { body?: ZodType<B> }, fn: (ctx: InstructorCtx<B>) => Promise<unknown>) {
+  return instructorHandler(opts, async (ctx) => {
+    if (!ctx.access.profile.isAdmin) throw forbidden("관리자만 할 수 있어요.");
+    return fn(ctx);
+  });
+}
+
+export const roomSuspended = () => new ApiError(403, "지금은 이 수업에 들어갈 수 없어요. 강사님께 문의해 주세요.", "room_suspended");
 
 /** Supabase 에러를 던지기 */
 export function must<T>(res: { data: T; error: unknown }): T {

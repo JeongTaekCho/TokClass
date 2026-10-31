@@ -1,0 +1,62 @@
+<!doctype html>
+<!--
+  톡클 · 비밀번호 재설정 (Supabase Auth "Reset Password" 템플릿)
+  제목: [톡클] 비밀번호 재설정 안내
+  링크는 /auth/confirm(token_hash, type=recovery) → /reset-password 로 가요.
+-->
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>톡클 비밀번호 재설정</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#f4f3f8; -webkit-text-size-adjust:100%;">
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">버튼을 누르면 새 비밀번호를 정할 수 있어요.</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f3f8;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+            <tr>
+              <td style="padding:0 4px 20px 4px; font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',Pretendard,system-ui,sans-serif; font-size:24px; font-weight:800; letter-spacing:-0.5px;">
+                <span style="color:#ff6b4a;">톡</span><span style="color:#4f46e5;">클</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#ffffff; border:1px solid #e7e4f2; border-radius:12px; padding:36px 32px; font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',Pretendard,system-ui,sans-serif; color:#1f1b3a;">
+                <h1 style="margin:0 0 12px 0; font-size:22px; line-height:1.4; font-weight:800;">비밀번호를 다시 정해 주세요</h1>
+                <p style="margin:0 0 28px 0; font-size:15px; line-height:1.7;">
+                  <strong>{{ .Email }}</strong> 계정의 비밀번호 재설정을 요청받았어요. 아래 버튼을 누르면 새 비밀번호를 정할 수 있어요.
+                </p>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" bgcolor="#7c3aed" style="border-radius:10px;">
+                      <a
+                        href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password"
+                        target="_blank"
+                        style="display:inline-block; padding:14px 28px; font-family:'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif; font-size:16px; font-weight:700; color:#ffffff; text-decoration:none; border-radius:10px;"
+                        >새 비밀번호 정하기</a
+                      >
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:24px 0 0 0; font-size:13px; line-height:1.7; color:#6b6880;">
+                  버튼이 눌리지 않으면 아래 주소를 브라우저에 붙여 넣어 주세요. 링크는 1시간 동안, 한 번만 쓸 수 있어요.<br />
+                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password" style="color:#5b21b6; word-break:break-all;"
+                    >{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=recovery&amp;next=/reset-password</a
+                  >
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 4px 0 4px; font-family:'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif; font-size:12px; line-height:1.7; color:#8a879c;">
+                요청한 적이 없다면 이 메일은 무시해 주세요. 비밀번호는 바뀌지 않아요.<br />
+                톡클 · 듣는 수업을 함께 만드는 수업으로
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

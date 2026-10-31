@@ -1,12 +1,12 @@
 import { SignJWT } from "jose";
 
-import { apiHandler } from "@/lib/api/handler";
+import { apiHandler, roomSuspended } from "@/lib/api/handler";
 import { ApiError, notFound } from "@/lib/api/errors";
 import { attemptKeys, clearAttempts, clientIp, lockedFor, recordFailure } from "@/lib/auth/attempts";
 import { getOrCreateDeviceId } from "@/lib/auth/participant-session";
 import { hmacPassword, isValidPasswordFormat, normalizePassword } from "@/lib/auth/password";
 import { serverEnv } from "@/lib/env";
-import { findRoomByCode } from "@/lib/rooms/lookup";
+import { findRoomByCode, isRoomOwnerBlocked } from "@/lib/rooms/lookup";
 import { db } from "@/lib/supabase/admin";
 import { joinPasswordSchema } from "@/lib/validation/join";
 
@@ -17,6 +17,7 @@ import { joinPasswordSchema } from "@/lib/validation/join";
 export const POST = apiHandler({ body: joinPasswordSchema }, async ({ req, body }) => {
   const room = await findRoomByCode(body.code, { allowEnded: true });
   if (!room) throw notFound("참여코드에 맞는 수업을 찾지 못했어요.");
+  if (await isRoomOwnerBlocked(room.owner_id)) throw roomSuspended();
 
   const deviceId = await getOrCreateDeviceId();
   const keys = attemptKeys(clientIp(req.headers), deviceId);

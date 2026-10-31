@@ -1,5 +1,6 @@
 import "server-only";
 
+import { blocksParticipants, type InstructorStatus } from "@/lib/admin/rules";
 import { readParticipantSession } from "@/lib/auth/participant-session";
 import { db } from "@/lib/supabase/admin";
 import type { RoomRow } from "@/lib/types";
@@ -19,4 +20,11 @@ export async function findRoomByCode(code: string, opts: { allowEnded?: boolean 
   const active = rooms.find((r) => r.status === "active");
   if (active) return active;
   return opts.allowEnded ? (rooms[0] ?? null) : null;
+}
+
+/** 방 주인이 정지·거절된 강사면 수강생이 들어올 수 없어요. 기록은 그대로 둬요. */
+export async function isRoomOwnerBlocked(ownerId: string): Promise<boolean> {
+  const { data, error } = await db().from("instructor_profiles").select("status").eq("user_id", ownerId).maybeSingle();
+  if (error) throw error;
+  return blocksParticipants((data?.status as InstructorStatus | undefined) ?? null);
 }

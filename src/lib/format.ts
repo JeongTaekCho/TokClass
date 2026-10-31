@@ -30,3 +30,10 @@ const fullFmt = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "2-di
 export function formatDateTimeFull(iso: string) {
   return fullFmt.format(new Date(iso));
 }
+
+/** 한국 시간 오늘 0시 (ISO). 한국은 서머타임이 없어 +9시간 고정이에요. */
+export function startOfTodayKst(now = new Date()) {
+  const kst = new Date(now.getTime() + 9 * 3600_000);
+  kst.setUTCHours(0, 0, 0, 0);
+  return new Date(kst.getTime() - 9 * 3600_000).toISOString();
+}
