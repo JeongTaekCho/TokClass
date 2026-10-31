@@ -36,7 +36,7 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
       <div className="scrollbar-thin min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
         {isLoading && <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" aria-label="불러오는 중" />}
         {data?.messages.length === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">{mineIsInstructor ? "이 수강생에게만 보이는 메시지를 보내요." : "강사님과의 1:1 대화예요. 나만 볼 수 있어요."}</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">{mineIsInstructor ? "이 수강생에게만 보이는 메시지를 보내요." : "궁금한 점을 강사님께 따로 물어볼 수 있어요. 다른 수강생에게는 보이지 않아요."}</p>
         )}
         {data?.messages.map((m) => {
           const mine = m.fromInstructor === mineIsInstructor;
@@ -78,7 +78,7 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
                 e.currentTarget.form?.requestSubmit();
               }
             }}
-            placeholder={mineIsInstructor ? "1:1 메시지" : "강사님께 답장"}
+            placeholder={mineIsInstructor ? "1:1 메시지" : "강사님께 메시지 보내기"}
             aria-label="1:1 메시지 입력"
             className="max-h-32 min-h-11 flex-1 resize-none py-2.5"
           />

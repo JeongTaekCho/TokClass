@@ -8,7 +8,7 @@
 
 | 영역 | 기능 |
 |---|---|
-| 강사 | 이메일 가입·로그인·비밀번호 재설정, 대시보드, 방 만들기(강의형·실습형·워크숍형·내 템플릿), 참여코드·QR·링크, 탭 켜기/끄기·순서·첫 화면, 입장 마감, 집중 모드, 읽기 전용 링크, 종료·초기화·삭제 |
+| 강사 | 이메일 가입(관리자 승인 후 이용)·로그인·비밀번호 재설정, 대시보드, 방 만들기(강의형·실습형·워크숍형·내 템플릿), 참여코드·QR·링크, 탭 켜기/끄기·순서·첫 화면, 입장 마감, 집중 모드, 읽기 전용 링크, 종료·초기화·삭제 |
 | 수강생 입장 | 참여코드 → 닉네임으로 새로 참여(임시 비밀번호 발급, [저장했어요] 확인) / 비밀번호로 재참여, 같은 브라우저 자동 재입장, [이 기기 기억 안 함], 1인 1접속 |
 | 소통 | 전체 채팅(이미지·코드 블록·링크 미리보기·무한 스크롤), 공지, 강사↔수강생 1:1 메시지, 익명 Q&A(공감 정렬·답변), 이모지 반응, 도움 요청 |
 | 교안 | PDF 업로드, 실시간 페이지 동기화([따라가기]/자유 탐색), 페이지별 질문·반응 핀, 개인 메모, 자료실 |
@@ -18,6 +18,8 @@
 | 조별 소그룹방 | 자동 랜덤·수동·수강생 선택, 조별 채팅·산출물, 메인으로 합치기 |
 | AI | 비슷한 질문 묶기·요약 (서버에서만 호출, 방당 일일 한도, 키가 없으면 비활성화) |
 | 기록 | 수업 리포트(참여율·이해도 추이·TOP 질문·활동 결과), 채팅/Q&A/투표·퀴즈 내보내기(TXT·CSV), 산출물 ZIP, 수강생 복습 페이지, 참여자 관리(접속 상태·비밀번호 재발급·강퇴) |
+| 수강생 관리 (`/manage`) | 내 모든 방의 수강생 통합 목록(방·닉네임·상태 필터), 비밀번호 재발급·강퇴/복구·강제 로그아웃·조 이동·닉네임 변경, 활동·이해도·도움 요청 상세, 일괄 강퇴/로그아웃, CSV 내보내기(비밀번호 제외), 입장 마감·정원·참여코드 |
+| 관리자 (`/admin`) | 승인 대기·전체 강사·진행 중인 방·오늘 참여 수강생 개요, 강사 승인/거절/정지/정지 해제(사유), 관리자 권한 부여·회수, 강사 상세(승인 이력·보유 방), 전체 방 강제 종료·삭제, 감사 로그 |
 
 ## 기술 스택
 
@@ -55,7 +57,7 @@ pnpm dev   # http://localhost:3000
 
 | 구분 | 값 |
 |---|---|
-| 데모 강사 | `demo@tokclass.dev` / `tokclass1234` |
+| 데모 강사 | `demo@tokclass.dev` / `tokclass1234` (승인 + 관리자) |
 | 데모 방 참여코드 | `123456` |
 | 데모 수강생 비밀번호 | 민지 `TKCP23`, 하나 `HANA27` |
 
@@ -81,8 +83,54 @@ pnpm dev   # http://localhost:3000
    pnpm supabase db push
    ```
    `supabase/seed.sql`(데모 데이터)은 운영 DB에 넣지 마세요.
-3. **Realtime**: Project Settings → Realtime에서 **Allow public access를 꺼요**. 톡클은 private 채널만 써요.
-4. **Auth**: Authentication → URL Configuration의 **Site URL**을 배포 주소로, Redirect URLs에 `https://<배포 주소>/auth/callback`을 추가해요. 이메일 인증을 쓰지 않으려면 Email provider의 *Confirm email*을 꺼요.
+3. **첫 관리자 지정**: 아래 [첫 관리자 계정 만들기](#첫-관리자-계정-만들기)를 따라요.
+4. **Realtime**: Project Settings → Realtime에서 **Allow public access를 꺼요**. 톡클은 private 채널만 써요.
+5. **Auth**: Authentication → URL Configuration의 **Site URL**을 배포 주소로, Redirect URLs에 `https://<배포 주소>/auth/callback`을 추가해요. 이메일 인증을 쓰지 않으려면 Email provider의 *Confirm email*을 꺼요.
+
+## 강사 승인과 관리자
+
+- 새로 가입한 강사는 **승인 대기**(`pending`)예요. 가입하면 `auth.users` 트리거가 `instructor_profiles` 행을 만들고, 관리자가 `/admin/instructors`에서 승인해야 방을 만들 수 있어요.
+- 상태: `pending`(승인 대기) → `approved`(승인) / `rejected`(거절, 사유 필수) · `approved` → `suspended`(정지, 사유 필수) → `approved`(정지 해제). 거절된 신청은 다시 승인할 수 있어요.
+- 승인 전·거절·정지 상태로 로그인하면 `/pending` 안내 화면(상태·사유·로그아웃)으로 가요. `/dashboard`, `/rooms/**`, `/manage`, 강사 API 모두 서버에서 승인 여부를 확인해요.
+- **정지·거절된 강사의 방에는 수강생이 들어올 수 없어요** (입장·재입장·수업 화면·API·읽기 전용 링크 모두). 데이터는 지우지 않아서, 정지를 풀면 그대로 다시 쓸 수 있어요.
+- `/admin`은 `is_admin = true`이고 승인된 강사만 들어갈 수 있어요(아니면 404). 관리자는 자기 계정을 거절·정지하거나 자기 관리자 권한을 회수할 수 없고, 마지막 관리자의 권한도 회수할 수 없어요. 모든 관리자 작업은 `admin_audit_logs`에 남아요.
+
+### 첫 관리자 계정 만들기
+
+관리자 화면에서 관리자를 지정하려면 관리자가 한 명은 있어야 해서, 첫 관리자는 SQL로 지정해요.
+
+1. 관리자로 쓸 계정으로 먼저 강사 가입을 해요.
+2. Supabase 대시보드 → SQL Editor에서 이메일을 바꿔 실행해요.
+   ```sql
+   update public.instructor_profiles
+   set is_admin = true, status = 'approved', status_reason = null, reviewed_at = now(), reviewed_by = 'bootstrap'
+   where email = 'admin@example.com'
+   returning user_id, email, status, is_admin;
+   ```
+   결과가 0행이면 가입한 이메일이 맞는지, 마이그레이션(`20261031000100_admin.sql`)이 적용됐는지 확인해 주세요.
+3. 다시 로그인하면 헤더에 **관리자** 메뉴가 보여요. 이후 관리자 지정·회수는 `/admin/instructors`에서 해요.
+
+## 가입 이메일 인증 + 이메일 템플릿
+
+강사 가입은 **이메일 인증 → 관리자 승인** 순서예요. 이메일 인증을 안 한 계정은 로그인할 수 없고, 관리자 화면에서도 `인증 대기`로 보이며 승인 버튼이 막혀요(서버도 같은 규칙으로 거부해요). 메일을 못 받았으면 가입·로그인 화면의 [인증 메일 다시 보내기]를 써요.
+
+메일 링크는 `/auth/confirm?token_hash=…`로 와요. 가입한 브라우저가 아닌 기기(휴대폰 메일 앱 등)에서 눌러도 인증돼요. 인증이 끝나면 `/pending`에서 "이메일 인증을 완료했어요"와 승인 대기 안내를 보여줘요.
+
+### 운영 Supabase에 적용하기
+
+1. **이메일 인증 켜기**: Authentication → Sign In / Providers → Email → **Confirm email** 켜기 (현재 운영 프로젝트는 켜져 있어요).
+2. **URL 설정**: Authentication → URL Configuration
+   - **Site URL** = 실제 서비스 주소 (예: `https://tokclass.example.com`). 메일 링크가 이 주소로 만들어져요.
+   - **Redirect URLs**에 `https://<서비스 주소>/auth/callback`, `https://<서비스 주소>/auth/confirm` 추가 (로컬 테스트용으로 `http://localhost:3000/**`도 추가할 수 있어요).
+3. **템플릿 붙여 넣기**: Authentication → **Emails** → Templates
+   - **Confirm signup**: 제목 `[톡클] 이메일 인증을 완료해 주세요`, 본문에 `supabase/templates/confirmation.html` 전체를 붙여 넣고 저장
+   - **Reset Password**: 제목 `[톡클] 비밀번호 재설정 안내`, 본문에 `supabase/templates/recovery.html` 전체를 붙여 넣고 저장
+4. **발신 메일(SMTP)**: Supabase 기본 메일은 시간당 발송 수가 아주 적고 발신자가 `Supabase Auth`로 보여요. Authentication → Emails → **SMTP Settings**에서 자체 SMTP(Resend, SendGrid, AWS SES 등)를 연결하고 발신자 이름을 `톡클`로 바꿔요. 연결 후 Rate Limits에서 이메일 발송 한도도 확인해요.
+5. **확인**: 새 이메일로 가입 → 받은 메일 디자인 확인 → 다른 기기에서 링크 눌러 `/pending` 도착 확인 → 관리자 화면에서 `인증 완료` 표시와 승인 버튼 활성화 확인
+
+로컬 Supabase(`pnpm supabase start`)는 `supabase/config.toml`에 같은 템플릿이 연결돼 있고, 메일은 Inbucket(http://127.0.0.1:54324)에서 볼 수 있어요.
+
+> 템플릿 변수: `{{ .SiteURL }}`, `{{ .TokenHash }}`, `{{ .Email }}`, `{{ .Data.name }}`(가입 때 입력한 이름). 기본 템플릿의 `{{ .ConfirmationURL }}` 방식도 `/auth/callback`에서 계속 동작하지만, 가입한 브라우저에서만 인증돼요.
 
 ## Vercel 배포 체크리스트
 

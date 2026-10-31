@@ -2,35 +2,52 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { FolderOpen, Hand, Lock, LockOpen, MessageCircle, MessagesSquare, Megaphone, Gauge, Users, Focus } from "lucide-react";
+import { toast } from "sonner";
+import { Focus, Gauge, Hand, Lock, LockOpen, Megaphone, PanelRightClose, PanelRightOpen, Sparkles, Users, X } from "lucide-react";
 
-import { AnnouncementBar, AnnouncementManager } from "@/components/room/announcements";
-import { BoardPanel } from "@/components/room/board/board-panel";
-import { ChatPanel } from "@/components/room/chat-panel";
-import { ConnectionBadge } from "@/components/room/connection-badge";
-import { QaPanel } from "@/components/room/qa-panel";
-import { ResourcesPanel } from "@/components/room/resources-panel";
 import { ActivityPanel } from "@/components/instructor/live/activity-panel";
 import { DmInbox } from "@/components/instructor/live/dm-inbox";
 import { HelpQueue } from "@/components/instructor/live/help-queue";
-import { InstructorSlides } from "@/components/instructor/live/instructor-slides";
 import { JoinInfo } from "@/components/instructor/live/join-info";
 import { UnderstandingPanel } from "@/components/instructor/live/understanding-panel";
+import { AnnouncementManager } from "@/components/room/announcements";
+import { ClassroomShell } from "@/components/room/classroom-shell";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { api, fetcher } from "@/lib/client/api";
 import { toastError } from "@/lib/client/toast-error";
 import { useRoom, useRoomEvent } from "@/lib/realtime/provider";
-import type { Group, PublicRoom } from "@/lib/types";
+import type { PublicRoom } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
+/**
+ * 강사 수업 화면: 수강생과 같은 수업 화면(ClassroomShell) 위에 강사 전용 도구만 더해요.
+ * - 진행 도구 줄: 참여코드·QR, 집중 모드, 입장 마감
+ * - 강사 도구 패널: 이해도, 도움 요청, 활동 운영, 공지·1:1 메시지
+ */
 export function LiveShell() {
   const { room, roomId, setRoom, online } = useRoom();
-  const [side, setSide] = useState("understanding");
-  const [chatGroup, setChatGroup] = useState<string | null>(null);
-  const [helpCount, setHelpCount] = useState(0);
   const onlineStudents = [...online.values()].filter((m) => m.kind === "participant").length;
-  const { data: groupData, mutate: mutateGroups } = useSWR<{ groups: Group[] }>(room.settings.groups.active ? `/api/rooms/${roomId}/groups` : null, fetcher);
-  useRoomEvent("group.changed", () => void mutateGroups());
+  // 넓은 화면은 옆에 펼쳐 두고, 좁은 화면은 버튼으로 열어요. 패널은 늘 마운트해서 도움 요청 수를 계속 세요.
+  const [desktopOpen, setDesktopOpen] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [helpCount, setHelpCount] = useState(0);
+  const [toolTab, setToolTab] = useState("understanding");
+
+  // 수강생이 먼저 보낸 1:1 메시지도 놓치지 않도록: 안 읽은 수 배지 + 알림
+  const { data: dmData, mutate: mutateDm } = useSWR<{ threads: { participantId: string; unread: number }[] }>(`/api/rooms/${roomId}/dms`, fetcher);
+  const dmUnread = (dmData?.threads ?? []).reduce((n, t) => n + t.unread, 0);
+  const openMessages = () => {
+    setToolTab("messages");
+    setDesktopOpen(true);
+    setMobileOpen(true);
+  };
+  useRoomEvent("dm.new", ({ participantId, fromInstructor }) => {
+    void mutateDm();
+    if (fromInstructor) return;
+    const name = online.get(participantId)?.nickname ?? "수강생";
+    toast(`${name}님이 1:1 메시지를 보냈어요`, { action: { label: "보기", onClick: openMessages } });
+  });
 
   async function toggle(body: Record<string, boolean>) {
     try {
@@ -41,107 +58,116 @@ export function LiveShell() {
     }
   }
 
+  const badge = (n: number) => n > 0 && <span className="rounded-full bg-coral px-1.5 text-[11px] leading-5 font-bold text-white">{n}</span>;
+  const helpBadge = badge(helpCount);
+  const dmBadge = badge(dmUnread);
+  const totalBadge = badge(helpCount + dmUnread);
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="border-b border-border bg-card">
-        <div className="mx-auto flex w-full max-w-[1600px] flex-wrap items-center gap-2 px-4 py-2 sm:px-6">
-          <JoinInfo />
-          <span className="inline-flex items-center gap-1 rounded-lg px-2 text-sm text-muted-foreground" title="지금 접속한 수강생">
-            <Users className="size-4" aria-hidden /> 접속 {onlineStudents}명
+    <ClassroomShell
+      heightClass="h-[calc(100dvh-4rem)]"
+      headerActions={
+        <>
+          <span className="inline-flex items-center gap-1 px-1 text-sm text-muted-foreground" title="지금 접속한 수강생">
+            <Users className="size-4" aria-hidden /> {onlineStudents}명
           </span>
-          <ConnectionBadge />
-          <div className="ml-auto flex flex-wrap items-center gap-2">
-            <Button variant={room.focusMode ? "default" : "outline"} size="sm" aria-pressed={room.focusMode} onClick={() => toggle({ focusMode: !room.focusMode })}>
-              <Focus aria-hidden /> 집중 모드 {room.focusMode ? "켜짐" : "꺼짐"}
-            </Button>
-            <Button variant={room.locked ? "default" : "outline"} size="sm" aria-pressed={room.locked} onClick={() => toggle({ locked: !room.locked })}>
-              {room.locked ? <Lock aria-hidden /> : <LockOpen aria-hidden />} 입장 {room.locked ? "마감" : "열림"}
-            </Button>
+          <Button variant="outline" size="sm" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}>
+            <PanelRightOpen aria-hidden /> 강사 도구 {totalBadge}
+          </Button>
+          <Button variant="ghost" size="sm" className="hidden lg:inline-flex" onClick={() => setDesktopOpen((v) => !v)} aria-expanded={desktopOpen}>
+            {desktopOpen ? <PanelRightClose aria-hidden /> : <PanelRightOpen aria-hidden />} 강사 도구 {!desktopOpen && totalBadge}
+          </Button>
+        </>
+      }
+      toolbar={
+        <div className="border-t border-border bg-muted/40">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-3 py-1.5">
+            <span className="text-xs font-semibold text-muted-foreground">강사만 보여요</span>
+            <JoinInfo />
+            <div className="ml-auto flex flex-wrap items-center gap-2">
+              <Button variant={room.focusMode ? "default" : "outline"} size="sm" aria-pressed={room.focusMode} onClick={() => toggle({ focusMode: !room.focusMode })}>
+                <Focus aria-hidden /> 집중 모드 {room.focusMode ? "켜짐" : "꺼짐"}
+              </Button>
+              <Button variant={room.locked ? "default" : "outline"} size="sm" aria-pressed={room.locked} onClick={() => toggle({ locked: !room.locked })}>
+                {room.locked ? <Lock aria-hidden /> : <LockOpen aria-hidden />} 입장 {room.locked ? "마감" : "열림"}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-      <AnnouncementBar />
-      {room.status === "ended" && <p className="bg-muted px-4 py-2 text-center text-sm">종료된 수업이에요. 설정에서 다시 열 수 있어요.</p>}
-
-      <div className="mx-auto grid min-h-0 w-full max-w-[1600px] flex-1 gap-4 p-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_400px]">
-        <div className="flex min-w-0 flex-col gap-4">
-          <InstructorSlides />
-          <ActivityPanel />
-          <section aria-labelledby="board-title" className="flex h-[680px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
-            <h2 id="board-title" className="border-b border-border px-4 py-3 text-lg font-bold">
-              산출물 보드
-            </h2>
-            <BoardPanel />
-          </section>
-          <details className="group rounded-2xl border border-border bg-card shadow-soft">
-            <summary className="flex min-h-12 cursor-pointer items-center gap-2 px-4 font-bold">
-              <FolderOpen className="size-4 text-primary" aria-hidden /> 자료실 관리
-              <span className="text-sm font-normal text-muted-foreground">다운로드 파일·실습 링크</span>
-            </summary>
-            <ResourcesPanel manage />
-          </details>
-        </div>
-
-        <aside className="flex min-h-[560px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft lg:sticky lg:top-20 lg:h-[calc(100dvh-7rem)]">
-          <Tabs value={side} onValueChange={setSide} className="flex min-h-0 flex-1 flex-col gap-0">
-            <TabsList className="m-2 grid w-auto grid-cols-5">
-              <TabsTrigger value="understanding" aria-label="이해도">
-                <Gauge aria-hidden />
-                <span className="hidden xl:inline">이해도</span>
-              </TabsTrigger>
-              <TabsTrigger value="qa" aria-label="Q&A">
-                <MessagesSquare aria-hidden />
-                <span className="hidden xl:inline">Q&A</span>
-              </TabsTrigger>
-              <TabsTrigger value="help" aria-label={`도움 요청 ${helpCount}건`} className="relative">
-                <Hand aria-hidden />
-                <span className="hidden xl:inline">도움</span>
-                {helpCount > 0 && <span className="absolute -top-1 -right-1 rounded-full bg-coral px-1.5 text-[10px] leading-4 font-bold text-white">{helpCount}</span>}
-              </TabsTrigger>
-              <TabsTrigger value="chat" aria-label="채팅">
-                <MessageCircle aria-hidden />
-                <span className="hidden xl:inline">채팅</span>
-              </TabsTrigger>
-              <TabsTrigger value="messages" aria-label="공지와 1:1 메시지">
-                <Megaphone aria-hidden />
-                <span className="hidden xl:inline">공지</span>
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="understanding" forceMount hidden={side !== "understanding"} className="scrollbar-thin min-h-0 overflow-y-auto p-3 data-[state=inactive]:hidden">
-              <UnderstandingPanel />
-            </TabsContent>
-            <TabsContent value="qa" className="flex min-h-0 flex-col data-[state=inactive]:hidden">
-              <QaPanel />
-            </TabsContent>
-            <TabsContent value="help" forceMount hidden={side !== "help"} className="scrollbar-thin min-h-0 overflow-y-auto p-3 data-[state=inactive]:hidden">
-              <HelpQueue onCount={setHelpCount} />
-            </TabsContent>
-            <TabsContent value="chat" className="flex min-h-0 flex-col data-[state=inactive]:hidden">
-              {room.settings.groups.active && (groupData?.groups.length ?? 0) > 0 && (
-                <div className="scrollbar-thin flex gap-1 overflow-x-auto border-b border-border px-2 py-1.5">
-                  <Button size="sm" variant={chatGroup === null ? "soft" : "ghost"} onClick={() => setChatGroup(null)}>
-                    전체
-                  </Button>
-                  {groupData!.groups.map((g) => (
-                    <Button key={g.id} size="sm" variant={chatGroup === g.id ? "soft" : "ghost"} onClick={() => setChatGroup(g.id)}>
-                      {g.name}
-                    </Button>
-                  ))}
-                </div>
-              )}
-              <ChatPanel key={chatGroup ?? "main"} groupId={chatGroup} />
-            </TabsContent>
-            <TabsContent value="messages" className="scrollbar-thin flex min-h-0 flex-col overflow-y-auto data-[state=inactive]:hidden">
-              <div className="border-b border-border p-3">
-                <h3 className="mb-2 font-bold">공지</h3>
-                <AnnouncementManager />
-              </div>
-              <h3 className="px-3 pt-3 font-bold">1:1 메시지</h3>
-              <DmInbox />
-            </TabsContent>
-          </Tabs>
+      }
+      endedNotice="종료된 수업이에요. 설정에서 다시 열 수 있어요."
+      tools={
+        <aside
+          aria-label="강사 도구"
+          className={cn(
+            "min-h-0 flex-col border-l border-border bg-card",
+            mobileOpen ? "fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] shadow-lifted" : "hidden",
+            desktopOpen ? "lg:static lg:z-auto lg:flex lg:w-[400px] lg:max-w-none lg:shrink-0 lg:shadow-none" : "lg:hidden",
+          )}
+        >
+          <ToolsPanel tab={toolTab} onTab={setToolTab} onHelpCount={setHelpCount} helpBadge={helpBadge} dmBadge={dmBadge} onClose={() => setMobileOpen(false)} />
         </aside>
+      }
+      overlay={mobileOpen && <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setMobileOpen(false)} aria-hidden />}
+    />
+  );
+}
+
+/** 강사 전용 도구 (수강생 화면에는 없어요) */
+function ToolsPanel({
+  tab,
+  onTab,
+  onHelpCount,
+  helpBadge,
+  dmBadge,
+  onClose,
+}: {
+  tab: string;
+  onTab: (tab: string) => void;
+  onHelpCount: (n: number) => void;
+  helpBadge: React.ReactNode;
+  dmBadge: React.ReactNode;
+  onClose: () => void;
+}) {
+  return (
+    <Tabs value={tab} onValueChange={onTab} className="flex min-h-0 flex-1 flex-col gap-0">
+      <div className="flex items-center gap-1 border-b border-border p-2">
+        <TabsList className="grid flex-1 grid-cols-4">
+          <TabsTrigger value="understanding">
+            <Gauge aria-hidden /> 이해도
+          </TabsTrigger>
+          <TabsTrigger value="help" aria-label="도움 요청">
+            <Hand aria-hidden /> 도움 {helpBadge}
+          </TabsTrigger>
+          <TabsTrigger value="activity">
+            <Sparkles aria-hidden /> 활동
+          </TabsTrigger>
+          <TabsTrigger value="messages" aria-label="공지와 1:1 메시지">
+            <Megaphone aria-hidden /> 공지·1:1 {dmBadge}
+          </TabsTrigger>
+        </TabsList>
+        <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="강사 도구 닫기" onClick={onClose}>
+          <X aria-hidden />
+        </Button>
       </div>
-    </div>
+      <TabsContent value="understanding" forceMount hidden={tab !== "understanding"} className="scrollbar-thin min-h-0 overflow-y-auto p-3 data-[state=inactive]:hidden">
+        <UnderstandingPanel />
+      </TabsContent>
+      <TabsContent value="help" forceMount hidden={tab !== "help"} className="scrollbar-thin min-h-0 overflow-y-auto p-3 data-[state=inactive]:hidden">
+        <HelpQueue onCount={onHelpCount} />
+      </TabsContent>
+      <TabsContent value="activity" forceMount hidden={tab !== "activity"} className="scrollbar-thin min-h-0 overflow-y-auto p-3 data-[state=inactive]:hidden">
+        <p className="mb-2 text-xs text-muted-foreground">활동을 시작하면 수강생 화면에 팝업으로 떠요.</p>
+        <ActivityPanel />
+      </TabsContent>
+      <TabsContent value="messages" className="scrollbar-thin flex min-h-0 flex-col overflow-y-auto data-[state=inactive]:hidden">
+        <div className="border-b border-border p-3">
+          <h3 className="mb-2 font-bold">공지</h3>
+          <AnnouncementManager />
+        </div>
+        <h3 className="px-3 pt-3 font-bold">1:1 메시지</h3>
+        <DmInbox />
+      </TabsContent>
+    </Tabs>
   );
 }

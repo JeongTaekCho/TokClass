@@ -10,6 +10,7 @@ const MESSAGES: Record<SessionLostReason, { title: string; body: string }> = {
   replaced: { title: "다른 기기에서 들어왔어요", body: "같은 비밀번호로 다른 기기에서 입장해서 이 기기의 연결을 끊었어요." },
   kicked: { title: "수업에서 나가게 됐어요", body: "강사님이 이 수업에서 내보냈어요. 궁금한 점은 강사님께 문의해 주세요." },
   reissued: { title: "비밀번호가 새로 발급됐어요", body: "강사님이 비밀번호를 새로 발급했어요. 새 비밀번호로 다시 들어와 주세요." },
+  signed_out: { title: "로그아웃됐어요", body: "강사님이 이 기기의 접속을 끊었어요. 비밀번호로 다시 들어와 주세요." },
   expired: { title: "연결이 끊겼어요", body: "세션이 만료됐어요. 비밀번호로 다시 들어와 주세요." },
 };
 

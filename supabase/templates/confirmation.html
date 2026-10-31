@@ -1,0 +1,83 @@
+<!doctype html>
+<!--
+  톡클 · 가입 이메일 인증 (Supabase Auth "Confirm signup" 템플릿)
+  제목: [톡클] 이메일 인증을 완료해 주세요
+  링크는 /auth/confirm(token_hash)으로 가서 다른 기기에서 열어도 인증돼요.
+  메일 앱 호환을 위해 표(table) 레이아웃 + 인라인 스타일만 써요. 외부 이미지·웹폰트·SVG는 쓰지 않아요.
+-->
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light only" />
+    <title>톡클 이메일 인증</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#f4f3f8; -webkit-text-size-adjust:100%;">
+    <!-- 받은편지함 미리보기 문구 -->
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">
+      버튼을 누르면 이메일 인증이 끝나고 가입 신청이 접수돼요. 관리자 승인 후 톡클을 이용할 수 있어요.
+    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f3f8;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:520px;">
+            <!-- 워드마크 -->
+            <tr>
+              <td style="padding:0 4px 20px 4px; font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',Pretendard,system-ui,sans-serif; font-size:24px; font-weight:800; letter-spacing:-0.5px;">
+                <span style="color:#ff6b4a;">톡</span><span style="color:#4f46e5;">클</span>
+              </td>
+            </tr>
+            <!-- 본문 -->
+            <tr>
+              <td style="background-color:#ffffff; border:1px solid #e7e4f2; border-radius:12px; padding:36px 32px; font-family:'Apple SD Gothic Neo','Malgun Gothic','맑은 고딕',Pretendard,system-ui,sans-serif; color:#1f1b3a;">
+                <h1 style="margin:0 0 12px 0; font-size:22px; line-height:1.4; font-weight:800;">이메일 인증을 완료해 주세요</h1>
+                <p style="margin:0 0 8px 0; font-size:15px; line-height:1.7;">
+                  {{ if .Data.name }}{{ .Data.name }}님{{ else }}선생님{{ end }}, 톡클 강사 가입을 신청해 주셔서 고마워요.
+                </p>
+                <p style="margin:0 0 28px 0; font-size:15px; line-height:1.7;">
+                  아래 버튼을 누르면 <strong>{{ .Email }}</strong> 인증이 끝나고 가입 신청이 접수돼요.
+                </p>
+                <!-- 버튼 (이미지 없이 표로 만든 버튼) -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" bgcolor="#7c3aed" style="border-radius:10px;">
+                      <a
+                        href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/pending"
+                        target="_blank"
+                        style="display:inline-block; padding:14px 28px; font-family:'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif; font-size:16px; font-weight:700; color:#ffffff; text-decoration:none; border-radius:10px;"
+                        >이메일 인증하기</a
+                      >
+                    </td>
+                  </tr>
+                </table>
+                <!-- 다음 단계 -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px; background-color:#f7f6fb; border-radius:10px;">
+                  <tr>
+                    <td style="padding:16px 18px; font-size:14px; line-height:1.7; color:#4a4660;">
+                      <strong style="color:#1f1b3a;">가입은 이렇게 진행돼요</strong><br />
+                      1. 이메일 인증 (지금 단계)<br />
+                      2. 관리자 승인 · 승인되면 로그인해서 바로 방을 만들 수 있어요
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:24px 0 0 0; font-size:13px; line-height:1.7; color:#6b6880;">
+                  버튼이 눌리지 않으면 아래 주소를 브라우저에 붙여 넣어 주세요. 링크는 1시간 동안, 한 번만 쓸 수 있어요.<br />
+                  <a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/pending" style="color:#5b21b6; word-break:break-all;"
+                    >{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&amp;type=email&amp;next=/pending</a
+                  >
+                </p>
+              </td>
+            </tr>
+            <!-- 바닥글 -->
+            <tr>
+              <td style="padding:20px 4px 0 4px; font-family:'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif; font-size:12px; line-height:1.7; color:#8a879c;">
+                가입한 적이 없다면 이 메일은 무시해 주세요. 인증하지 않으면 계정은 활성화되지 않아요.<br />
+                톡클 · 듣는 수업을 함께 만드는 수업으로
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

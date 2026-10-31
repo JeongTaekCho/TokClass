@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { CalendarDays, DoorOpen, Settings, Users } from "lucide-react";
 
 import { InstructorHeader } from "@/components/instructor/instructor-header";
@@ -11,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { TEMPLATE_INFO, type BuiltinTemplate } from "@/lib/rooms/templates";
 import { db } from "@/lib/supabase/admin";
-import { getInstructor } from "@/lib/supabase/server";
+import { instructorDisplayName, requireApprovedInstructor } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "내 방" };
 
@@ -28,8 +27,8 @@ type RoomListRow = {
 };
 
 export default async function DashboardPage() {
-  const user = await getInstructor();
-  if (!user) redirect("/login?next=/dashboard");
+  const access = await requireApprovedInstructor("/dashboard");
+  const { user } = access;
 
   const [{ data: rooms, error }, { data: templates }] = await Promise.all([
     db()
@@ -41,11 +40,10 @@ export default async function DashboardPage() {
     db().from("room_templates").select("id, name, created_at").eq("owner_id", user.id).order("created_at", { ascending: false }),
   ]);
   if (error) console.error("[dashboard] 방 목록 조회 실패", error);
-  const name = (user.user_metadata?.name as string | undefined) ?? user.email;
 
   return (
     <div className="min-h-dvh">
-      <InstructorHeader name={name} />
+      <InstructorHeader name={instructorDisplayName(access)} isAdmin={access.profile.isAdmin} />
       <main className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_300px]">
         <section aria-labelledby="rooms-title">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-3">

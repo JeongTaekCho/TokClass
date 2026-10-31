@@ -127,6 +127,20 @@ auth.users (강사)
 ### 강사
 Supabase Auth(이메일+비밀번호). 인증·비밀번호 재설정 메일 링크는 `/auth/callback`에서 세션으로 바꿔요. `@supabase/ssr`로 쿠키 세션을 쓰고 `src/proxy.ts`에서 세션을 갱신합니다. Route Handler에서는 `auth.getUser()`로 확인한 뒤 `rooms.owner_id`와 비교합니다.
 
+### 강사 승인 게이트와 관리자
+- `instructor_profiles(user_id, email, name, status, status_reason, is_admin, created_at, reviewed_at, reviewed_by)`. 가입 시 `auth.users` AFTER INSERT 트리거가 `pending` 행을 만들어요. `reviewed_by`에는 처리한 관리자 user_id(또는 `bootstrap`/`migration`)를 텍스트로 넣어요.
+- 상태 전이 규칙은 `src/lib/admin/rules.ts`(순수 함수, Vitest)에 있고 서버 API와 화면 버튼이 같은 규칙을 써요.
+- 헬퍼 (`src/lib/supabase/server.ts`): `getInstructor()`(로그인만) · `getInstructorAccess()`(+프로필, 요청 단위 cache) · `getApprovedInstructor()` · `getAdmin()` · 페이지용 `requireApprovedInstructor(next)`(→ `/login` 또는 `/pending`) · `requireAdmin()`(일반 강사는 404). API는 `instructorHandler` / `adminHandler`(`src/lib/api/handler.ts`), 방 API는 `resolveActor`가 승인된 강사만 instructor로 인정해요.
+- `proxy.ts`는 사용자 세션으로 본인 프로필(RLS `self read`)을 읽어 승인 상태가 아니면 `/pending`으로 보내는 **낙관적 확인**만 해요. 행을 못 읽으면 판단하지 않고 페이지의 서버 확인에 맡겨요(리다이렉트 반복 방지).
+- 정지·거절된 강사의 방: `isRoomOwnerBlocked()`로 입장 API(`/api/join/*`), 입장 화면, `/r/[code]`, `/view/[token]`, `roomHandler`의 수강생 요청을 403(`room_suspended`)으로 막아요. 데이터는 보존해요. 이미 연결된 수강생은 다음 API 요청 또는 Realtime 토큰 갱신(최대 10분)에서 끊겨요.
+- 관리자 작업은 모두 `admin_audit_logs(actor_id, actor_email, action, target_type, target_id, target_label, reason, meta, created_at)`에 남아요. RLS 정책이 없어 service role만 접근해요.
+
+### 수강생 관리 (`/manage`)
+- 승인된 강사 본인 방의 수강생만 다뤄요. `/api/manage/*`는 `instructorHandler` + `ownedRoomIds()`로, 개별 작업은 기존 방 API(`/api/rooms/[roomId]/participants/[pid]`, `roomHandler` 방 주인 확인)를 재사용해요.
+- 작업 로직은 `src/lib/manage/participants.ts`에 모아 방별 화면·통합 화면·일괄 작업이 같은 코드를 써요. 강퇴·강제 로그아웃·재발급은 `session_version`을 올리고 `participant.session`(reason `kicked`/`signed_out`/`reissued`)을 보내요.
+- 여러 방의 접속 상태는 `useRoomsPresence()`가 진행 중인 방 채널을 구독만 하고(track 안 함) Presence를 모아서 보여줘요.
+- PostgREST `max_rows`(1000)를 넘는 목록은 `fetchPaged()`로 나눠 받아요 (최대 3,000명).
+
 ### 수강생 (계정 없음)
 - 참여코드 → 닉네임으로 새로 참여 → 서버가 `crypto.randomInt`로 비밀번호(대문자+숫자 6자리, 0/O/1/I/L 제외) 생성.
 - DB에는 `HMAC-SHA256(PARTICIPANT_PASSWORD_SECRET, room_id + ":" + password)`만 저장. 비밀번호만으로 참여자를 찾을 수 있도록 (room_id, password_hmac) unique 인덱스로 조회합니다. 원문은 어디에도 저장하지 않습니다 (본인 브라우저 sessionStorage에만 보관해 "비밀번호 다시 보기"에 사용).
@@ -176,7 +190,7 @@ Supabase Auth(이메일+비밀번호). 인증·비밀번호 재설정 메일 링
 | `activity.results` | 서버 | 집계 결과 | 실시간 결과 (공개 시점 설정 반영) |
 | `submission.changed` | 서버 | `{id}` | 보드 재조회 |
 | `group.changed` | 서버 | `{}` | 조 정보 재조회 |
-| `participant.session` | 서버 | `{participantId, reason}` | 해당 기기 연결 해제(강퇴/다른 기기 로그인/재발급) |
+| `participant.session` | 서버 | `{participantId, reason}` | 해당 기기 연결 해제(강퇴/다른 기기 로그인/재발급/강제 로그아웃) |
 | Presence | 각 클라이언트 | `{id, kind, nickname}` | 접속 상태 |
 
 ### 재연결과 누락 복구

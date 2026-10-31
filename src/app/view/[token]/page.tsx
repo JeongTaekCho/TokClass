@@ -13,6 +13,7 @@ import { listMaterials } from "@/lib/data/materials";
 import { SUBMISSION_SELECT, toSubmissions, type SubmissionRow } from "@/lib/data/submissions";
 import { formatTime } from "@/lib/format";
 import { db } from "@/lib/supabase/admin";
+import { isRoomOwnerBlocked } from "@/lib/rooms/lookup";
 import type { RoomRow } from "@/lib/types";
 
 export const metadata: Metadata = { title: "읽기 전용", robots: { index: false, follow: false } };
@@ -22,7 +23,7 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
   const { token } = await params;
   if (!/^[A-Za-z0-9_-]{16,64}$/.test(token)) notFound();
   const room = (await db().from("rooms").select("*").eq("readonly_token", token).maybeSingle()).data as RoomRow | null;
-  if (!room) notFound();
+  if (!room || (await isRoomOwnerBlocked(room.owner_id))) notFound();
 
   const d = db();
   const [announcements, materials, msgRows, qRows, sRows] = await Promise.all([

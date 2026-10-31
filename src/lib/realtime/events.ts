@@ -27,7 +27,7 @@ export type RoomEvents = {
   "activity.results": { activityId: string; results: ActivityResults | null };
   "submission.changed": { id: string; groupId: string | null };
   "group.changed": Record<string, never>;
-  "participant.session": { participantId: string; reason: "kicked" | "replaced" | "reissued" };
+  "participant.session": { participantId: string; reason: "kicked" | "replaced" | "reissued" | "signed_out" };
   "participant.joined": { participantId: string };
 };
 

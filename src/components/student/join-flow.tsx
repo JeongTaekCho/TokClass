@@ -15,7 +15,7 @@ import { copyText } from "@/lib/client/clipboard";
 import { savePassword } from "@/lib/client/password-store";
 import { toastError } from "@/lib/client/toast-error";
 
-type RoomInfo = { id: string; title: string; status: "active" | "ended"; locked: boolean; full: boolean };
+type RoomInfo = { id: string; title: string; status: "active" | "ended"; locked: boolean; full: boolean; blocked?: boolean };
 type Step = "choose" | "nickname" | "issued" | "password" | "confirm";
 
 export function JoinFlow({ code, room }: { code: string; room: RoomInfo }) {
@@ -30,7 +30,7 @@ export function JoinFlow({ code, room }: { code: string; room: RoomInfo }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canJoinNew = room.status === "active" && !room.locked && !room.full;
+  const canJoinNew = room.status === "active" && !room.locked && !room.full && !room.blocked;
 
   async function run(fn: () => Promise<void>) {
     setPending(true);
@@ -56,7 +56,8 @@ export function JoinFlow({ code, room }: { code: string; room: RoomInfo }) {
       <section className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-lifted sm:p-8" aria-live="polite">
         <p className="text-sm font-semibold text-primary">참여코드 {code}</p>
         <h1 className="mt-1 text-2xl leading-snug font-extrabold">{room.title}</h1>
-        {room.status === "ended" && <p className="mt-2 rounded-xl bg-muted px-3 py-2 text-sm">수업이 끝났어요. 전에 참여했다면 비밀번호로 들어와 복습할 수 있어요.</p>}
+        {room.blocked && <p className="mt-2 rounded-xl bg-coral-soft px-3 py-2 text-sm">지금은 이 수업에 들어갈 수 없어요. 강사님께 문의해 주세요.</p>}
+        {!room.blocked && room.status === "ended" && <p className="mt-2 rounded-xl bg-muted px-3 py-2 text-sm">수업이 끝났어요. 전에 참여했다면 비밀번호로 들어와 복습할 수 있어요.</p>}
 
         {step === "choose" && (
           <div className="mt-6 space-y-3">
@@ -69,7 +70,7 @@ export function JoinFlow({ code, room }: { code: string; room: RoomInfo }) {
               </p>
             )}
             {room.status === "active" && !room.locked && room.full && <p className="text-sm text-muted-foreground">정원이 다 찼어요.</p>}
-            <Button size="lg" variant="outline" className="h-14 w-full text-base" onClick={() => setStep("password")}>
+            <Button size="lg" variant="outline" className="h-14 w-full text-base" disabled={room.blocked} onClick={() => setStep("password")}>
               <KeyRound aria-hidden /> 비밀번호로 참여하기
             </Button>
             <div className="flex items-center gap-2 pt-2">

@@ -14,10 +14,11 @@ import { useRoom, useRoomEvent } from "@/lib/realtime/provider";
 import type { Material, Resource } from "@/lib/types";
 
 /** 자료실: 다운로드 파일·실습 링크 모음 (강사는 관리도 가능) */
+/** 자료실 (강사·수강생 같은 목록). manage면 강사 전용 추가·삭제 도구가 더 보여요. */
 export function ResourcesPanel({ manage = false }: { manage?: boolean }) {
   const { roomId } = useRoom();
   const { data, mutate, isLoading } = useSWR<{ resources: Resource[] }>(`/api/rooms/${roomId}/resources`, fetcher);
-  const { data: mat } = useSWR<{ materials: Material[] }>(manage ? null : `/api/rooms/${roomId}/materials`, fetcher);
+  const { data: mat } = useSWR<{ materials: Material[] }>(`/api/rooms/${roomId}/materials`, fetcher);
   useRoomEvent("resource.changed", () => void mutate());
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
@@ -28,7 +29,8 @@ export function ResourcesPanel({ manage = false }: { manage?: boolean }) {
   return (
     <div className="scrollbar-thin min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
       {manage && (
-        <div className="grid gap-2 rounded-xl border border-border p-3 sm:grid-cols-[1fr_1.4fr_auto_auto]">
+        <div className="grid gap-2 rounded-xl bg-muted/60 p-3 sm:grid-cols-[1fr_1.4fr_auto_auto]">
+          <p className="text-xs font-semibold text-muted-foreground sm:col-span-4">자료 추가 (강사만 보여요)</p>
           <Input aria-label="자료 제목" placeholder="제목" value={title} maxLength={100} onChange={(e) => setTitle(e.target.value)} />
           <Input aria-label="링크 주소" placeholder="https://… (링크일 때)" value={url} onChange={(e) => setUrl(e.target.value)} />
           <Button
@@ -79,7 +81,7 @@ export function ResourcesPanel({ manage = false }: { manage?: boolean }) {
         </div>
       )}
 
-      {!manage && (mat?.materials.length ?? 0) > 0 && (
+      {(mat?.materials.length ?? 0) > 0 && (
         <section>
           <h3 className="mb-2 text-sm font-bold text-muted-foreground">교안</h3>
           <ul className="space-y-2">
@@ -97,7 +99,7 @@ export function ResourcesPanel({ manage = false }: { manage?: boolean }) {
       )}
 
       <section>
-        {!manage && <h3 className="mb-2 text-sm font-bold text-muted-foreground">자료·링크</h3>}
+        <h3 className="mb-2 text-sm font-bold text-muted-foreground">자료·링크</h3>
         {isLoading && <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" aria-label="불러오는 중" />}
         {!isLoading && resources.length === 0 && (
           <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">

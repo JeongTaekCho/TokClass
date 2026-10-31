@@ -3,7 +3,7 @@ import "server-only";
 import { readParticipantSession } from "@/lib/auth/participant-session";
 import { normalizeSettings, type RoomSettings } from "@/lib/rooms/templates";
 import { db } from "@/lib/supabase/admin";
-import { getInstructor } from "@/lib/supabase/server";
+import { getApprovedInstructor } from "@/lib/supabase/server";
 import type { ParticipantRow, RoomRow } from "@/lib/types";
 
 export type Actor =
@@ -38,8 +38,9 @@ export async function resolveActor(roomId: string, prefer: ActorKind | null, roo
   const settings = normalizeSettings(room.settings);
 
   const asInstructor = async (): Promise<Actor | null> => {
-    const user = await getInstructor();
-    if (user && user.id === room.owner_id) return { kind: "instructor", userId: user.id, room, settings };
+    // 승인 전·거절·정지된 강사는 자기 방이어도 강사로 인정하지 않아요.
+    const access = await getApprovedInstructor();
+    if (access && access.user.id === room.owner_id) return { kind: "instructor", userId: access.user.id, room, settings };
     return null;
   };
   const asParticipant = async (): Promise<Actor | null> => {
