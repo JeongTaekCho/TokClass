@@ -53,7 +53,7 @@ export const POST = roomHandler({ body: chatPostSchema }, async ({ actor, roomId
       .select(MESSAGE_SELECT)
       .single(),
   ) as unknown as MessageRow;
-  const [message] = await toChatMessages([row], "participant");
+  const [message] = await toChatMessages([row], "participant", { withReactions: false });
   await broadcast(roomId, "chat.message", { message });
   return { message };
 });

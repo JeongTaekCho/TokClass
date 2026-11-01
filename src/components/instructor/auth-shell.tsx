@@ -1,16 +1,46 @@
 import { Logo } from "@/components/brand/logo";
+import { TeacherDeskArt } from "@/components/illustrations";
+import { FadeIn } from "@/components/motion";
 
-export function AuthShell({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+/**
+ * 로그인·가입·승인 안내 화면 틀.
+ * 넓은 화면: 왼쪽 흰 카드(폼) + 오른쪽 브랜드 패널(일러스트). 좁은 화면: 카드만, 그림은 제목 위에 작게.
+ */
+export function AuthShell({
+  title,
+  description,
+  art,
+  children,
+}: {
+  title: string;
+  description: string;
+  art?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
-      <div className="mb-8">
-        <Logo size="lg" />
+    <main className="grid min-h-dvh lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="flex flex-col bg-dots px-4 py-6 sm:items-center sm:py-10">
+        <Logo size="sm" className="self-start sm:self-center lg:self-start lg:pl-6" />
+        <FadeIn className="mt-8 w-full max-w-md rounded-2xl border border-border/70 bg-surface p-6 shadow-raised sm:mt-14 sm:p-8">
+          {art && <div className="mb-5 w-full max-w-44">{art}</div>}
+          <h1 className="text-title">{title}</h1>
+          <p className="mt-1 mb-6 text-muted-foreground">{description}</p>
+          {children}
+        </FadeIn>
       </div>
-      <section className="w-full max-w-md rounded-3xl border border-border bg-card p-6 shadow-lifted sm:p-8">
-        <h1 className="text-2xl font-extrabold">{title}</h1>
-        <p className="mt-1 mb-6 text-muted-foreground">{description}</p>
-        {children}
-      </section>
+      <aside aria-hidden className="relative hidden flex-col items-center justify-center overflow-hidden bg-primary px-10 lg:flex">
+        <div className="absolute -top-24 -right-24 size-80 rounded-full bg-coral/30 blur-3xl" />
+        <div className="absolute -bottom-32 -left-20 size-96 rounded-full bg-sky/30 blur-3xl" />
+        <div className="relative w-full max-w-md rounded-3xl bg-surface/95 p-6">
+          <TeacherDeskArt className="mx-auto max-w-none" />
+        </div>
+        <p className="relative mt-8 text-center text-2xl leading-snug font-bold text-primary-foreground">
+          듣는 수업에서
+          <br />
+          함께 만드는 수업으로
+        </p>
+        <p className="relative mt-2 text-center text-primary-foreground/80">참여코드 하나로 질문·반응·투표를 한 화면에서.</p>
+      </aside>
     </main>
   );
 }

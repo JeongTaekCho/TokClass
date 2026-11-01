@@ -86,7 +86,7 @@ export function RoomActions({ roomId, title, status }: { roomId: string; title: 
               if (matches) void remove();
             }}
           >
-            <p className="rounded-xl bg-muted px-3 py-2 text-sm font-semibold break-all">{title}</p>
+            <p className="rounded-lg bg-sunken px-3 py-2 text-sm font-semibold break-all">{title}</p>
             <div className="space-y-2">
               <Label htmlFor={`confirm-${roomId}`}>방 제목</Label>
               <Input id={`confirm-${roomId}`} value={confirmTitle} onChange={(e) => setConfirmTitle(e.target.value)} autoComplete="off" autoFocus />

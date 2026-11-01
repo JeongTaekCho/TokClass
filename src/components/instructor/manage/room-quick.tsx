@@ -25,7 +25,7 @@ export function RoomQuick({ room, onChanged }: { room: ManageRoom; onChanged: ()
 
   const full = room.participantCount >= room.capacity;
   return (
-    <section aria-label={`${room.title} 빠른 작업`} className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
+    <section aria-label={`${room.title} 빠른 작업`} className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-md bg-sunken px-4 py-3">
       <div className="min-w-0">
         <p className="flex items-center gap-2 truncate font-bold">
           {room.title}
@@ -33,7 +33,7 @@ export function RoomQuick({ room, onChanged }: { room: ManageRoom; onChanged: ()
         </p>
         <button
           type="button"
-          className="mt-0.5 inline-flex items-center gap-1 font-mono text-lg font-bold tracking-widest hover:text-primary"
+          className="mt-0.5 inline-flex items-center gap-1 font-mono text-heading tracking-widest hover:text-primary"
           onClick={() => copyText(room.joinCode, "참여코드를 복사했어요.")}
           aria-label={`참여코드 ${room.joinCode} 복사`}
         >
@@ -42,11 +42,11 @@ export function RoomQuick({ room, onChanged }: { room: ManageRoom; onChanged: ()
       </div>
       <p className="flex items-center gap-1.5 text-sm">
         <Users className="size-4 text-muted-foreground" aria-hidden />
-        정원 <strong className={full ? "text-coral" : undefined}>{room.participantCount}</strong> / {room.capacity}명{full && <span className="text-coral">(가득 참)</span>}
+        정원 <strong className={full ? "text-coral-ink" : undefined}>{room.participantCount}</strong> / {room.capacity}명{full && <span className="text-coral-ink">(가득 참)</span>}
       </p>
       {room.status === "active" && (
         <label className="ml-auto flex items-center gap-2 text-sm font-semibold">
-          {room.locked ? <Lock className="size-4 text-coral" aria-hidden /> : <LockOpen className="size-4 text-muted-foreground" aria-hidden />}
+          {room.locked ? <Lock className="size-4 text-coral-ink" aria-hidden /> : <LockOpen className="size-4 text-muted-foreground" aria-hidden />}
           입장 마감
           <Switch checked={room.locked} onCheckedChange={(v) => void toggleLock(v)} aria-label="입장 마감" />
         </label>

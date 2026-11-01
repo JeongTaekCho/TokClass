@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Countdown, useRemaining } from "@/components/room/activities/timer";
 import { IDEA_COLOR_KEYS, ideaColorClass, ResultsView } from "@/components/room/activities/results-view";
 import { useActivityDetail, type ActivityDetail } from "@/components/room/activities/use-activity";
+import { ActivitySkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,7 +20,7 @@ import { cn } from "@/lib/utils";
 /** 수강생이 활동에 참여하는 화면 */
 export function ActivityRunner({ activityId }: { activityId: string }) {
   const { data, mutate, isLoading } = useActivityDetail(activityId);
-  if (isLoading || !data) return <Loader2 className="mx-auto my-8 size-6 animate-spin text-muted-foreground" aria-label="불러오는 중" />;
+  if (isLoading || !data) return <ActivitySkeleton />;
   return <RunnerBody detail={data} reload={() => void mutate()} />;
 }
 
@@ -40,7 +41,7 @@ function RunnerBody({ detail, reload }: { detail: ActivityDetail; reload: () => 
 
   return (
     <div className="space-y-4">
-      {activity.status === "ended" && <p className="rounded-xl bg-muted px-3 py-2 text-sm font-medium">활동이 끝났어요. 결과를 확인해 보세요.</p>}
+      {activity.status === "ended" && <p className="rounded-md bg-sunken px-3 py-2 text-sm font-medium">활동이 끝났어요. 결과를 확인해 보세요.</p>}
       {activity.type === "poll" && <ChoiceInput activity={activity} initial={(myResponse?.selected as number[]) ?? []} disabled={!live} onSubmit={(selected) => respond({ selected })} submitLabel={myResponse ? "다시 투표" : "투표하기"} />}
       {activity.type === "quiz" && <QuizInput activity={activity} answered={Boolean(myResponse)} myScore={myScore} onSubmit={(selected) => respond({ selected }, "답을 제출했어요!")} mySelection={(myResponse?.selected as number[]) ?? []} />}
       {activity.type === "wordcloud" && live && <WordInput max={activity.config.maxWords ?? 3} initial={(myResponse?.words as string[]) ?? []} onSubmit={(words) => respond({ words }, "단어를 보냈어요!")} />}
@@ -50,7 +51,7 @@ function RunnerBody({ detail, reload }: { detail: ActivityDetail; reload: () => 
       {activity.type === "task" && <TaskInput activity={activity} done={myResponse?.done === true} disabled={!live} onToggle={(done) => respond({ done }, done ? "완료로 표시했어요!" : "완료를 취소했어요.")} />}
 
       {results ? (
-        <div className="rounded-2xl border border-border bg-background p-4">
+        <div className="animate-fade-in border-t border-border pt-4">
           <ResultsView
             results={results}
             config={activity.config}
@@ -97,11 +98,11 @@ function ChoiceInput({ activity, initial, disabled, onSubmit, submitLabel }: { a
               disabled={disabled}
               onClick={() => setSelected(multiple ? (on ? selected.filter((x) => x !== i) : [...selected, i]) : [i])}
               className={cn(
-                "flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-xl border-2 px-4 text-left font-medium transition disabled:cursor-default",
-                on ? "border-primary bg-primary-soft text-primary-hover" : "border-border bg-card hover:border-primary/40",
+                "press flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-md border-2 px-4 text-left font-medium transition-colors duration-150 disabled:cursor-default",
+                on ? "border-primary bg-primary-soft text-primary-ink" : "border-border bg-surface hover:border-border-strong",
               )}
             >
-              <span className={cn("flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-bold", on ? "border-primary bg-primary text-white" : "border-border")}>
+              <span className={cn("flex size-6 shrink-0 items-center justify-center rounded-full border-2 text-xs font-semibold", on ? "border-primary bg-primary text-white" : "border-border-strong")}>
                 {on ? "✓" : i + 1}
               </span>
               {opt}
@@ -136,16 +137,16 @@ function QuizInput({ activity, answered, myScore, mySelection, onSubmit }: { act
     <div className="space-y-3">
       {activity.status === "live" && remaining !== null && <Countdown remaining={remaining} total={limit} />}
       {activity.status === "ended" && myScore !== null && (
-        <p className={cn("rounded-xl px-3 py-2 text-center font-bold", myScore > 0 ? "bg-green-50 text-green-800" : "bg-muted")}>{myScore > 0 ? `🎉 정답! ${myScore}점을 얻었어요` : "아쉬워요! 다음 문제에 도전해요"}</p>
+        <p className={cn("rounded-md px-3 py-2 text-center font-semibold", myScore > 0 ? "bg-success-soft text-success" : "bg-sunken")}>{myScore > 0 ? `🎉 정답! ${myScore}점을 얻었어요` : "아쉬워요! 다음 문제에 도전해요"}</p>
       )}
       {answered && activity.status === "live" ? (
-        <p className="flex items-center justify-center gap-2 rounded-xl bg-primary-soft px-3 py-3 font-semibold text-primary-hover">
+        <p className="flex animate-enter-up items-center justify-center gap-2 rounded-md bg-primary-soft px-3 py-3 font-semibold text-primary-ink">
           <CheckCircle2 className="size-5" aria-hidden /> 제출했어요! 결과는 퀴즈가 끝나면 나와요.
         </p>
       ) : activity.status === "live" && !timeUp ? (
         <ChoiceInput activity={{ ...activity, config: { ...activity.config, multiple: false } }} initial={mySelection} disabled={false} onSubmit={onSubmit} submitLabel="정답 제출" />
       ) : (
-        activity.status === "live" && <p className="rounded-xl bg-muted px-3 py-3 text-center font-semibold">⏰ 시간이 끝났어요</p>
+        activity.status === "live" && <p className="rounded-md bg-sunken px-3 py-3 text-center font-semibold">⏰ 시간이 끝났어요</p>
       )}
     </div>
   );
@@ -190,8 +191,8 @@ function RankingInput({ items, initial, onSubmit }: { items: string[]; initial?:
       <p className="text-sm text-muted-foreground">화살표로 순서를 바꿔 주세요 (위가 1등)</p>
       <ol className="space-y-1.5">
         {order.map((itemIdx, rank) => (
-          <li key={itemIdx} className="flex items-center gap-2 rounded-xl border border-border bg-card p-1.5 pl-3">
-            <span className="w-6 font-bold text-primary">{rank + 1}</span>
+          <li key={itemIdx} className="flex items-center gap-2 rounded-md border border-border bg-surface p-1.5 pl-3">
+            <span className="w-6 font-semibold text-primary tabular-nums">{rank + 1}</span>
             <span className="flex-1 font-medium">{items[itemIdx]}</span>
             <Button variant="ghost" size="icon-sm" aria-label={`${items[itemIdx]} 위로`} disabled={rank === 0} onClick={() => move(rank, -1)}>
               <ArrowUp aria-hidden />
@@ -261,7 +262,7 @@ function IdeaInput({ activityId, onPosted }: { activityId: string; onPosted: () 
         }
       }}
     >
-      <Textarea value={body} maxLength={200} onChange={(e) => setBody(e.target.value)} placeholder="아이디어를 포스트잇에 적어요" aria-label="아이디어" className={cn("border-0 shadow-soft", ideaColorClass(color))} />
+      <Textarea value={body} maxLength={200} onChange={(e) => setBody(e.target.value)} placeholder="아이디어를 포스트잇에 적어요" aria-label="아이디어" className={cn("rounded-sm border-0", ideaColorClass(color))} />
       <div className="flex items-center gap-2">
         <div className="flex gap-1" role="radiogroup" aria-label="포스트잇 색">
           {IDEA_COLOR_KEYS.map((c) => (
@@ -272,7 +273,7 @@ function IdeaInput({ activityId, onPosted }: { activityId: string; onPosted: () 
               aria-checked={color === c}
               aria-label={{ yellow: "노랑", pink: "분홍", blue: "파랑", green: "초록", purple: "보라" }[c]}
               onClick={() => setColor(c)}
-              className={cn("size-9 cursor-pointer rounded-full border-2", ideaColorClass(c), color === c ? "border-primary" : "border-transparent")}
+              className={cn("size-9 cursor-pointer rounded-full border-2", ideaColorClass(c), color === c ? "border-ink" : "border-border")}
             />
           ))}
         </div>
@@ -320,9 +321,9 @@ function TaskInput({ activity, done, disabled, onToggle }: { activity: Activity;
   const remaining = useRemaining(activity.status === "live" ? activity.startedAt : null, duration);
   return (
     <div className="space-y-3">
-      {activity.config.description && <p className="rounded-xl bg-muted p-3 whitespace-pre-wrap">{activity.config.description}</p>}
+      {activity.config.description && <p className="rounded-md bg-sunken p-3 whitespace-pre-wrap">{activity.config.description}</p>}
       {remaining !== null && duration > 0 && <Countdown remaining={remaining} total={duration} />}
-      {remaining === 0 && <p className="text-center font-semibold text-coral">⏰ 시간이 다 됐어요!</p>}
+      {remaining === 0 && <p className="text-center font-semibold text-coral-ink">⏰ 시간이 다 됐어요!</p>}
       <Button size="lg" variant={done ? "soft" : "default"} className="w-full" disabled={disabled} onClick={() => onToggle(!done)} aria-pressed={done}>
         <CheckCircle2 aria-hidden /> {done ? "완료했어요 (취소하려면 누르기)" : "다 했어요!"}
       </Button>

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Unplug } from "lucide-react";
 
+import { UnpluggedArt } from "@/components/illustrations";
 import { Button } from "@/components/ui/button";
 import type { SessionLostReason } from "@/lib/realtime/provider";
 
@@ -17,13 +17,20 @@ const MESSAGES: Record<SessionLostReason, { title: string; body: string }> = {
 export function SessionLost({ reason, code }: { reason: SessionLostReason; code: string }) {
   const m = MESSAGES[reason];
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/95 p-6 backdrop-blur" role="alertdialog" aria-labelledby="lost-title">
-      <div className="max-w-sm text-center">
-        <Unplug className="mx-auto size-12 text-coral" aria-hidden />
-        <h2 id="lost-title" className="mt-4 text-xl font-extrabold">
+    <div
+      className="fixed inset-0 z-[60] flex animate-fade-in items-center justify-center bg-background p-6"
+      role="alertdialog"
+      aria-labelledby="lost-title"
+      aria-describedby="lost-body"
+    >
+      <div className="flex w-full max-w-sm animate-rise flex-col items-center text-center">
+        <UnpluggedArt className="max-w-52" />
+        <h2 id="lost-title" className="mt-6 text-title">
           {m.title}
         </h2>
-        <p className="mt-2 text-muted-foreground">{m.body}</p>
+        <p id="lost-body" className="mt-2 text-muted-foreground">
+          {m.body}
+        </p>
         {reason !== "kicked" && (
           <Button asChild size="lg" className="mt-6 w-full">
             <Link href={`/join/${code}`}>다시 들어가기</Link>

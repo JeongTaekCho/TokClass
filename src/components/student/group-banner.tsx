@@ -21,7 +21,7 @@ export function GroupBanner({ me }: { me: Me }) {
 
   if (mode === "choice" && (!mine || !room.settings.groups.active)) {
     return (
-      <div className="border-b border-border bg-primary-soft/60 px-4 py-2.5">
+      <div className="border-b border-border bg-primary-soft px-4 py-2.5">
         <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
           <UsersRound className="size-4 text-primary" aria-hidden />
           {mine ? `${mine.name}를 골랐어요. 바꾸려면 다른 조를 눌러요.` : "함께할 조를 골라 주세요"}
@@ -50,7 +50,7 @@ export function GroupBanner({ me }: { me: Me }) {
   }
   if (!room.settings.groups.active) return null;
   return (
-    <p className="flex items-center gap-1.5 border-b border-border bg-primary-soft/60 px-4 py-2 text-sm">
+    <p className="flex items-center gap-1.5 border-b border-border bg-primary-soft px-4 py-2 text-sm">
       <UsersRound className="size-4 text-primary" aria-hidden />
       {mine ? (
         <>

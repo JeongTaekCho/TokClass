@@ -35,9 +35,9 @@ export function JoinInfo() {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="hidden items-baseline gap-1.5 rounded-xl bg-primary-soft px-3 py-1.5 sm:flex">
-        <span className="text-xs font-semibold text-primary-hover">참여코드</span>
-        <span className="font-mono text-lg font-extrabold tracking-[0.2em] text-primary-hover" data-testid="join-code">
+      <div className="hidden h-9 items-center gap-2 rounded-md border border-primary/20 bg-surface pr-3 pl-1 shadow-card sm:flex">
+        <span className="rounded-[7px] bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">참여코드</span>
+        <span className="font-mono text-lg font-bold tracking-[0.18em] text-primary-ink" data-testid="join-code">
           {room.joinCode}
         </span>
       </div>
@@ -57,15 +57,15 @@ export function JoinInfo() {
             <div className="text-center md:text-left">
               <div className="flex items-center justify-center gap-2 md:justify-start">
                 <LogoMark className="size-10" />
-                <span className="text-2xl font-extrabold">톡클</span>
+                <span className="text-title">톡클</span>
               </div>
               <p className="mt-6 text-lg text-muted-foreground">{origin.replace(/^https?:\/\//, "")}/join 에서</p>
               <p className="text-lg text-muted-foreground">참여코드를 입력하세요</p>
-              <p className="mt-3 font-mono text-6xl font-extrabold tracking-[0.15em] text-primary sm:text-7xl">{room.joinCode}</p>
+              <p className="mt-3 font-mono text-6xl font-bold tracking-[0.15em] text-primary sm:text-7xl">{room.joinCode}</p>
               <p className="mt-6 line-clamp-2 text-xl font-bold">{room.title}</p>
             </div>
-            <div className="mx-auto w-full max-w-sm rounded-3xl border border-border bg-white p-4">
-              {qr ? <img src={qr} alt={`참여 QR 코드: ${link}`} className="w-full" /> : <div className="aspect-square animate-pulse rounded-2xl bg-muted" />}
+            <div className="mx-auto w-full max-w-sm rounded-lg border border-border bg-white p-4">
+              {qr ? <img src={qr} alt={`참여 QR 코드: ${link}`} className="w-full" /> : <div className="aspect-square animate-pulse rounded-md bg-sunken" />}
             </div>
           </div>
           <Button variant="ghost" className="mx-auto" onClick={() => document.documentElement.requestFullscreen?.().catch(() => {})}>

@@ -2,10 +2,13 @@
 
 import { useMemo, useRef, useState } from "react";
 import useSWR from "swr";
-import { CheckCircle2, EyeOff, Loader2, MessageSquareReply, ThumbsUp, Trash2 } from "lucide-react";
+import { CheckCircle2, Loader2, ThumbsUp } from "lucide-react";
 
 import { AiClusterButton } from "@/components/instructor/live/ai-cluster";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/empty-state";
+import { QaEmptyArt } from "@/components/illustrations";
+import { QuestionListSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -88,9 +91,15 @@ export function QaPanel({ readOnly = false }: { readOnly?: boolean }) {
         ))}
         {isInstructor && !readOnly && <AiClusterButton className="ml-auto" />}
       </div>
-      <ul className="scrollbar-thin min-h-0 flex-1 space-y-2 overflow-y-auto p-3" aria-label="질문 목록">
-        {isLoading && <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" aria-label="불러오는 중" />}
-        {!isLoading && questions.length === 0 && <li className="py-8 text-center text-sm text-muted-foreground">아직 질문이 없어요. 궁금한 건 편하게 물어보세요!</li>}
+      <ul className="scrollbar-thin min-h-0 flex-1 divide-y divide-border overflow-y-auto px-3" aria-label="질문 목록">
+        {isLoading && <QuestionListSkeleton />}
+        {!isLoading && questions.length === 0 && (
+          <li>
+            <EmptyState art={<QaEmptyArt />} title="아직 질문이 없어요">
+              궁금한 건 편하게 물어보세요!
+            </EmptyState>
+          </li>
+        )}
         {questions.map((q) => (
           <QuestionItem key={q.id} q={q} roomId={roomId} isInstructor={isInstructor} readOnly={readOnly || room.status === "ended"} onChange={(next) => mutate((prev) => ({ questions: (prev?.questions ?? []).map((x) => (x.id === next.id ? next : x)) }), { revalidate: false })} onRemove={(id) => mutate((prev) => ({ questions: (prev?.questions ?? []).filter((x) => x.id !== id) }), { revalidate: false })} />
         ))}
@@ -105,7 +114,7 @@ function AskForm({ roomId, onAsked }: { roomId: string; onAsked: (q: Question) =
   const [pending, setPending] = useState(false);
   return (
     <form
-      className="space-y-2 border-b border-border bg-card p-3"
+      className="space-y-2 border-b border-border bg-surface p-3"
       onSubmit={async (e) => {
         e.preventDefault();
         setPending(true);
@@ -162,7 +171,7 @@ function QuestionItem({
   }
 
   return (
-    <li className={cn("rounded-xl border bg-card p-3", q.answered ? "border-border opacity-80" : "border-border shadow-soft", q.hidden && "border-dashed bg-muted")}>
+    <li className={cn("animate-enter-up py-3", q.hidden && "-mx-3 bg-sunken px-3")}>
       <div className="flex items-start gap-2">
         {!isInstructor ? (
           <button
@@ -179,15 +188,15 @@ function QuestionItem({
             aria-pressed={q.voted}
             aria-label={`공감 ${q.voteCount}개${q.voted ? ", 내가 공감함" : ""}`}
             className={cn(
-              "flex min-h-11 min-w-11 shrink-0 cursor-pointer flex-col items-center justify-center rounded-xl border text-xs font-bold transition disabled:cursor-default",
-              q.voted ? "border-primary bg-primary-soft text-primary-hover" : "border-border hover:border-primary/40",
+              "press flex min-h-11 min-w-11 shrink-0 cursor-pointer flex-col items-center justify-center rounded-md border text-xs font-semibold tabular-nums transition-colors disabled:cursor-default",
+              q.voted ? "border-primary bg-primary-soft text-primary-ink" : "border-border-strong bg-surface hover:border-primary",
             )}
           >
             <ThumbsUp className="size-4" aria-hidden />
             {q.voteCount}
           </button>
         ) : (
-          <span className="flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-center rounded-xl bg-muted text-xs font-bold" aria-label={`공감 ${q.voteCount}개`}>
+          <span className="flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-center rounded-md bg-sunken text-xs font-semibold tabular-nums" aria-label={`공감 ${q.voteCount}개`}>
             <ThumbsUp className="size-4" aria-hidden />
             {q.voteCount}
           </span>
@@ -206,10 +215,10 @@ function QuestionItem({
             {q.hidden && <Badge variant="coral-soft">숨김</Badge>}
             <span>{timeAgo(q.createdAt)}</span>
           </div>
-          <p className="whitespace-pre-wrap">{q.body}</p>
+          <p className={cn("whitespace-pre-wrap", q.answered && "text-muted-foreground")}>{q.body}</p>
           {q.answer && !answering && (
-            <p className="mt-2 rounded-lg bg-coral-soft px-3 py-2 text-sm whitespace-pre-wrap">
-              <span className="font-semibold text-coral">강사 답변 </span>
+            <p className="mt-2 border-l-2 border-primary pl-3 text-sm whitespace-pre-wrap">
+              <span className="font-semibold text-primary-ink">강사 답변 </span>
               {q.answer}
             </p>
           )}
@@ -233,17 +242,17 @@ function QuestionItem({
               </div>
             </form>
           )}
-          <div className="mt-2 flex flex-wrap gap-1">
+          <div className="mt-1.5 -ml-3 flex flex-wrap gap-0.5">
             {isInstructor && !readOnly && (
               <>
                 <Button size="sm" variant="ghost" onClick={() => setAnswering((v) => !v)}>
-                  <MessageSquareReply aria-hidden /> 답변
+                  답변
                 </Button>
                 <Button size="sm" variant={q.answered ? "soft" : "ghost"} onClick={() => patch({ answered: !q.answered })}>
-                  <CheckCircle2 aria-hidden /> {q.answered ? "답변 완료 취소" : "답변 완료"}
+                  {q.answered ? "답변 완료 취소" : "답변 완료"}
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => patch({ hidden: !q.hidden })}>
-                  <EyeOff aria-hidden /> {q.hidden ? "보이기" : "숨기기"}
+                  {q.hidden ? "보이기" : "숨기기"}
                 </Button>
               </>
             )}
@@ -261,7 +270,7 @@ function QuestionItem({
                   }
                 }}
               >
-                <Trash2 aria-hidden /> 지우기
+                지우기
               </Button>
             )}
           </div>

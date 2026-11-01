@@ -42,18 +42,18 @@ export function DmInbox({ openWith, onOpenChange }: { openWith?: string | null; 
   const withThread = new Set(threads.map((t) => t.participantId));
   return (
     <div className="scrollbar-thin min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
-      <ul className="space-y-1.5">
+      <ul className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
         {threads.length === 0 && <li className="text-sm text-muted-foreground">아직 1:1 대화가 없어요.</li>}
         {threads.map((t) => (
           <li key={t.participantId}>
-            <button className="flex w-full cursor-pointer items-start gap-2 rounded-xl border border-border bg-card p-2.5 text-left hover:border-primary/40" onClick={() => select(t.participantId)}>
+            <button className="flex w-full cursor-pointer items-start gap-2 px-1 py-2.5 text-left transition-colors hover:bg-sunken/60" onClick={() => select(t.participantId)}>
               <span className="min-w-0 flex-1">
                 <span className="block font-semibold">{names.get(t.participantId) ?? "수강생"}</span>
                 <span className="block truncate text-sm text-muted-foreground">{t.lastBody}</span>
               </span>
               <span className="flex flex-col items-end gap-1 text-xs text-muted-foreground">
                 {timeAgo(t.lastAt)}
-                {t.unread > 0 && <span className="rounded-full bg-coral px-1.5 font-bold text-white">{t.unread}</span>}
+                {t.unread > 0 && <span className="rounded-full bg-coral px-1.5 font-semibold text-ink tabular-nums">{t.unread}</span>}
               </span>
             </button>
           </li>

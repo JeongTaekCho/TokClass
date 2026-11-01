@@ -31,7 +31,7 @@ export function Logo({ href = "/", className, size = "md" }: { href?: string | n
       <LogoMark className={size === "lg" ? "size-12" : size === "sm" ? "size-7" : "size-9"} title="" />
       <span
         className={cn(
-          "font-extrabold tracking-tight text-foreground",
+          "font-bold tracking-tight text-foreground",
           size === "lg" ? "text-3xl" : size === "sm" ? "text-lg" : "text-xl",
         )}
       >
@@ -41,7 +41,7 @@ export function Logo({ href = "/", className, size = "md" }: { href?: string | n
   );
   if (href === null) return content;
   return (
-    <Link href={href} aria-label="톡클 홈" className="rounded-lg">
+    <Link href={href} aria-label="톡클 홈" className="rounded-md">
       {content}
     </Link>
   );

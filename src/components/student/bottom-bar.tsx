@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { Hand, Info, Loader2 } from "lucide-react";
+import { Hand, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { motion } from "@/components/motion";
 import { SIGNALS } from "@/components/room/signal";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -68,13 +69,13 @@ export function BottomBar() {
   }
 
   return (
-    <div className="safe-bottom z-20 border-t border-border bg-card shadow-[0_-4px_16px_rgb(31_27_58/0.06)]">
+    <div className="safe-bottom z-20 border-t border-border bg-surface shadow-[0_-8px_24px_-16px_rgb(25_27_42/0.25)]">
       <div className="mx-auto flex max-w-5xl items-center gap-1 px-3 pt-1.5 text-xs text-muted-foreground">
         <span id="understanding-caption">
           {current ? "지금 내 이해도를 강사님께 보여주고 있어요" : "지금 수업, 잘 따라오고 있나요? 눌러서 강사님께 알려 주세요"}
         </span>
-        <button type="button" onClick={() => setAboutOpen(true)} className="inline-flex cursor-pointer items-center gap-0.5 font-semibold text-primary hover:underline">
-          <Info className="size-3.5" aria-hidden /> 이게 뭐예요?
+        <button type="button" onClick={() => setAboutOpen(true)} className="inline-flex cursor-pointer items-center font-medium text-primary underline-offset-2 hover:underline">
+          이게 뭐예요?
         </button>
       </div>
       <div className="mx-auto flex max-w-5xl items-stretch gap-1.5 p-2 pt-1" role="group" aria-label="지금 내 이해도" aria-describedby="understanding-caption">
@@ -87,13 +88,20 @@ export function BottomBar() {
               aria-pressed={active}
               disabled={pending !== null}
               className={cn(
-                "flex min-h-12 flex-1 cursor-pointer flex-col items-center justify-center rounded-xl border-2 px-1 text-[13px] leading-tight font-semibold transition sm:flex-row sm:gap-1.5 sm:text-sm",
-                active ? s.soft : "border-transparent bg-muted text-muted-foreground hover:bg-primary-soft",
+                "press flex min-h-13 flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 px-1 text-[13px] leading-tight font-semibold transition-colors duration-150 sm:flex-row sm:gap-1.5 sm:text-sm",
+                active ? cn(s.soft, "shadow-card") : "border-transparent bg-sunken text-muted-foreground hover:text-foreground",
               )}
             >
-              <span className="text-lg sm:text-base" aria-hidden>
+              <motion.span
+                key={active ? "on" : "off"}
+                className="text-xl sm:text-base"
+                aria-hidden
+                initial={active ? { scale: 0.5, rotate: -20 } : false}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 14 }}
+              >
                 {s.emoji}
-              </span>
+              </motion.span>
               {s.label}
             </button>
           );
@@ -108,8 +116,8 @@ export function BottomBar() {
           }}
           aria-pressed={Boolean(open)}
           className={cn(
-            "flex min-h-12 min-w-[4.5rem] cursor-pointer flex-col items-center justify-center rounded-xl border-2 px-2 text-[13px] leading-tight font-semibold transition sm:flex-row sm:gap-1.5 sm:text-sm",
-            open ? "animate-pulse border-coral bg-coral text-white" : "border-coral/40 bg-coral-soft text-[#c2410c] hover:border-coral",
+            "press flex min-h-13 min-w-[4.5rem] cursor-pointer flex-col items-center justify-center rounded-lg border-2 px-2 text-[13px] leading-tight font-semibold transition-colors duration-150 sm:flex-row sm:gap-1.5 sm:text-sm",
+            open ? "border-coral bg-coral text-ink" : "border-coral/50 bg-coral-soft text-coral-ink hover:border-coral",
           )}
         >
           <Hand className="size-5 sm:size-4" aria-hidden />
@@ -166,7 +174,7 @@ export function BottomBar() {
               </li>
             ))}
           </ul>
-          <div className="space-y-1.5 rounded-xl bg-muted/60 p-3 text-sm">
+          <div className="space-y-1.5 rounded-md bg-sunken p-3 text-sm">
             <p>· 강사님 화면에는 반 전체 비율로 모여요. 🔴가 많아지면 강사님 화면에 바로 강조돼서 설명을 다시 하거나 속도를 조절해요.</p>
             <p>· 다른 수강생에게는 보이지 않아요. 수업이 진행되면서 바뀌면 언제든 다시 눌러 주세요.</p>
             <p>· 직접 도움이 필요하면 오른쪽 [도움 요청]으로 손을 들어 주세요.</p>

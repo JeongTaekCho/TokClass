@@ -5,6 +5,8 @@ import useSWR from "swr";
 import { Copy, Download, KeyRound, LogOut, MoreHorizontal, Pencil, Search, Undo2, UserRound, UserX } from "lucide-react";
 import { toast } from "sonner";
 
+import { NoResultsArt, NoStudentsArt } from "@/components/illustrations";
+import { ParticipantTableSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -159,12 +161,12 @@ export function ManageApp() {
 
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <p className="text-muted-foreground">
-          {list.length}명 표시 · 지금 접속 <strong className="text-foreground">{all.filter((p) => !p.kicked && online.has(p.id)).length}명</strong>
+          {list.length}명 표시 · 지금 접속 <strong className="font-semibold text-foreground tabular-nums">{all.filter((p) => !p.kicked && online.has(p.id)).length}명</strong>
         </p>
         <div className="ml-auto flex flex-wrap gap-1">
           {visibleSelected.length > 0 && (
             <>
-              <span className="self-center px-1 font-semibold">{visibleSelected.length}명 선택</span>
+              <span className="self-center px-1 font-semibold tabular-nums">{visibleSelected.length}명 선택</span>
               <ConfirmButton
                 title={`${visibleSelected.length}명의 접속을 끊을까요?`}
                 description="비밀번호는 그대로라 다시 들어올 수 있어요."
@@ -199,9 +201,9 @@ export function ManageApp() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
+      <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
         <table className="w-full min-w-[880px] text-left text-sm">
-          <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
+          <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
             <tr>
               <th className="w-10 px-4 py-3">
                 <Checkbox
@@ -220,23 +222,29 @@ export function ManageApp() {
             </tr>
           </thead>
           <tbody>
-            {list.length === 0 && (
-              <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-muted-foreground">
-                  {people.isLoading || rooms.isLoading ? "불러오는 중이에요." : all.length === 0 ? "아직 수강생이 없어요." : "조건에 맞는 수강생이 없어요."}
-                </td>
-              </tr>
-            )}
+            {list.length === 0 &&
+              (people.isLoading || rooms.isLoading ? (
+                <ParticipantTableSkeleton columns={roomId ? 7 : 8} checkbox />
+              ) : (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10">
+                    <div className="mx-auto flex max-w-xs flex-col items-center text-center text-muted-foreground">
+                      {all.length === 0 ? <NoStudentsArt className="max-w-44" /> : <NoResultsArt className="max-w-44" />}
+                      <p className="mt-3">{all.length === 0 ? "아직 수강생이 없어요." : "조건에 맞는 수강생이 없어요."}</p>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             {list.map((p) => {
               const room = roomMap.get(p.roomId);
               const st = participantState(p, online);
               return (
-                <tr key={p.id} className={cn("border-b border-border/60 last:border-0", selected.has(p.id) && "bg-primary-soft/40")}>
+                <tr key={p.id} className={cn("border-b border-border last:border-0 hover:bg-sunken/50", selected.has(p.id) && "bg-primary-soft hover:bg-primary-soft")}>
                   <td className="px-4 py-2">
                     <Checkbox checked={selected.has(p.id)} onCheckedChange={(v) => toggle(p.id, v === true)} aria-label={`${p.nickname} 선택`} />
                   </td>
                   <td className="px-2 py-2 font-semibold">
-                    <button type="button" className="hover:text-primary hover:underline" onClick={() => setDetail(p)}>
+                    <button type="button" className="cursor-pointer underline-offset-2 hover:text-primary hover:underline" onClick={() => setDetail(p)}>
                       {p.nickname}
                     </button>
                   </td>
@@ -329,8 +337,8 @@ export function ManageApp() {
             <DialogDescription>이 창을 닫으면 다시 볼 수 없어요. 수강생에게 바로 알려 주세요.</DialogDescription>
           </DialogHeader>
           {issued && (
-            <div className="rounded-2xl bg-primary-soft p-5 text-center">
-              <p className="font-mono text-4xl font-extrabold tracking-[0.3em] text-primary-hover">{issued.password}</p>
+            <div className="-rotate-1 rounded-sm bg-coral-soft p-5 text-center">
+              <p className="font-mono text-4xl font-bold tracking-[0.3em] text-ink">{issued.password}</p>
               <Button variant="outline" size="sm" className="mt-3" onClick={() => copyText(issued.password, "비밀번호를 복사했어요.")}>
                 <Copy aria-hidden /> 복사
               </Button>

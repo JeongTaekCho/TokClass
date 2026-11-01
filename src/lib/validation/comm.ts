@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { REACTION_EMOJIS } from "@/lib/validation/slides";
+
 export const chatPostSchema = z
   .object({
     body: z.string().trim().max(2000, "메시지는 2000자까지 쓸 수 있어요.").default(""),
@@ -9,6 +11,8 @@ export const chatPostSchema = z
   .refine((v) => v.body.length > 0 || v.imagePath, { message: "메시지를 입력해 주세요." });
 
 export const hideSchema = z.object({ hidden: z.boolean() });
+
+export const messageReactionSchema = z.object({ emoji: z.enum(REACTION_EMOJIS) });
 
 export const announcementSchema = z.object({
   body: z.string().trim().min(1, "공지 내용을 입력해 주세요.").max(500, "공지는 500자까지 쓸 수 있어요."),

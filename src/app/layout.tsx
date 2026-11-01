@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 
+import { MotionProvider } from "@/components/motion";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#7C3AED",
+  themeColor: "#F4F5FA",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -32,7 +33,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="ko" className={`${pretendard.variable} h-full`}>
       <body className="flex min-h-full flex-col">
-        <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+        <MotionProvider>
+          <TooltipProvider delayDuration={200}>{children}</TooltipProvider>
+        </MotionProvider>
         <Toaster />
       </body>
     </html>

@@ -59,7 +59,11 @@ export type ChatMessage = {
   imageUrl: string | null;
   hidden: boolean;
   createdAt: string;
+  reactions: MessageReaction[];
 };
+
+/** 채팅 메시지 반응. reactors는 누른 사람 키(수강생 id, 강사는 "instructor")예요. */
+export type MessageReaction = { emoji: string; count: number; reactors: string[]; names: string[] };
 
 export type Announcement = { id: string; body: string; createdAt: string };
 

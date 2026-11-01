@@ -112,7 +112,7 @@ export function SubmitDialog({ onCreated, groupLabel }: { onCreated: (s: Submiss
                   setFile(null);
                   setPreview(null);
                 }}
-                className={cn("flex min-h-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border text-sm font-semibold", kind === k.kind ? "border-primary bg-primary-soft text-primary-hover" : "border-border")}
+                className={cn("flex min-h-14 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border text-sm font-semibold", kind === k.kind ? "border-primary bg-primary-soft text-primary-ink" : "border-border")}
               >
                 <k.icon className="size-5" aria-hidden />
                 {k.label}
@@ -143,10 +143,10 @@ export function SubmitDialog({ onCreated, groupLabel }: { onCreated: (s: Submiss
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/30 bg-primary-soft/30 p-4 text-sm text-muted-foreground hover:border-primary"
+                className="flex min-h-32 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-border-strong bg-sunken p-4 text-sm text-muted-foreground transition-colors hover:border-primary"
               >
                 {preview ? (
-                  <img src={preview} alt="미리보기" className="max-h-48 rounded-lg object-contain" />
+                  <img src={preview} alt="미리보기" className="max-h-48 rounded-md object-contain" />
                 ) : file ? (
                   <span className="font-semibold text-foreground">{file.name}</span>
                 ) : (

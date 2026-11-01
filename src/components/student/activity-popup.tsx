@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { Sparkles } from "lucide-react";
 
 import { ActivityRunner } from "@/components/room/activities/activity-runner";
 import { ACTIVITY_LABELS } from "@/lib/activities/schema";
@@ -53,9 +52,14 @@ export function ActivityPopup() {
     <>
       {pill && (
         <div className="pointer-events-none fixed inset-x-0 bottom-24 z-30 flex justify-center px-4">
-          <Button className="pointer-events-auto rounded-full shadow-lifted" onClick={() => setOpenId(pill.id)}>
-            <Sparkles aria-hidden />
-            {pill.status === "live" ? `진행 중: ${pill.title}` : `결과 보기: ${pill.title}`}
+          <Button
+            key={pill.id + pill.status}
+            variant={pill.status === "live" ? "coral" : "default"}
+            className="pointer-events-auto max-w-full animate-rise rounded-full shadow-overlay"
+            onClick={() => setOpenId(pill.id)}
+          >
+            {pill.status === "live" && <span aria-hidden className="size-2 shrink-0 rounded-full bg-ink" />}
+            <span className="truncate">{pill.status === "live" ? `진행 중: ${pill.title}` : `결과 보기: ${pill.title}`}</span>
           </Button>
         </div>
       )}
@@ -69,15 +73,16 @@ export function ActivityPopup() {
           }
         }}
       >
-        <DialogContent className="max-h-[90dvh] sm:max-w-xl">
+        {/* 휴대폰에서는 화면 아래에서 올라오는 시트로, 넓은 화면에서는 가운데 창으로 떠요. */}
+        <DialogContent className="max-h-[90dvh] sm:max-w-xl max-sm:top-auto max-sm:bottom-0 max-sm:max-w-full max-sm:translate-y-0 max-sm:rounded-b-none max-sm:pb-[max(1.5rem,env(safe-area-inset-bottom))] max-sm:data-[state=open]:slide-in-from-bottom-10">
           {current && (
             <>
               <DialogHeader>
-                <p className="text-sm font-semibold text-primary">
+                <p className="text-sm font-medium text-coral-ink">
                   {ACTIVITY_LABELS[current.type].emoji} {ACTIVITY_LABELS[current.type].name}
                   {current.status === "live" ? " · 진행 중" : " · 종료"}
                 </p>
-                <DialogTitle className="text-xl">{current.title}</DialogTitle>
+                <DialogTitle className="text-title">{current.title}</DialogTitle>
                 <DialogDescription className="sr-only">강사가 시작한 활동이에요.</DialogDescription>
               </DialogHeader>
               <ActivityRunner key={current.id} activityId={current.id} />

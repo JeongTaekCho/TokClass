@@ -3,7 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { Focus, Gauge, Hand, Lock, LockOpen, Megaphone, PanelRightClose, PanelRightOpen, Sparkles, Users, X } from "lucide-react";
+import { Eye, Focus, Gauge, Hand, Lock, LockOpen, Megaphone, PanelRightClose, PanelRightOpen, Rocket, X } from "lucide-react";
 
 import { ActivityPanel } from "@/components/instructor/live/activity-panel";
 import { DmInbox } from "@/components/instructor/live/dm-inbox";
@@ -11,6 +11,7 @@ import { HelpQueue } from "@/components/instructor/live/help-queue";
 import { JoinInfo } from "@/components/instructor/live/join-info";
 import { UnderstandingPanel } from "@/components/instructor/live/understanding-panel";
 import { AnnouncementManager } from "@/components/room/announcements";
+import { AnimatedNumber, Pop } from "@/components/motion";
 import { ClassroomShell } from "@/components/room/classroom-shell";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,7 +59,12 @@ export function LiveShell() {
     }
   }
 
-  const badge = (n: number) => n > 0 && <span className="rounded-full bg-coral px-1.5 text-[11px] leading-5 font-bold text-white">{n}</span>;
+  const badge = (n: number) =>
+    n > 0 && (
+      <Pop key={n} className="rounded-full bg-coral px-1.5 text-[11px] leading-5 font-bold text-ink tabular-nums">
+        {n}
+      </Pop>
+    );
   const helpBadge = badge(helpCount);
   const dmBadge = badge(dmUnread);
   const totalBadge = badge(helpCount + dmUnread);
@@ -68,8 +74,12 @@ export function LiveShell() {
       heightClass="h-[calc(100dvh-4rem)]"
       headerActions={
         <>
-          <span className="inline-flex items-center gap-1 px-1 text-sm text-muted-foreground" title="지금 접속한 수강생">
-            <Users className="size-4" aria-hidden /> {onlineStudents}명
+          <span className="inline-flex h-9 items-center gap-1.5 rounded-full bg-mint-soft px-3 text-sm text-success" title="지금 접속한 수강생">
+            <span className="relative inline-flex size-2" aria-hidden>
+              <span className="absolute inset-0 animate-live rounded-full bg-signal-green motion-reduce:hidden" />
+              <span className="relative size-2 rounded-full bg-signal-green" />
+            </span>
+            접속 <AnimatedNumber value={onlineStudents} className="font-bold tabular-nums" />명
           </span>
           <Button variant="outline" size="sm" className="lg:hidden" onClick={() => setMobileOpen(true)} aria-expanded={mobileOpen}>
             <PanelRightOpen aria-hidden /> 강사 도구 {totalBadge}
@@ -80,9 +90,11 @@ export function LiveShell() {
         </>
       }
       toolbar={
-        <div className="border-t border-border bg-muted/40">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-3 py-1.5">
-            <span className="text-xs font-semibold text-muted-foreground">강사만 보여요</span>
+        <div className="border-t border-dashed border-border bg-primary-soft/40">
+          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-3 py-2 sm:px-4">
+            <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-xs font-semibold text-primary-ink shadow-card">
+              <Eye aria-hidden className="size-3.5" /> 강사만 보여요
+            </span>
             <JoinInfo />
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <Button variant={room.focusMode ? "default" : "outline"} size="sm" aria-pressed={room.focusMode} onClick={() => toggle({ focusMode: !room.focusMode })}>
@@ -100,15 +112,15 @@ export function LiveShell() {
         <aside
           aria-label="강사 도구"
           className={cn(
-            "min-h-0 flex-col border-l border-border bg-card",
-            mobileOpen ? "fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] shadow-lifted" : "hidden",
-            desktopOpen ? "lg:static lg:z-auto lg:flex lg:w-[400px] lg:max-w-none lg:shrink-0 lg:shadow-none" : "lg:hidden",
+            "min-h-0 flex-col border-l border-border bg-background",
+            mobileOpen ? "fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] animate-in shadow-overlay duration-300 ease-out slide-in-from-right" : "hidden",
+            desktopOpen ? "lg:static lg:z-auto lg:flex lg:w-[400px] lg:max-w-none lg:shrink-0 lg:animate-none lg:shadow-none" : "lg:hidden",
           )}
         >
           <ToolsPanel tab={toolTab} onTab={setToolTab} onHelpCount={setHelpCount} helpBadge={helpBadge} dmBadge={dmBadge} onClose={() => setMobileOpen(false)} />
         </aside>
       }
-      overlay={mobileOpen && <div className="fixed inset-0 z-40 bg-black/30 lg:hidden" onClick={() => setMobileOpen(false)} aria-hidden />}
+      overlay={mobileOpen && <div className="fixed inset-0 z-40 animate-fade-in bg-ink/35 lg:hidden" onClick={() => setMobileOpen(false)} aria-hidden />}
     />
   );
 }
@@ -131,41 +143,43 @@ function ToolsPanel({
 }) {
   return (
     <Tabs value={tab} onValueChange={onTab} className="flex min-h-0 flex-1 flex-col gap-0">
-      <div className="flex items-center gap-1 border-b border-border p-2">
+      <div className="flex items-center gap-1 border-b border-border p-3">
         <TabsList className="grid flex-1 grid-cols-4">
-          <TabsTrigger value="understanding">
+          <TabsTrigger value="understanding" className="px-1.5">
             <Gauge aria-hidden /> 이해도
           </TabsTrigger>
-          <TabsTrigger value="help" aria-label="도움 요청">
+          <TabsTrigger value="help" aria-label="도움 요청" className="px-1.5">
             <Hand aria-hidden /> 도움 {helpBadge}
           </TabsTrigger>
-          <TabsTrigger value="activity">
-            <Sparkles aria-hidden /> 활동
+          <TabsTrigger value="activity" className="px-1.5">
+            <Rocket aria-hidden /> 활동
           </TabsTrigger>
-          <TabsTrigger value="messages" aria-label="공지와 1:1 메시지">
-            <Megaphone aria-hidden /> 공지·1:1 {dmBadge}
+          <TabsTrigger value="messages" aria-label="공지와 1:1 메시지" className="px-1.5">
+            <Megaphone aria-hidden /> 공지 {dmBadge}
           </TabsTrigger>
         </TabsList>
         <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="강사 도구 닫기" onClick={onClose}>
           <X aria-hidden />
         </Button>
       </div>
-      <TabsContent value="understanding" forceMount hidden={tab !== "understanding"} className="scrollbar-thin min-h-0 overflow-y-auto p-3 data-[state=inactive]:hidden">
+      <TabsContent value="understanding" forceMount hidden={tab !== "understanding"} className="scrollbar-thin min-h-0 overflow-y-auto p-4 data-[state=inactive]:hidden">
         <UnderstandingPanel />
       </TabsContent>
-      <TabsContent value="help" forceMount hidden={tab !== "help"} className="scrollbar-thin min-h-0 overflow-y-auto p-3 data-[state=inactive]:hidden">
+      <TabsContent value="help" forceMount hidden={tab !== "help"} className="scrollbar-thin min-h-0 overflow-y-auto p-4 data-[state=inactive]:hidden">
         <HelpQueue onCount={onHelpCount} />
       </TabsContent>
-      <TabsContent value="activity" forceMount hidden={tab !== "activity"} className="scrollbar-thin min-h-0 overflow-y-auto p-3 data-[state=inactive]:hidden">
-        <p className="mb-2 text-xs text-muted-foreground">활동을 시작하면 수강생 화면에 팝업으로 떠요.</p>
+      <TabsContent value="activity" forceMount hidden={tab !== "activity"} className="scrollbar-thin min-h-0 overflow-y-auto p-4 data-[state=inactive]:hidden">
+        <p className="mb-3 rounded-md bg-sunken px-3 py-2 text-xs text-muted-foreground">활동을 시작하면 수강생 화면에 팝업으로 떠요.</p>
         <ActivityPanel />
       </TabsContent>
       <TabsContent value="messages" className="scrollbar-thin flex min-h-0 flex-col overflow-y-auto data-[state=inactive]:hidden">
-        <div className="border-b border-border p-3">
-          <h3 className="mb-2 font-bold">공지</h3>
+        <div className="border-b border-border p-4">
+          <h3 className="mb-2 flex items-center gap-1.5 font-semibold">
+            <Megaphone aria-hidden className="size-4 text-coral-ink" /> 공지
+          </h3>
           <AnnouncementManager />
         </div>
-        <h3 className="px-3 pt-3 font-bold">1:1 메시지</h3>
+        <h3 className="px-4 pt-4 font-semibold">1:1 메시지</h3>
         <DmInbox />
       </TabsContent>
     </Tabs>

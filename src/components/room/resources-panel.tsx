@@ -2,8 +2,11 @@
 
 import { useRef, useState } from "react";
 import useSWR from "swr";
-import { Download, ExternalLink, FolderOpen, Link2, Loader2, Trash2, Upload } from "lucide-react";
+import { Download, ExternalLink, Link2, Loader2, Trash2, Upload } from "lucide-react";
 
+import { EmptyState } from "@/components/empty-state";
+import { ResourcesEmptyArt } from "@/components/illustrations";
+import { ResourceListSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, fetcher } from "@/lib/client/api";
@@ -29,8 +32,8 @@ export function ResourcesPanel({ manage = false }: { manage?: boolean }) {
   return (
     <div className="scrollbar-thin min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
       {manage && (
-        <div className="grid gap-2 rounded-xl bg-muted/60 p-3 sm:grid-cols-[1fr_1.4fr_auto_auto]">
-          <p className="text-xs font-semibold text-muted-foreground sm:col-span-4">자료 추가 (강사만 보여요)</p>
+        <div className="grid gap-2 rounded-lg bg-sunken p-3 sm:grid-cols-[1fr_1.4fr_auto_auto]">
+          <p className="text-xs font-medium text-muted-foreground sm:col-span-4">자료 추가 (강사만 보여요)</p>
           <Input aria-label="자료 제목" placeholder="제목" value={title} maxLength={100} onChange={(e) => setTitle(e.target.value)} />
           <Input aria-label="링크 주소" placeholder="https://… (링크일 때)" value={url} onChange={(e) => setUrl(e.target.value)} />
           <Button
@@ -83,13 +86,13 @@ export function ResourcesPanel({ manage = false }: { manage?: boolean }) {
 
       {(mat?.materials.length ?? 0) > 0 && (
         <section>
-          <h3 className="mb-2 text-sm font-bold text-muted-foreground">교안</h3>
-          <ul className="space-y-2">
+          <h3 className="mb-1 text-sm font-medium text-muted-foreground">교안</h3>
+          <ul className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
             {mat!.materials.map((m) => (
               <li key={m.id}>
-                <a href={m.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card p-3 hover:border-primary/40">
-                  <Download className="size-5 text-primary" aria-hidden />
-                  <span className="flex-1 font-semibold">{m.title}.pdf</span>
+                <a href={m.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center gap-3 px-1 py-3 transition-colors hover:bg-sunken/60">
+                  <Download className="size-4 text-muted-foreground" aria-hidden />
+                  <span className="flex-1 font-medium">{m.title}.pdf</span>
                   <span className="text-xs text-muted-foreground">{m.pageCount}쪽</span>
                 </a>
               </li>
@@ -99,24 +102,24 @@ export function ResourcesPanel({ manage = false }: { manage?: boolean }) {
       )}
 
       <section>
-        <h3 className="mb-2 text-sm font-bold text-muted-foreground">자료·링크</h3>
-        {isLoading && <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" aria-label="불러오는 중" />}
+        <h3 className="mb-1 text-sm font-medium text-muted-foreground">자료·링크</h3>
+        {isLoading && <ResourceListSkeleton />}
         {!isLoading && resources.length === 0 && (
-          <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-            <FolderOpen className="size-4" aria-hidden /> 아직 자료가 없어요.
-          </p>
+          <EmptyState art={<ResourcesEmptyArt />} title="아직 올라온 자료가 없어요">
+            올라오면 여기서 바로 열어 볼 수 있어요.
+          </EmptyState>
         )}
-        <ul className="space-y-2">
+        <ul className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card empty:hidden">
           {resources.map((r) => (
             <li key={r.id} className="flex items-center gap-2">
               <a
                 href={r.url ?? "#"}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="flex min-h-12 flex-1 items-center gap-3 rounded-xl border border-border bg-card p-3 hover:border-primary/40"
+                className="flex min-h-12 flex-1 items-center gap-3 px-1 py-3 transition-colors hover:bg-sunken/60"
               >
-                {r.kind === "link" ? <ExternalLink className="size-5 text-primary" aria-hidden /> : <Download className="size-5 text-primary" aria-hidden />}
-                <span className="min-w-0 flex-1 truncate font-semibold">{r.title}</span>
+                {r.kind === "link" ? <ExternalLink className="size-4 text-muted-foreground" aria-label="링크" /> : <Download className="size-4 text-muted-foreground" aria-label="파일" />}
+                <span className="min-w-0 flex-1 truncate font-medium">{r.title}</span>
                 {r.kind === "file" && <span className="text-xs text-muted-foreground">{formatBytes(r.sizeBytes)}</span>}
               </a>
               {manage && (

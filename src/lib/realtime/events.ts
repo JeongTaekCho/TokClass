@@ -3,6 +3,7 @@ import type {
   ActivityResults,
   Announcement,
   ChatMessage,
+  MessageReaction,
   PublicRoom,
   Question,
   UnderstandingCounts,
@@ -13,6 +14,7 @@ export type RoomEvents = {
   "room.updated": { room: PublicRoom };
   "chat.message": { message: ChatMessage };
   "chat.hidden": { id: string; hidden: boolean };
+  "chat.reactions": { id: string; reactions: MessageReaction[] };
   "announce.changed": { announcements: Announcement[] };
   "dm.new": { participantId: string; fromInstructor: boolean };
   "qa.changed": { question: Question | null; id: string };

@@ -21,9 +21,9 @@ import { cn } from "@/lib/utils";
 export function SubmissionContent({ s, large = false }: { s: Submission; large?: boolean }) {
   return (
     <>
-      {s.kind === "image" && s.fileUrl && <img src={s.fileUrl} alt={s.title || `${s.author.nickname}님의 이미지`} className={cn("w-full rounded-xl object-contain", large ? "max-h-[75dvh]" : "max-h-[60dvh] bg-muted")} />}
+      {s.kind === "image" && s.fileUrl && <img src={s.fileUrl} alt={s.title || `${s.author.nickname}님의 이미지`} className={cn("w-full rounded-md object-contain", large ? "max-h-[75dvh]" : "max-h-[60dvh] bg-sunken")} />}
       {s.kind === "file" && s.fileUrl && (
-        <a href={s.fileUrl} className="flex min-h-14 items-center gap-3 rounded-xl border border-border p-3 font-semibold hover:border-primary/40" target="_blank" rel="noopener noreferrer">
+        <a href={s.fileUrl} className="flex min-h-14 items-center gap-3 rounded-lg border border-border p-3 font-semibold hover:border-border-strong" target="_blank" rel="noopener noreferrer">
           <Download className="size-5 text-primary" aria-hidden /> {s.fileName ?? "파일 받기"}
         </a>
       )}
@@ -70,7 +70,7 @@ export function SubmissionDetail({ submission, onClose, onChanged }: { submissio
           <>
             <SheetHeader className="border-b border-border">
               <SheetTitle className="flex items-center gap-1.5">
-                {s.isBest && <Trophy className="size-5 text-coral" aria-label="베스트" />}
+                {s.isBest && <Trophy className="size-5 text-coral-ink" aria-label="베스트" />}
                 {s.title || "산출물"}
               </SheetTitle>
               <SheetDescription>
@@ -98,7 +98,7 @@ export function SubmissionDetail({ submission, onClose, onChanged }: { submissio
                       }}
                       aria-pressed={mine}
                       aria-label={`${st} 스티커 ${s.stickers[st] ?? 0}개`}
-                      className={cn("inline-flex min-h-10 min-w-12 cursor-pointer items-center justify-center gap-1 rounded-full border px-3 text-sm", mine ? "border-primary bg-primary-soft" : "border-border hover:border-primary/40")}
+                      className={cn("inline-flex min-h-10 min-w-12 cursor-pointer items-center justify-center gap-1 rounded-full border px-3 text-sm", mine ? "border-primary bg-primary-soft" : "border-border hover:border-border-strong")}
                     >
                       {st} <span className="font-semibold">{s.stickers[st] ?? 0}</span>
                     </button>
@@ -141,12 +141,12 @@ export function SubmissionDetail({ submission, onClose, onChanged }: { submissio
               )}
 
               <section className="border-t border-border pt-4" aria-label="댓글">
-                <h3 className="mb-2 font-bold">댓글 {data?.comments.length ?? ""}</h3>
+                <h3 className="mb-2 font-semibold">댓글 {data?.comments.length ?? ""}</h3>
                 <ul className="space-y-2">
                   {data?.comments.map((c) => (
                     <li key={c.id} className="group flex items-start gap-2 text-sm">
-                      <div className="flex-1 rounded-xl bg-muted px-3 py-2">
-                        <span className={cn("mr-1.5 font-semibold", c.author.kind === "instructor" && "text-coral")}>{c.author.nickname}</span>
+                      <div className="flex-1 rounded-lg bg-sunken px-3 py-2">
+                        <span className={cn("mr-1.5 font-semibold", c.author.kind === "instructor" && "text-coral-ink")}>{c.author.nickname}</span>
                         <span className="whitespace-pre-wrap">{c.body}</span>
                       </div>
                       {(c.mine || isInstructor) && (

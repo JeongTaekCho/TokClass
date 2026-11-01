@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { ChevronDown, Loader2, Play, Plus, RotateCcw, Square, Trash2, X } from "lucide-react";
+import { ChevronDown, Loader2, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { ResultsView } from "@/components/room/activities/results-view";
 import { Countdown, useRemaining } from "@/components/room/activities/timer";
 import { useActivityDetail } from "@/components/room/activities/use-activity";
+import { ActivitySkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
@@ -43,9 +44,9 @@ export function ActivityPanel() {
   }
 
   return (
-    <section aria-labelledby="act-title" className="rounded-2xl border border-border bg-card p-3 shadow-soft sm:p-4">
+    <section aria-labelledby="act-title">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h2 id="act-title" className="text-lg font-bold">
+        <h2 id="act-title" className="text-heading">
           활동
         </h2>
         <ActivityBuilder onCreated={() => void mutate()} />
@@ -54,14 +55,14 @@ export function ActivityPanel() {
       {live && <LiveActivityCard activity={live} onEnd={() => setStatus(live, "ended")} />}
 
       {activities.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+        <p className="rounded-lg border border-border/70 bg-surface px-5 shadow-card py-6 text-sm text-muted-foreground">
           투표·퀴즈·워드클라우드 같은 활동을 미리 만들어 두고, 수업 중에 버튼 하나로 시작해요.
         </p>
       ) : (
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-3 divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
           {activities.map((a) => (
-            <li key={a.id} className={cn("rounded-xl border", a.status === "live" ? "border-primary" : "border-border")}>
-              <div className="flex flex-wrap items-center gap-2 p-2.5">
+            <li key={a.id} className={cn(a.status === "live" && "border-l-2 border-l-primary")}>
+              <div className="flex flex-wrap items-center gap-2 px-1 py-2.5">
                 <span className="text-xl" aria-hidden>
                   {ACTIVITY_LABELS[a.type].emoji}
                 </span>
@@ -72,12 +73,12 @@ export function ActivityPanel() {
                 <Badge variant={a.status === "live" ? "default" : a.status === "ended" ? "secondary" : "outline"}>{a.status === "live" ? "진행 중" : a.status === "ended" ? "종료" : "준비"}</Badge>
                 {a.status !== "live" && room.status === "active" && (
                   <Button size="sm" onClick={() => setStatus(a, "live")}>
-                    <Play aria-hidden /> {a.status === "ended" ? "다시 시작" : "시작"}
+                    {a.status === "ended" ? "다시 시작" : "시작"}
                   </Button>
                 )}
                 {a.status === "live" && (
                   <Button size="sm" variant="coral" onClick={() => setStatus(a, "ended")}>
-                    <Square aria-hidden /> 종료
+                    종료
                   </Button>
                 )}
                 {a.status !== "draft" && (
@@ -128,16 +129,16 @@ function LiveActivityCard({ activity, onEnd }: { activity: Activity; onEnd: () =
   const limit = activity.type === "quiz" ? (activity.config.timeLimitSec ?? 30) : activity.type === "task" ? (activity.config.durationSec ?? 0) : 0;
   const remaining = useRemaining(activity.startedAt, limit || undefined);
   return (
-    <div className="rounded-2xl border-2 border-primary bg-primary-soft/30 p-4">
+    <div className="animate-enter-up rounded-md bg-primary-soft p-3">
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-semibold text-primary">
+          <p className="text-sm font-medium text-primary-ink">
             {ACTIVITY_LABELS[activity.type].emoji} 진행 중 · {ACTIVITY_LABELS[activity.type].name}
           </p>
-          <h3 className="text-lg font-bold">{activity.title}</h3>
+          <h3 className="text-heading">{activity.title}</h3>
         </div>
         <Button variant="coral" onClick={onEnd}>
-          <Square aria-hidden /> 종료
+          종료
         </Button>
       </div>
       {remaining !== null && limit > 0 && <Countdown remaining={remaining} total={limit} className="mb-3" />}
@@ -148,7 +149,7 @@ function LiveActivityCard({ activity, onEnd }: { activity: Activity; onEnd: () =
 
 function ActivityResultsBlock({ activityId }: { activityId: string }) {
   const { data } = useActivityDetail(activityId);
-  if (!data) return <Loader2 className="mx-auto size-5 animate-spin text-muted-foreground" aria-label="결과 불러오는 중" />;
+  if (!data) return <ActivitySkeleton />;
   if (!data.results) return <p className="text-sm text-muted-foreground">아직 결과가 없어요.</p>;
   return <ResultsView results={data.results} config={data.activity.config} />;
 }
@@ -236,9 +237,9 @@ function ActivityBuilder({ onCreated }: { onCreated: () => void }) {
                 aria-checked={type === t}
                 key={t}
                 onClick={() => setType(t)}
-                className={cn("min-h-11 cursor-pointer rounded-xl border p-2.5 text-left transition", type === t ? "border-primary bg-primary-soft" : "border-border hover:border-primary/40")}
+                className={cn("min-h-11 cursor-pointer rounded-md border p-2.5 text-left transition-colors", type === t ? "border-primary bg-primary-soft" : "border-border hover:border-border-strong")}
               >
-                <span className="block font-bold">
+                <span className="block font-semibold">
                   {ACTIVITY_LABELS[t].emoji} {ACTIVITY_LABELS[t].name}
                 </span>
                 <span className="text-xs text-muted-foreground">{ACTIVITY_LABELS[t].description}</span>

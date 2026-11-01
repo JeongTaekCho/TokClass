@@ -37,13 +37,13 @@ export function PresentMode({ items, startIndex = 0, onClose }: { items: Submiss
 
   if (!s) return null;
   return createPortal(
-    <div ref={ref} tabIndex={-1} className="fixed inset-0 z-[70] flex flex-col bg-[#14112b] text-white outline-none" role="dialog" aria-modal aria-label="발표 모드">
+    <div ref={ref} tabIndex={-1} className="fixed inset-0 z-[70] flex flex-col bg-ink text-white outline-none" role="dialog" aria-modal aria-label="발표 모드">
       <div className="flex items-center gap-3 px-6 py-4">
         <span className="text-sm text-white/70 tabular-nums">
           {index + 1} / {items.length}
         </span>
-        <h2 className="flex min-w-0 flex-1 items-center gap-2 truncate text-xl font-bold">
-          {s.isBest && <Trophy className="size-5 shrink-0 text-coral" aria-label="베스트" />}
+        <h2 className="flex min-w-0 flex-1 items-center gap-2 truncate text-xl font-semibold">
+          {s.isBest && <Trophy className="size-5 shrink-0 text-coral-ink" aria-label="베스트" />}
           {s.title || "산출물"} <span className="text-base font-normal text-white/70">· {s.author.nickname}</span>
         </h2>
         <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 hover:text-white" aria-label="발표 모드 닫기 (Esc)" onClick={onClose}>
@@ -51,7 +51,7 @@ export function PresentMode({ items, startIndex = 0, onClose }: { items: Submiss
         </Button>
       </div>
       <div className="relative flex min-h-0 flex-1 items-center justify-center px-20 pb-8">
-        <div className="max-h-full w-full max-w-5xl overflow-auto rounded-2xl bg-white p-6 text-foreground">
+        <div className="max-h-full w-full max-w-5xl overflow-auto rounded-lg bg-white p-6 text-foreground">
           <SubmissionContent s={s} large />
         </div>
         <Button variant="ghost" size="icon" className="absolute top-1/2 left-4 size-14 -translate-y-1/2 rounded-full bg-white/10 text-white hover:bg-white/20 hover:text-white" aria-label="이전 (←)" disabled={index === 0} onClick={() => setIndex(index - 1)}>

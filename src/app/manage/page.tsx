@@ -13,7 +13,7 @@ export default async function ManagePage() {
     <div className="min-h-dvh">
       <InstructorHeader name={instructorDisplayName(access)} isAdmin={access.profile.isAdmin} />
       <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-        <h1 className="mb-1 text-2xl font-extrabold">수강생 관리</h1>
+        <h1 className="mb-1 text-title">수강생 관리</h1>
         <p className="mb-6 text-muted-foreground">내 방의 수강생을 한곳에서 찾고, 비밀번호 재발급·강퇴·조 이동을 할 수 있어요.</p>
         <ManageApp />
       </main>

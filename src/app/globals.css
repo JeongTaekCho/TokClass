@@ -1,58 +1,104 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* 톡클 디자인 토큰: 밝은 라벤더 배경 + 보라 메인 (다크 모드는 MVP 제외) */
+/*
+ * 톡클 디자인 토큰 v2 — "밝은 교실"
+ * - 면: 맑은 쿨 그레이 캔버스(background) 위에 흰 패널(surface)을 살짝 띄워요. 패널은 shadow-card 한 단계만 써요.
+ * - 브랜드: 로고의 두 말풍선. 인디고(primary) = 주요 행동·현재 위치, 코랄 = 수강생 쪽 포인트·알림.
+ * - 보조 팔레트(sun·mint·sky·lilac): 일러스트와 아이콘 칩에만 써요. 글자 색으로는 쓰지 않아요.
+ * - 모양: 둥근 모서리(버튼 10px, 패널 14px, 다이얼로그 20px). 모든 색은 여기 토큰에만 있어요.
+ * - 움직임은 motion 라이브러리(components/motion.tsx)와 아래 keyframes로 해요. 움직임 줄이기 설정을 따라요.
+ */
 :root {
-  --radius: 1rem;
+  --radius: 0.875rem;
 
-  --background: #f8f7fc;
-  --foreground: #1f1b3a;
-  --card: #ffffff;
-  --card-foreground: #1f1b3a;
-  --popover: #ffffff;
-  --popover-foreground: #1f1b3a;
+  --background: #f4f5fa;
+  --foreground: #191b2a;
+  --surface: #ffffff;
+  --surface-sunken: #eceef6;
+  --card: var(--surface);
+  --card-foreground: var(--foreground);
+  --popover: var(--surface);
+  --popover-foreground: var(--foreground);
 
-  --primary: #7c3aed;
-  --primary-hover: #5b21b6;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
   --primary-foreground: #ffffff;
-  --primary-soft: #ede9fe;
+  --primary-soft: #eeedff;
+  --primary-ink: #3730a3;
 
-  --secondary: #f1eff8;
-  --secondary-foreground: #1f1b3a;
-  --muted: #f1eff8;
-  --muted-foreground: #6b6880;
-  --accent: #ede9fe;
-  --accent-foreground: #5b21b6;
+  --secondary: var(--surface-sunken);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--surface-sunken);
+  --muted-foreground: #5e6278;
+  --accent: var(--surface-sunken);
+  --accent-foreground: var(--foreground);
+
   --accent-coral: #ff6b4a;
-  --accent-coral-soft: #fff0ec;
+  --accent-coral-hover: #f25a38;
+  --accent-coral-soft: #fff0eb;
+  --accent-coral-ink: #c2410c;
+  --ink: #191b2a;
 
-  --destructive: #dc2626;
-  --border: #e7e4f2;
-  --input: #e7e4f2;
-  --ring: #7c3aed;
+  /* 일러스트·아이콘 칩 팔레트 */
+  --sun: #ffc23d;
+  --sun-soft: #fff5d9;
+  --mint: #2fc28b;
+  --mint-soft: #e3f8ef;
+  --sky: #4ea5ff;
+  --sky-soft: #e6f2ff;
+  --sky-ink: #1f63c2;
+  --lilac: #a78bfa;
+  --lilac-soft: #f1ecff;
+  --lilac-ink: #5b3cc4;
+  --skin-1: #ffd9c4;
+  --skin-2: #f1b894;
+  --skin-3: #c68a64;
+  --hair: #2b2d42;
 
-  /* 이해도 신호등 (색 + 텍스트 + 아이콘을 함께 표시) */
-  --signal-green: #16a34a;
-  --signal-yellow: #ca8a04;
-  --signal-red: #dc2626;
+  --success: #12763a;
+  --success-soft: #e7f6ec;
+  --warning: #a16207;
+  --warning-soft: #fdf5dc;
+  --destructive: #c81e1e;
+  --destructive-soft: #fdeeed;
+
+  --border: #e3e5ef;
+  --border-strong: #cdd1df;
+  --input: #8f94aa;
+  --ring: #4f46e5;
+
+  /* 이해도 신호등 (색 + 이모지 + 텍스트를 함께 표시) */
+  --signal-green: #22b573;
+  --signal-yellow: #f5b300;
+  --signal-red: #f04438;
 
   --brand-coral: #ff6b4a;
   --brand-indigo: #4f46e5;
   --brand-mix: #8b3fb8;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --duration-micro: 150ms;
+  --duration-enter: 240ms;
 }
 
 @theme inline {
   --font-sans: var(--font-pretendard), "Pretendard", system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --radius-sm: calc(var(--radius) - 8px);
-  --radius-md: calc(var(--radius) - 6px);
-  --radius-lg: calc(var(--radius) - 4px);
-  --radius-xl: var(--radius);
-  --radius-2xl: calc(var(--radius) + 4px);
+  /* 역할별 라운드: sm = 배지·칩, md = 버튼·입력, lg = 패널·카드, xl = 다이얼로그·시트, 2xl 이상 = 히어로·일러스트 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: var(--radius);
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-sunken: var(--surface-sunken);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -61,6 +107,7 @@
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-soft: var(--primary-soft);
+  --color-primary-ink: var(--primary-ink);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -68,9 +115,18 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-coral: var(--accent-coral);
+  --color-coral-hover: var(--accent-coral-hover);
   --color-coral-soft: var(--accent-coral-soft);
+  --color-coral-ink: var(--accent-coral-ink);
+  --color-ink: var(--ink);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
   --color-destructive: var(--destructive);
+  --color-destructive-soft: var(--destructive-soft);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-signal-green: var(--signal-green);
@@ -79,15 +135,105 @@
   --color-brand-coral: var(--brand-coral);
   --color-brand-indigo: var(--brand-indigo);
   --color-brand-mix: var(--brand-mix);
+  --color-sun: var(--sun);
+  --color-sun-soft: var(--sun-soft);
+  --color-mint: var(--mint);
+  --color-mint-soft: var(--mint-soft);
+  --color-sky: var(--sky);
+  --color-sky-soft: var(--sky-soft);
+  --color-sky-ink: var(--sky-ink);
+  --color-lilac: var(--lilac);
+  --color-lilac-soft: var(--lilac-soft);
+  --color-lilac-ink: var(--lilac-ink);
+  --color-skin-1: var(--skin-1);
+  --color-skin-2: var(--skin-2);
+  --color-skin-3: var(--skin-3);
+  --color-hair: var(--hair);
 
-  --shadow-soft: 0 1px 2px rgb(31 27 58 / 0.04), 0 4px 16px rgb(31 27 58 / 0.06);
-  --shadow-lifted: 0 2px 4px rgb(31 27 58 / 0.05), 0 12px 32px rgb(31 27 58 / 0.1);
+  /* 깊이 3단계: 패널(card) → 올라온 것(raised, 호버) → 떠 있는 것(overlay: 다이얼로그·시트·토스트) */
+  --shadow-card: 0 1px 2px rgb(25 27 42 / 0.04), 0 2px 10px -4px rgb(25 27 42 / 0.08);
+  --shadow-raised: 0 2px 4px rgb(25 27 42 / 0.04), 0 12px 28px -10px rgb(25 27 42 / 0.18);
+  --shadow-overlay: 0 2px 6px rgb(25 27 42 / 0.06), 0 20px 48px -12px rgb(25 27 42 / 0.28);
+  --shadow-brand: 0 8px 20px -8px rgb(79 70 229 / 0.55);
 
-  --animate-float-up: float-up 2.4s ease-out forwards;
+  /* 타이포 단계: 제목은 600~700, 800은 쓰지 않아요 */
+  --text-display: 2.5rem;
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 700;
+  --text-title: 1.5rem;
+  --text-title--line-height: 1.35;
+  --text-title--letter-spacing: -0.01em;
+  --text-title--font-weight: 650;
+  --text-heading: 1.125rem;
+  --text-heading--line-height: 1.45;
+  --text-heading--letter-spacing: -0.005em;
+  --text-heading--font-weight: 600;
+
+  --animate-float-up: float-up 2.4s var(--ease-out) forwards;
   @keyframes float-up {
     0% { transform: translateY(0) scale(0.8); opacity: 0; }
     15% { opacity: 1; transform: translateY(-20px) scale(1.1); }
     100% { transform: translateY(-220px) scale(1); opacity: 0; }
+  }
+
+  /* 새 항목(채팅 메시지, 질문, 대기열)이 아래에서 살짝 올라와요 */
+  --animate-enter-up: enter-up var(--duration-enter) var(--ease-out) both;
+  @keyframes enter-up {
+    from { transform: translateY(6px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+
+  /* 활동 팝업, 하단 시트처럼 화면 아래에서 올라오는 것 */
+  --animate-rise: rise 320ms var(--ease-out) both;
+  @keyframes rise {
+    from { transform: translateY(24px); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+
+  /* 화면 단위 전환(세션 종료, 강퇴 화면) */
+  --animate-fade-in: fade-in var(--duration-enter) var(--ease-out) both;
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* 접속 점: 들어오면 한 번만 퍼져요 (반복하지 않아요) */
+  --animate-ping-once: ping-once 600ms var(--ease-out) 1;
+  @keyframes ping-once {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(2.4); opacity: 0; }
+  }
+
+  --animate-skeleton: skeleton 1.6s var(--ease-in-out) infinite;
+  @keyframes skeleton {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+  }
+
+  /* 일러스트 소품이 둥실 떠 있어요 */
+  --animate-float: float 4s var(--ease-in-out) infinite;
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  --animate-twinkle: twinkle 2.4s var(--ease-in-out) infinite;
+  @keyframes twinkle {
+    0%, 100% { transform: scale(0.6); opacity: 0.3; }
+    50% { transform: scale(1); opacity: 1; }
+  }
+  --animate-live: live 1.8s var(--ease-out) infinite;
+  @keyframes live {
+    0% { transform: scale(1); opacity: 0.55; }
+    100% { transform: scale(2.6); opacity: 0; }
+  }
+
+  /* 랜딩 히어로 장면: 반응이 차례로 떠올라요 */
+  --animate-hero-pop: hero-pop 6s var(--ease-out) infinite;
+  @keyframes hero-pop {
+    0%, 8% { transform: translateY(8px); opacity: 0; }
+    14%, 80% { transform: none; opacity: 1; }
+    90%, 100% { transform: translateY(-4px); opacity: 0; }
   }
 }
 
@@ -105,17 +251,62 @@
     word-break: keep-all;
     overflow-wrap: anywhere;
   }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-ring;
+  }
+  ::selection {
+    background: var(--primary-soft);
+    color: var(--primary-ink);
   }
 }
 
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  /* 가로로 넘기는 탭 줄: 스크롤바 없이 손가락·휠로 넘겨요 */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+  /* 버튼·탭처럼 누를 수 있는 것의 눌림 */
+  .press {
+    transition: transform var(--duration-micro) var(--ease-out);
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  /* SVG 안에서 transform 애니메이션이 제자리를 기준으로 돌게 해요 */
+  .origin-box {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  /* 히어로·인증 화면 배경의 은은한 점 무늬 */
+  .bg-dots {
+    background-image: radial-gradient(rgb(79 70 229 / 0.12) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+}
+
+/* 움직임 줄이기: 모든 애니메이션과 전환을 즉시 끝내요 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

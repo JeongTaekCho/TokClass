@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { InstructorActions } from "@/components/admin/instructor-actions";
 import { Badge } from "@/components/ui/badge";
@@ -65,12 +65,12 @@ export default async function AdminInstructorDetailPage({ params }: PageProps<"/
       </Button>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-extrabold">
+          <h1 className="flex flex-wrap items-center gap-2 text-title">
             {profile.name || "(이름 없음)"}
             <Badge variant={profile.status === "approved" ? "success" : profile.status === "pending" ? "soft" : "coral-soft"}>{STATUS_LABEL[profile.status]}</Badge>
             {profile.isAdmin && (
               <Badge variant="soft">
-                <ShieldCheck aria-hidden /> 관리자
+                관리자
               </Badge>
             )}
           </h1>
@@ -79,7 +79,7 @@ export default async function AdminInstructorDetailPage({ params }: PageProps<"/
         <InstructorActions userId={profile.userId} name={profile.name || profile.email} status={profile.status} isAdmin={profile.isAdmin} isSelf={profile.userId === access.user.id} emailConfirmed={Boolean(emailConfirmedAt)} />
       </div>
 
-      <dl className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <dl className="mb-8 flex flex-wrap gap-x-8 gap-y-3 rounded-lg border border-border/70 bg-surface px-5 shadow-card py-4 text-sm">
         {[
           { label: "가입일", value: formatDate(profile.createdAt) },
           { label: "이메일 인증", value: emailConfirmedAt ? formatDate(emailConfirmedAt) : "인증 대기" },
@@ -87,26 +87,26 @@ export default async function AdminInstructorDetailPage({ params }: PageProps<"/
           { label: "누적 수강생", value: `${totalParticipants.toLocaleString("ko-KR")}명` },
           { label: "최근 수업일", value: latest ? formatDate(latest) : "-" },
         ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-            <dt className="text-sm text-muted-foreground">{s.label}</dt>
-            <dd className="mt-1 text-xl font-bold">{s.value}</dd>
+          <div key={s.label}>
+            <dt className="text-muted-foreground">{s.label}</dt>
+            <dd className="mt-0.5 font-semibold tabular-nums">{s.value}</dd>
           </div>
         ))}
       </dl>
       {profile.statusReason && (
-        <p className="mb-8 rounded-2xl bg-coral-soft px-4 py-3 text-sm">
+        <p className="mb-8 rounded-md bg-coral-soft px-4 py-3 text-sm">
           <strong>{profile.status === "rejected" ? "거절 사유" : "정지 사유"}</strong> · {profile.statusReason}
         </p>
       )}
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <section aria-labelledby="rooms-title">
-          <h2 id="rooms-title" className="mb-3 text-lg font-bold">
+          <h2 id="rooms-title" className="mb-3 text-heading">
             보유 방
           </h2>
-          <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
+          <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
             <table className="w-full min-w-[560px] text-left text-sm">
-              <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
+              <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3">방</th>
                   <th className="px-4 py-3">상태</th>
@@ -123,7 +123,7 @@ export default async function AdminInstructorDetailPage({ params }: PageProps<"/
                   </tr>
                 )}
                 {roomList.map((r) => (
-                  <tr key={r.id} className="border-b border-border/60 last:border-0">
+                  <tr key={r.id} className="border-b border-border last:border-0">
                     <td className="px-4 py-2.5">
                       <span className="font-semibold">{r.title}</span>
                       <span className="ml-2 font-mono text-xs text-muted-foreground">{r.join_code}</span>
@@ -139,12 +139,12 @@ export default async function AdminInstructorDetailPage({ params }: PageProps<"/
         </section>
 
         <section aria-labelledby="history-title">
-          <h2 id="history-title" className="mb-3 text-lg font-bold">
+          <h2 id="history-title" className="mb-3 text-heading">
             승인 이력
           </h2>
-          <ol className="space-y-2">
+          <ol className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
             {(logs ?? []).map((l) => (
-              <li key={l.id} className="rounded-2xl border border-border bg-card p-3 text-sm shadow-soft">
+              <li key={l.id} className="py-3 text-sm">
                 <p className="font-semibold">{AUDIT_ACTION_LABEL[l.action] ?? l.action}</p>
                 {l.reason && <p className="mt-0.5 whitespace-pre-wrap">{l.reason}</p>}
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -152,7 +152,7 @@ export default async function AdminInstructorDetailPage({ params }: PageProps<"/
                 </p>
               </li>
             ))}
-            <li className="rounded-2xl border border-dashed border-border p-3 text-sm text-muted-foreground">
+            <li className="py-3 text-sm text-muted-foreground">
               {formatDateTimeFull(profile.createdAt)} · 가입 신청
               {profile.reviewedBy && !isUuid(profile.reviewedBy) && <span className="block">최초 처리: {profile.reviewedBy === "bootstrap" ? "첫 관리자 지정(SQL)" : profile.reviewedBy === "migration" ? "기존 강사 일괄 승인" : profile.reviewedBy}</span>}
             </li>
