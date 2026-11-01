@@ -162,11 +162,15 @@ function QuestionItem({
   const [answering, setAnswering] = useState(false);
   const [answer, setAnswer] = useState(q.answer ?? "");
 
-  async function patch(body: Record<string, unknown>) {
+  // 누르자마자 화면에 반영하고(낙관적 업데이트), 실패하면 되돌려요.
+  async function patch(body: { answer?: string; answered?: boolean; hidden?: boolean }) {
+    const before = q;
+    onChange({ ...q, ...body, ...(body.answer !== undefined ? { answer: body.answer || null, answered: body.answer ? true : q.answered } : {}) });
     try {
       const res = await api<{ question: Question }>(`/api/rooms/${roomId}/questions/${q.id}`, { method: "PATCH", body });
       onChange(res.question);
     } catch (e) {
+      onChange(before);
       toastError(e);
     }
   }
@@ -178,10 +182,13 @@ function QuestionItem({
           <button
             onClick={async () => {
               if (q.mine || readOnly) return;
+              const before = q;
+              onChange({ ...q, voted: !q.voted, voteCount: q.voteCount + (q.voted ? -1 : 1) });
               try {
                 const res = await api<{ question: Question }>(`/api/rooms/${roomId}/questions/${q.id}/vote`, { method: "POST" });
                 onChange(res.question);
               } catch (e) {
+                onChange(before);
                 toastError(e);
               }
             }}
@@ -228,8 +235,8 @@ function QuestionItem({
               className="mt-2 space-y-2"
               onSubmit={async (e) => {
                 e.preventDefault();
-                await patch({ answer });
                 setAnswering(false);
+                await patch({ answer });
               }}
             >
               <Textarea value={answer} maxLength={1000} onChange={(e) => setAnswer(e.target.value)} placeholder="답변을 적어요 (말로 답했다면 비워 두고 [답변 완료]만 눌러도 돼요)" aria-label="답변 입력" autoFocus />

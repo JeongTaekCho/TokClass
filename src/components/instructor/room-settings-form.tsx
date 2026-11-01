@@ -17,6 +17,7 @@ import { toastError } from "@/lib/client/toast-error";
 import { TAB_LABELS, type TabSetting } from "@/lib/rooms/templates";
 import type { PublicRoom } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { previewRoomPatch } from "@/lib/rooms/public";
 
 function toLocalInput(iso: string | null) {
   if (!iso) return "";
@@ -69,6 +70,9 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
 
   async function patch(body: Record<string, unknown>, key: string, success = "저장했어요.") {
     setSaving(key);
+    // 토글·순서 바꾸기는 누르자마자 반영하고(낙관적 업데이트), 실패하면 되돌려요.
+    const before = room;
+    setRoom(previewRoomPatch(room, body));
     try {
       const res = await api<{ room: PublicRoom }>(`/api/rooms/${room.id}`, { method: "PATCH", body });
       setRoom(res.room);
@@ -76,6 +80,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
       router.refresh();
       return res.room;
     } catch (e) {
+      setRoom(before);
       toastError(e);
     } finally {
       setSaving(null);

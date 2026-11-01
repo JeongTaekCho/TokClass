@@ -343,15 +343,18 @@ function PagePinsBar({ materialId, page, pageCount, onGo }: { materialId: string
 
 /** 수강생 전용: 반응 보내기·이 페이지 질문·내 메모 */
 function StudentPageActions({ materialId, page }: { materialId: string; page: number }) {
-  const { roomId, room } = useRoom();
+  const { roomId, room, local } = useRoom();
   const [askOpen, setAskOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
   const lastReaction = useRef(0);
 
   async function sendReaction(emoji: string) {
     if (!passGate(lastReaction)) return;
+    // 누르자마자 내 화면에 띄우고, 서버에는 뒤에서 보내요.
+    const nonce = crypto.randomUUID();
+    local("reaction.float", { emoji, materialId, page, nonce });
     try {
-      await api(`/api/rooms/${roomId}/reactions`, { body: { emoji, materialId, page } });
+      await api(`/api/rooms/${roomId}/reactions`, { body: { emoji, materialId, page, nonce } });
     } catch (e) {
       toastError(e);
     }

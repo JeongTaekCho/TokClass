@@ -56,6 +56,8 @@ type Props = {
   /** 같은 사람이 이어서 보낸 메시지 묶음의 첫 번째/마지막인지 */
   first: boolean;
   last: boolean;
+  /** 서버에 보내는 중인 내 메시지 (먼저 띄워 둔 말풍선) */
+  pending?: boolean;
   reactions: MessageReaction[];
   myKey: string;
   canReact: boolean;
@@ -64,7 +66,7 @@ type Props = {
   onToggleHidden: () => void;
 };
 
-export function MessageItem({ m, hidden, mine, first, last, reactions, myKey, canReact, canModerate, onReact, onToggleHidden }: Props) {
+export function MessageItem({ m, hidden, mine, first, last, pending = false, reactions, myKey, canReact, canModerate, onReact, onToggleHidden }: Props) {
   const url = !hidden ? firstUrl(m.body) : null;
   const isInstructor = m.author.kind === "instructor";
   const showContent = !hidden || canModerate;
@@ -73,7 +75,8 @@ export function MessageItem({ m, hidden, mine, first, last, reactions, myKey, ca
 
   return (
     <motion.div
-      className={cn("group/msg flex gap-2", mine && "flex-row-reverse", first ? "pt-3" : "pt-1")}
+      className={cn("group/msg flex gap-2 transition-opacity", mine && "flex-row-reverse", first ? "pt-3" : "pt-1", pending && "opacity-60")}
+      aria-busy={pending || undefined}
       initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={spring}
@@ -153,7 +156,9 @@ export function MessageItem({ m, hidden, mine, first, last, reactions, myKey, ca
                 )}
               </div>
             )}
-            {last && (
+            {pending ? (
+              <span className="px-0.5 text-[11px] whitespace-nowrap text-muted-foreground">보내는 중</span>
+            ) : last && (
               <time dateTime={m.createdAt} className="px-0.5 text-[11px] whitespace-nowrap text-muted-foreground tabular-nums">
                 {formatTime(m.createdAt)}
               </time>

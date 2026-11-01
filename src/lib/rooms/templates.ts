@@ -104,7 +104,7 @@ export function normalizeSettings(raw: unknown): RoomSettings {
     qaRevealSince: r.qaRevealAuthor && typeof r.qaRevealSince === "string" && !Number.isNaN(Date.parse(r.qaRevealSince)) ? r.qaRevealSince : null,
     redThreshold: clampInt(r.redThreshold, 5, 100, 30),
     aiDailyLimit: clampInt(r.aiDailyLimit, 0, 200, 20),
-    sections: Array.isArray(r.sections) ? r.sections.filter((s) => typeof s === "string").slice(0, 30) : [],
+    sections: Array.isArray(r.sections) ? [...new Set(r.sections.filter((s) => typeof s === "string"))].slice(0, 30) : [],
     groups: {
       active: Boolean(r.groups?.active),
       mode: r.groups?.mode === "manual" || r.groups?.mode === "choice" ? r.groups.mode : "random",

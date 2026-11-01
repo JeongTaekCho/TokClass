@@ -21,21 +21,24 @@ import { cn } from "@/lib/utils";
 export function ActivityRunner({ activityId }: { activityId: string }) {
   const { data, mutate, isLoading } = useActivityDetail(activityId);
   if (isLoading || !data) return <ActivitySkeleton />;
-  return <RunnerBody detail={data} reload={() => void mutate()} />;
+  return <RunnerBody detail={data} reload={() => void mutate()} preview={(fn) => void mutate((prev) => prev && fn(prev), { revalidate: false })} />;
 }
 
-function RunnerBody({ detail, reload }: { detail: ActivityDetail; reload: () => void }) {
+function RunnerBody({ detail, reload, preview }: { detail: ActivityDetail; reload: () => void; preview: (fn: (d: ActivityDetail) => ActivityDetail) => void }) {
   const { activity, myResponse, results, myScore } = detail;
   const live = activity.status === "live";
   const { roomId } = useRoom();
 
-  async function respond(data: unknown, success = "응답했어요!") {
+  // 누르자마자 내 응답을 화면에 반영하고(낙관적 업데이트), 실패하면 서버 값으로 되돌려요.
+  async function respond(data: Record<string, unknown>, success = "응답했어요!") {
+    preview((d) => ({ ...d, myResponse: data }));
+    toast.success(success);
     try {
       await api(`/api/rooms/${roomId}/activities/${activity.id}/respond`, { body: { data } });
-      toast.success(success);
-      reload();
     } catch (e) {
       toastError(e);
+    } finally {
+      reload();
     }
   }
 
@@ -59,11 +62,17 @@ function RunnerBody({ detail, reload }: { detail: ActivityDetail; reload: () => 
             onLikeIdea={
               activity.type === "ideas" && activity.status !== "draft"
                 ? async (ideaId) => {
+                    preview((d) =>
+                      d.results?.type === "ideas"
+                        ? { ...d, results: { ...d.results, ideas: d.results.ideas.map((i) => (i.id === ideaId ? { ...i, liked: !i.liked, likeCount: i.likeCount + (i.liked ? -1 : 1) } : i)) } }
+                        : d,
+                    );
                     try {
                       await api(`/api/rooms/${roomId}/activities/${activity.id}/ideas/${ideaId}/like`, { method: "POST" });
-                      reload();
                     } catch (e) {
                       toastError(e);
+                    } finally {
+                      reload();
                     }
                   }
                 : undefined

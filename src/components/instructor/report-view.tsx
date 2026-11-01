@@ -48,7 +48,8 @@ function TrendChart({ data }: { data: UnderstandingBucket[] }) {
   const bw = (W - pad.l - pad.r) / data.length;
   const barW = Math.max(4, Math.min(28, bw - 4));
   const y = (v: number) => pad.t + (H - pad.t - pad.b) * (1 - v / max);
-  const ticks = [0, Math.ceil(max / 2), max];
+  // max가 1 이하면 가운데 눈금이 양 끝과 겹쳐요. 겹치는 눈금은 하나만 그려요 (key 중복 방지).
+  const ticks = [...new Set([0, Math.ceil(max / 2), max])];
   const labelEvery = Math.ceil(data.length / 8);
   const h = hover !== null ? data[hover] : null;
 

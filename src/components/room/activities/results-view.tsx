@@ -61,7 +61,7 @@ export function WordCloud({ words }: { words: { text: string; count: number }[] 
       {arranged.map((w, i) => {
         const t = max === min ? 0.5 : (w.count - min) / (max - min);
         return (
-          <span key={w.text} role="listitem" className={cn("leading-tight font-bold", palette[i % palette.length])} style={{ fontSize: `${14 + t * 34}px` }} title={`${w.count}명`}>
+          <span key={`${i}-${w.text}`} role="listitem" className={cn("leading-tight font-bold", palette[i % palette.length])} style={{ fontSize: `${14 + t * 34}px` }} title={`${w.count}명`}>
             {w.text}
             <span className="sr-only"> ({w.count}명)</span>
           </span>
@@ -96,7 +96,7 @@ export function ResultsView({
               </p>
               <ol className="space-y-1 text-sm">
                 {results.leaderboard.map((r, i) => (
-                  <li key={r.nickname} className="flex justify-between">
+                  <li key={`${i}-${r.nickname}`} className="flex justify-between">
                     <span>
                       {i < 3 ? ["🥇", "🥈", "🥉"][i] : `${i + 1}.`} {r.nickname}
                     </span>
@@ -121,7 +121,7 @@ export function ResultsView({
           <p className="mb-2 text-sm text-muted-foreground">{results.total}명 응답 · 평균 순위가 낮을수록 위</p>
           <ol className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
             {results.items.map((it, i) => (
-              <li key={it.label} className="flex items-center gap-3 py-2">
+              <li key={i} className="flex items-center gap-3 py-2">
                 <span className="flex size-7 items-center justify-center rounded-full bg-sunken text-sm font-semibold tabular-nums">{i + 1}</span>
                 <span className="flex-1 font-medium">{it.label}</span>
                 {results.total > 0 && <span className="text-sm text-muted-foreground tabular-nums">평균 {it.avgRank.toFixed(1)}위</span>}

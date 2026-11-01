@@ -28,6 +28,9 @@ function mergeMessages(...lists: ChatMessage[][]) {
   return [...map.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
+/** 서버 응답 전에 먼저 띄운 메시지 id 접두사 */
+const PENDING_PREFIX = "pending-";
+
 const RUN_GAP = 3 * 60_000;
 const authorKey = (m: ChatMessage) => (m.author.kind === "instructor" ? INSTRUCTOR_REACTOR : (m.author.id ?? m.author.nickname));
 
@@ -90,7 +93,15 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
   }
 
   function receive(message: ChatMessage) {
-    setLive((prev) => [...prev.filter((m) => m.id !== message.id), message]);
+    setLive((prev) => {
+      const rest = prev.filter((m) => m.id !== message.id);
+      // 내가 먼저 띄워 둔 말풍선은 서버에서 온 진짜 메시지로 바꿔요.
+      if (isMine(message.author)) {
+        const i = rest.findIndex((m) => m.id.startsWith(PENDING_PREFIX) && m.body === message.body);
+        if (i >= 0) rest.splice(i, 1);
+      }
+      return [...rest, message];
+    });
     if (!nearBottom.current && !isMine(message.author)) setNewCount((n) => n + 1);
   }
 
@@ -211,6 +222,7 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
         {messages.map((m, i) => {
           const prev = messages[i - 1];
           const hidden = hiddenOverride[m.id] ?? m.hidden;
+          const pending = m.id.startsWith(PENDING_PREFIX);
           return (
             <Fragment key={m.id}>
               {(!prev || formatDay(prev.createdAt) !== formatDay(m.createdAt)) && <DayDivider iso={m.createdAt} />}
@@ -222,8 +234,9 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
                 last={!sameRun(m, messages[i + 1])}
                 reactions={reactionsOf(m)}
                 myKey={myKey}
-                canReact={!disabled && !locked}
-                canModerate={me.kind === "instructor"}
+                pending={pending}
+                canReact={!disabled && !locked && !pending}
+                canModerate={me.kind === "instructor" && !pending}
                 onReact={(emoji) => void react(m, emoji)}
                 onToggleHidden={() => void toggleHidden(m, hidden)}
               />
@@ -246,9 +259,20 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
         <Composer
           roomId={roomId}
           onSend={async (body, imagePath) => {
-            const res = await api<{ message: ChatMessage }>(`/api/rooms/${roomId}/messages`, { body: { body, imagePath, groupId } });
+            // 글만 보낼 때는 서버 응답을 기다리지 않고 말풍선을 바로 띄워요(낙관적 업데이트). 실패하면 지워요.
+            const tempId = `${PENDING_PREFIX}${crypto.randomUUID()}`;
             nearBottom.current = true;
-            setLive((prev) => [...prev, res.message]);
+            if (!imagePath) {
+              const author = me.kind === "instructor" ? { kind: "instructor" as const, id: null, nickname: "강사" } : { kind: "participant" as const, id: me.id, nickname: me.nickname };
+              setLive((prev) => [...prev, { id: tempId, roomId, groupId, author, body, imageUrl: null, hidden: false, createdAt: new Date().toISOString(), reactions: [] }]);
+            }
+            try {
+              const res = await api<{ message: ChatMessage }>(`/api/rooms/${roomId}/messages`, { body: { body, imagePath, groupId } });
+              setLive((prev) => [...prev.filter((m) => m.id !== tempId && m.id !== res.message.id), res.message]);
+            } catch (e) {
+              setLive((prev) => prev.filter((m) => m.id !== tempId));
+              throw e;
+            }
           }}
         />
       ))}
@@ -262,18 +286,17 @@ function Composer({ roomId, onSend }: { roomId: string; onSend: (body: string, i
   const fileRef = useRef<HTMLInputElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
 
-  async function send(imagePath: string | null = null) {
+  // 입력창은 바로 비우고 다음 메시지를 쓸 수 있게 해요. 보내지 못하면 쓴 글을 되돌려 놓아요.
+  async function send() {
     const body = text.trim();
-    if (!body && !imagePath) return;
-    setSending(true);
+    if (!body) return;
+    setText("");
+    taRef.current?.focus();
     try {
-      await onSend(body, imagePath);
-      if (!imagePath || body) setText("");
+      await onSend(body, null);
     } catch (e) {
+      setText((t) => (t ? t : body));
       toastError(e);
-    } finally {
-      setSending(false);
-      taRef.current?.focus();
     }
   }
 

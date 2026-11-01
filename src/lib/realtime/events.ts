@@ -25,7 +25,8 @@ export type RoomEvents = {
   "slide.page": { materialId: string; page: number };
   "material.changed": Record<string, never>;
   "resource.changed": Record<string, never>;
-  "reaction.float": { emoji: string; materialId: string | null; page: number | null };
+  /** nonce: 보낸 사람 화면은 누르자마자 띄웠으니, 돌아온 같은 이벤트는 건너뛰어요. */
+  "reaction.float": { emoji: string; materialId: string | null; page: number | null; nonce?: string };
   "pins.changed": { materialId: string };
   "understanding.counts": { counts: UnderstandingCounts; reset?: boolean };
   /** by: 강사가 처리했는지, 수강생이 스스로 취소했는지 */

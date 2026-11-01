@@ -38,14 +38,15 @@ export async function hitLimit(key: string, windowSec: number, max: number): Pro
   return typeof data === "number" ? data : 0;
 }
 
-/** 세지 않고 지금 막혀 있는지만 봐요. 실패만 세는 제한(참여코드 대입 방지)에서 요청 전에 확인할 때 써요. */
+/** 세지 않고 지금 막혀 있는지만 봐요 (max번 실패했으면 막혀요). 실패만 세는 제한(참여코드 대입 방지)에서 요청 전에 확인할 때 써요. */
 export async function peekLimit(key: string, windowSec: number, max: number): Promise<number> {
   const { data, error } = await db().from("rate_limits").select("window_start, hits").eq("key", key).maybeSingle();
   if (error) {
     warnOnce(error.message);
     return 0;
   }
-  if (!data || data.hits <= max) return 0;
+  // 이미 max번 실패했으면 다음 시도부터 막아요.
+  if (!data || data.hits < max) return 0;
   const end = new Date(data.window_start).getTime() + windowSec * 1000;
   return Math.max(0, Math.ceil((end - Date.now()) / 1000));
 }

@@ -18,7 +18,7 @@ export const POST = roomHandler({ body: reactionSchema, tab: "slides" }, async (
     }
   }
   await broadcastMany(roomId, [
-    { event: "reaction.float", payload: { emoji: body.emoji, materialId, page } },
+    { event: "reaction.float", payload: { emoji: body.emoji, materialId, page, nonce: body.nonce } },
     ...(materialId ? [{ event: "pins.changed" as const, payload: { materialId } }] : []),
   ]);
   return { ok: true };

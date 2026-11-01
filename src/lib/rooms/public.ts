@@ -16,3 +16,16 @@ export function toPublicRoom(row: RoomRow): PublicRoom {
     currentPage: row.current_page,
   };
 }
+
+const SETTING_KEYS = ["tabs", "defaultTab", "qaRevealAuthor", "redThreshold", "aiDailyLimit", "sections"] as const;
+
+/** 설정 저장 요청을 화면에 바로 반영할 때(낙관적 업데이트) 쓰는 미리보기. 서버 응답이 오면 그 값으로 바꿔요. */
+export function previewRoomPatch(room: PublicRoom, body: Record<string, unknown>): PublicRoom {
+  const settings = { ...room.settings } as Record<string, unknown>;
+  const top: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(body)) {
+    if ((SETTING_KEYS as readonly string[]).includes(k)) settings[k] = v;
+    else if (["title", "capacity", "locked", "focusMode", "status"].includes(k)) top[k] = v;
+  }
+  return { ...room, ...top, settings: settings as PublicRoom["settings"] };
+}

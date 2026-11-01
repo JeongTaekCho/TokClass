@@ -89,10 +89,15 @@ export function SubmissionDetail({ submission, onClose, onChanged }: { submissio
                       key={st}
                       disabled={!active}
                       onClick={async () => {
+                        // 누르자마자 개수를 바꾸고, 실패하면 되돌려요.
+                        const before = s;
+                        const count = (s.stickers[st] ?? 0) + (mine ? -1 : 1);
+                        onChanged({ ...s, stickers: { ...s.stickers, [st]: Math.max(0, count) }, myStickers: mine ? s.myStickers.filter((x) => x !== st) : [...s.myStickers, st] });
                         try {
                           const res = await api<{ submission: Submission }>(`/api/rooms/${roomId}/submissions/${s.id}/stickers`, { body: { sticker: st } });
                           onChanged(res.submission);
                         } catch (e) {
+                          onChanged(before);
                           toastError(e);
                         }
                       }}

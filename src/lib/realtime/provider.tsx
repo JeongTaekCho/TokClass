@@ -27,6 +27,8 @@ type Ctx = {
   send: <E extends RoomEventName>(event: E, payload: RoomEvents[E]) => void;
   /** 재연결 후 데이터를 다시 받아오기 */
   resync: () => void;
+  /** 서버를 거치지 않고 내 화면에만 이벤트를 바로 흘려요 (낙관적 표시용) */
+  local: <E extends RoomEventName>(event: E, payload: RoomEvents[E]) => void;
 };
 
 const RoomContext = createContext<Ctx | null>(null);
@@ -203,8 +205,8 @@ export function RoomProvider({ initialRoom, me, children }: { initialRoom: Publi
   }, [sessionLost]);
 
   const value = useMemo<Ctx>(
-    () => ({ roomId, room, setRoom, me, status, online, sessionLost, on, send, resync }),
-    [roomId, room, me, status, online, sessionLost, on, send, resync],
+    () => ({ roomId, room, setRoom, me, status, online, sessionLost, on, send, resync, local: emit as Ctx["local"] }),
+    [roomId, room, me, status, online, sessionLost, on, send, resync, emit],
   );
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>;
 }
