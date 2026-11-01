@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { Upload } from "lucide-react";
 import useSWR from "swr";
 
 import { PresentMode } from "@/components/room/board/present-mode";
@@ -45,6 +46,9 @@ export function BoardPanel({ readOnly = false, groupId = null }: { readOnly?: bo
   const items = useMemo(() => data?.submissions ?? [], [data]);
   const open = items.find((s) => s.id === openId) ?? null;
   const myGroup = me.kind === "participant" && groupsActive ? groupData?.groups.find((g) => g.id === me.groupId) : null;
+  const onCreated = (s: Submission) => void mutate({ submissions: [s, ...items.filter((x) => x.id !== s.id)] }, { revalidate: false });
+  // 수강생은 강사가 만든 섹션에만 올릴 수 있어요 (서버도 같은 규칙).
+  const canPostTo = (s: string | null): s is string => Boolean(s) && (me.kind === "instructor" || room.settings.sections.includes(s!));
   const sectionChips = useMemo(() => {
     const set = new Set<string>(room.settings.sections);
     for (const g of groupData?.groups ?? []) set.add(g.name);
@@ -69,7 +73,7 @@ export function BoardPanel({ readOnly = false, groupId = null }: { readOnly?: bo
               발표 모드
             </Button>
           )}
-          {!readOnly && <SubmitDialog groupLabel={myGroup?.name ?? null} onCreated={(s) => void mutate({ submissions: [s, ...items.filter((x) => x.id !== s.id)] }, { revalidate: false })} />}
+          {!readOnly && <SubmitDialog groupLabel={myGroup?.name ?? null} defaultSection={canPostTo(section) ? section : null} onCreated={onCreated} />}
         </div>
       </div>
       {sectionChips.length > 0 && (
@@ -85,6 +89,22 @@ export function BoardPanel({ readOnly = false, groupId = null }: { readOnly?: bo
         </div>
       )}
 
+      {section && !readOnly && !myGroup && canPostTo(section) && (
+        <div className="flex items-center gap-2 border-b border-border bg-primary-soft/40 px-3 py-2 text-sm">
+          <span className="min-w-0 flex-1 truncate">
+            <strong className="font-semibold">{section}</strong> 섹션을 보고 있어요
+          </span>
+          <SubmitDialog
+            defaultSection={section}
+            onCreated={onCreated}
+            trigger={
+              <Button size="sm" variant="soft" disabled={room.status !== "active"}>
+                <Upload aria-hidden /> 이 섹션에 올리기
+              </Button>
+            }
+          />
+        </div>
+      )}
       <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-3">
         {isLoading && <BoardGridSkeleton />}
         {!isLoading && items.length === 0 && (

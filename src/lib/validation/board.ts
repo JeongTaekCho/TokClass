@@ -23,9 +23,14 @@ export const submissionCreateSchema = z
   });
 
 export const submissionPatchSchema = z.object({
+  // 강사 관리
   isBest: z.boolean().optional(),
   hidden: z.boolean().optional(),
   section: z.string().trim().max(30).nullable().optional(),
+  // 작성자 수정
+  title: z.string().trim().max(100, "제목은 100자까지예요.").optional(),
+  body: z.string().trim().max(3000, "내용은 3000자까지예요.").optional(),
+  url: z.string().trim().max(1000).optional(),
 });
 
 export const commentSchema = z.object({ body: z.string().trim().min(1, "댓글을 입력해 주세요.").max(500, "댓글은 500자까지예요.") });
