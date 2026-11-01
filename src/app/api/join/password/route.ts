@@ -6,7 +6,7 @@ import { attemptKeys, clearAttempts, clientIp, lockedFor, recordFailure } from "
 import { getOrCreateDeviceId } from "@/lib/auth/participant-session";
 import { hmacPassword, isValidPasswordFormat, normalizePassword } from "@/lib/auth/password";
 import { serverEnv } from "@/lib/env";
-import { findRoomByCode, isRoomOwnerBlocked } from "@/lib/rooms/lookup";
+import { findRoomByCodeGuarded, isRoomOwnerBlocked } from "@/lib/rooms/lookup";
 import { db } from "@/lib/supabase/admin";
 import { joinPasswordSchema } from "@/lib/validation/join";
 
@@ -15,7 +15,7 @@ import { joinPasswordSchema } from "@/lib/validation/join";
  * 실제 입장(세션 발급)은 /api/join/enter 에서 티켓으로 합니다.
  */
 export const POST = apiHandler({ body: joinPasswordSchema }, async ({ req, body }) => {
-  const room = await findRoomByCode(body.code, { allowEnded: true });
+  const room = await findRoomByCodeGuarded(body.code, { allowEnded: true });
   if (!room) throw notFound("참여코드에 맞는 수업을 찾지 못했어요.");
   if (await isRoomOwnerBlocked(room.owner_id)) throw roomSuspended();
 

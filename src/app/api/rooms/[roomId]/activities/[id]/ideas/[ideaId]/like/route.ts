@@ -1,10 +1,12 @@
 import { isUuid, roomHandler } from "@/lib/api/handler";
 import { ApiError, notFound } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { broadcastResults, loadActivity } from "@/lib/data/activities";
 import { db } from "@/lib/supabase/admin";
 
 /** 아이디어 공감 토글 */
 export const POST = roomHandler({ roles: ["participant"] }, async ({ actor, roomId, params }) => {
+  await limitParticipant(actor, "like", 10, 20);
   if (actor.kind !== "participant") throw new ApiError(403, "권한이 없어요.");
   if (!isUuid(params.id) || !isUuid(params.ideaId)) throw notFound();
   const row = await loadActivity(roomId, params.id);

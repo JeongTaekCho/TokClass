@@ -26,7 +26,7 @@ export const PATCH = roomHandler({ roles: ["instructor"], body: questionPatchSch
 });
 
 /** 삭제 (작성자 본인 또는 강사) */
-export const DELETE = roomHandler({}, async ({ actor, roomId, params }) => {
+export const DELETE = roomHandler({ tab: "qa" }, async ({ actor, roomId, params }) => {
   if (!isUuid(params.id)) throw notFound();
   const row = await loadQuestion(roomId, params.id);
   if (!row) throw notFound();

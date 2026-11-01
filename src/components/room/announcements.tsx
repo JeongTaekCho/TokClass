@@ -94,9 +94,12 @@ export function AnnouncementManager() {
               size="icon-sm"
               aria-label="공지 삭제"
               onClick={async () => {
+                // 누르자마자 목록에서 빼고, 실패하면 되돌려요.
                 try {
-                  const res = await api<{ announcements: Announcement[] }>(`/api/rooms/${roomId}/announcements/${a.id}`, { method: "DELETE" });
-                  await mutate(res, { revalidate: false });
+                  await mutate(
+                    async () => api<{ announcements: Announcement[] }>(`/api/rooms/${roomId}/announcements/${a.id}`, { method: "DELETE" }),
+                    { optimisticData: (prev) => ({ ...prev, announcements: (prev?.announcements ?? []).filter((x) => x.id !== a.id) }), rollbackOnError: true, revalidate: false },
+                  );
                 } catch (err) {
                   toastError(err);
                 }

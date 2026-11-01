@@ -6,6 +6,7 @@ import { ZodError, type ZodType } from "zod";
 import { resolveActor, type Actor, type ActorKind } from "@/lib/auth/actor";
 import { ApiError, forbidden, notFound, unauthorized } from "@/lib/api/errors";
 import { isRoomOwnerBlocked } from "@/lib/rooms/lookup";
+import type { TabKey } from "@/lib/rooms/templates";
 import { db } from "@/lib/supabase/admin";
 import { getInstructorAccess, type InstructorAccess } from "@/lib/supabase/server";
 
@@ -57,7 +58,8 @@ function flatParams(p: Record<string, string | string[] | undefined> | undefined
 
 /** 방 단위 API 핸들러: 권한 확인 + zod 검증 + 친근한 에러 응답 */
 export function roomHandler<B = undefined>(
-  opts: { roles?: ActorKind[]; body?: ZodType<B>; allowEnded?: boolean },
+  /** tab: 강사가 이 탭을 꺼 두면 수강생의 쓰기 요청을 막아요. */
+  opts: { roles?: ActorKind[]; body?: ZodType<B>; allowEnded?: boolean; tab?: TabKey },
   fn: (ctx: RoomCtx<B>) => Promise<unknown>,
 ) {
   return async (req: NextRequest, ctx: RouteCtx) => {
@@ -74,6 +76,7 @@ export function roomHandler<B = undefined>(
       if (isWrite && actor.kind === "participant" && actor.room.status === "ended" && !opts.allowEnded) {
         throw new ApiError(409, "수업이 끝나서 더 이상 참여할 수 없어요.");
       }
+      if (isWrite && opts.tab) assertTabOpen(actor, opts.tab);
       const raw = await readJson(req);
       const body = (opts.body ? opts.body.parse(raw) : undefined) as B;
 
@@ -91,6 +94,13 @@ export function roomHandler<B = undefined>(
       return errorResponse(e);
     }
   };
+}
+
+export const tabClosed = () => new ApiError(403, "강사님이 이 메뉴를 잠시 닫았어요.", "tab_disabled");
+
+/** 수강생이 꺼진 탭에 쓰려고 하면 403. 강사는 탭 설정과 상관없이 쓸 수 있어요. */
+export function assertTabOpen(actor: Actor, tab: TabKey) {
+  if (actor.kind === "participant" && !actor.settings.tabs.some((t) => t.key === tab && t.enabled)) throw tabClosed();
 }
 
 /** 방과 무관한 API 핸들러 */

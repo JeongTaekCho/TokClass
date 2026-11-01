@@ -4,6 +4,7 @@ import type { Actor } from "@/lib/auth/actor";
 import { must } from "@/lib/api/handler";
 import { db } from "@/lib/supabase/admin";
 import type { Question } from "@/lib/types";
+import { canRevealAnonymousAuthor } from "@/lib/rooms/templates";
 
 export type QuestionRow = {
   id: string;
@@ -26,12 +27,12 @@ export const QUESTION_SELECT = "*, participant:participants!questions_participan
 /**
  * 보는 사람에 맞게 질문을 변환해요.
  * - 익명 질문의 작성자는 수강생에게 절대 보내지 않아요.
- * - 강사는 방 설정(qaRevealAuthor)이 켜져 있을 때만 익명 작성자를 봐요.
+ * - 강사는 방 설정(qaRevealAuthor)을 켠 뒤에 올라온 익명 질문만 작성자를 봐요.
  * - viewer=null 은 broadcast용 (누구에게나 보여도 되는 정보만)
  */
 export function toQuestion(r: QuestionRow, viewer: Actor | null, voted = false): Question {
   const isInstructor = viewer?.kind === "instructor";
-  const reveal = !r.anonymous || (isInstructor && viewer.settings.qaRevealAuthor);
+  const reveal = !r.anonymous || (isInstructor && canRevealAnonymousAuthor(viewer.settings, r.created_at));
   return {
     id: r.id,
     body: r.hidden && !isInstructor ? "" : r.body,

@@ -1,10 +1,10 @@
 import { must, roomHandler } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
 import { broadcast } from "@/lib/realtime/server";
+import { deleteRoom } from "@/lib/rooms/delete";
 import { withUniqueJoinCode } from "@/lib/rooms/join-code";
 import { toPublicRoom } from "@/lib/rooms/public";
 import { normalizeSettings } from "@/lib/rooms/templates";
-import { removeRoomFiles } from "@/lib/storage/server";
 import { db } from "@/lib/supabase/admin";
 import type { Me, RoomRow } from "@/lib/types";
 import { roomSettingsPatchSchema } from "@/lib/validation/room";
@@ -22,7 +22,12 @@ export const PATCH = roomHandler({ roles: ["instructor"], body: roomSettingsPatc
   const settings = normalizeSettings(actor.room.settings);
   if (body.tabs) settings.tabs = body.tabs;
   if (body.defaultTab) settings.defaultTab = body.defaultTab;
-  if (body.qaRevealAuthor !== undefined) settings.qaRevealAuthor = body.qaRevealAuthor;
+  if (body.qaRevealAuthor !== undefined) {
+    // 켠 시각부터 올라온 질문만 작성자가 보여요 (이미 익명으로 올린 질문은 소급해서 드러내지 않아요).
+    if (body.qaRevealAuthor && !settings.qaRevealAuthor) settings.qaRevealSince = new Date().toISOString();
+    if (!body.qaRevealAuthor) settings.qaRevealSince = null;
+    settings.qaRevealAuthor = body.qaRevealAuthor;
+  }
   if (body.redThreshold !== undefined) settings.redThreshold = body.redThreshold;
   if (body.aiDailyLimit !== undefined) settings.aiDailyLimit = body.aiDailyLimit;
   if (body.sections) settings.sections = [...new Set(body.sections)];
@@ -60,8 +65,7 @@ export const PATCH = roomHandler({ roles: ["instructor"], body: roomSettingsPatc
   return { room };
 });
 
-export const DELETE = roomHandler({ roles: ["instructor"] }, async ({ roomId }) => {
-  await removeRoomFiles(roomId);
-  must(await db().from("rooms").delete().eq("id", roomId));
+export const DELETE = roomHandler({ roles: ["instructor"] }, async ({ actor }) => {
+  await deleteRoom(actor.room);
   return { ok: true };
 });

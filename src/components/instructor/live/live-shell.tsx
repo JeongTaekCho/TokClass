@@ -20,6 +20,7 @@ import { toastError } from "@/lib/client/toast-error";
 import { useRoom, useRoomEvent } from "@/lib/realtime/provider";
 import type { PublicRoom } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { previewRoomPatch } from "@/lib/rooms/public";
 
 /**
  * 강사 수업 화면: 수강생과 같은 수업 화면(ClassroomShell) 위에 강사 전용 도구만 더해요.
@@ -51,10 +52,14 @@ export function LiveShell() {
   });
 
   async function toggle(body: Record<string, boolean>) {
+    // 누르자마자 버튼 상태를 바꾸고(낙관적 업데이트), 실패하면 되돌려요.
+    const before = room;
+    setRoom(previewRoomPatch(room, body));
     try {
       const res = await api<{ room: PublicRoom }>(`/api/rooms/${roomId}`, { method: "PATCH", body });
       setRoom(res.room);
     } catch (e) {
+      setRoom(before);
       toastError(e);
     }
   }

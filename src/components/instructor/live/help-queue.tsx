@@ -31,14 +31,18 @@ export function HelpQueue({ onCount }: { onCount?: (n: number) => void }) {
   useEffect(() => onCount?.(open.length), [open.length, onCount]);
 
   async function resolve(id: string) {
+    // 누르자마자 대기열에서 빼고(낙관적 업데이트), 실패하면 다시 받아 와요.
+    const done = data?.open.find((r) => r.id === id);
+    void mutate((prev) => prev && { open: prev.open.filter((r) => r.id !== id), resolved: done ? [{ ...done, status: "resolved" as const }, ...prev.resolved].slice(0, 10) : prev.resolved }, { revalidate: false });
     try {
       await api(`/api/rooms/${roomId}/help/${id}`, {
         method: "PATCH",
         body: { status: "resolved" },
       });
-      await mutate();
     } catch (e) {
       toastError(e);
+    } finally {
+      void mutate();
     }
   }
 

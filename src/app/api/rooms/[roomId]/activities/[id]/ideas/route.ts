@@ -1,11 +1,13 @@
 import { isUuid, must, roomHandler } from "@/lib/api/handler";
 import { ApiError, notFound } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { ideaSchema } from "@/lib/activities/schema";
 import { broadcastResults, loadActivity } from "@/lib/data/activities";
 import { db } from "@/lib/supabase/admin";
 
 /** 아이디어(포스트잇) 올리기 */
 export const POST = roomHandler({ body: ideaSchema }, async ({ actor, roomId, params, body }) => {
+  await limitParticipant(actor, "idea", 60, 10);
   if (!isUuid(params.id)) throw notFound();
   const row = await loadActivity(roomId, params.id);
   if (!row || row.type !== "ideas") throw notFound("아이디어 보드를 찾을 수 없어요.");

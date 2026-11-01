@@ -29,6 +29,7 @@ export function BottomBar() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [pending, setPending] = useState<string | null>(null);
+  const [helpBusy, setHelpBusy] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
 
   useRoomEvent("understanding.counts", ({ reset }) => {
@@ -37,10 +38,11 @@ export function BottomBar() {
       toast("강사님이 이해도 표시를 새로 시작했어요. 지금 상태를 다시 알려 주세요!");
     }
   });
-  useRoomEvent("help.changed", ({ participantId, status }) => {
+  useRoomEvent("help.changed", ({ participantId, status, by }) => {
     if (participantId === me.id) {
       void mutateH();
-      if (status === "resolved") toast.success("강사님이 도움 요청을 확인했어요.");
+      // 내가 취소한 건 버튼을 누를 때 이미 알려 줬어요.
+      if (status === "resolved" && by === "instructor") toast.success("강사님이 확인했어요.");
     }
   });
 
@@ -107,20 +109,28 @@ export function BottomBar() {
           );
         })}
         <button
-          onClick={() => {
-            if (open) {
-              api(`/api/rooms/${roomId}/help/${open.id}`, { method: "PATCH", body: { status: "resolved" } })
-                .then(() => mutateH({ request: null }, { revalidate: false }))
-                .catch(toastError);
-            } else setHelpOpen(true);
+          onClick={async () => {
+            if (!open) return setHelpOpen(true);
+            setHelpBusy(true);
+            try {
+              await api(`/api/rooms/${roomId}/help/${open.id}`, { method: "PATCH", body: { status: "resolved" } });
+              await mutateH({ request: null }, { revalidate: false });
+              toast("도움 요청을 취소했어요.");
+            } catch (e) {
+              toastError(e);
+            } finally {
+              setHelpBusy(false);
+            }
           }}
+          disabled={helpBusy}
+          aria-busy={helpBusy}
           aria-pressed={Boolean(open)}
           className={cn(
             "press flex min-h-13 min-w-[4.5rem] cursor-pointer flex-col items-center justify-center rounded-lg border-2 px-2 text-[13px] leading-tight font-semibold transition-colors duration-150 sm:flex-row sm:gap-1.5 sm:text-sm",
             open ? "border-coral bg-coral text-ink" : "border-coral/50 bg-coral-soft text-coral-ink hover:border-coral",
           )}
         >
-          <Hand className="size-5 sm:size-4" aria-hidden />
+          {helpBusy && !helpOpen ? <Loader2 className="size-5 animate-spin sm:size-4" aria-hidden /> : <Hand className="size-5 sm:size-4" aria-hidden />}
           {open ? "요청 취소" : "도움 요청"}
         </button>
       </div>
@@ -137,6 +147,8 @@ export function BottomBar() {
             className="space-y-3"
             onSubmit={async (e) => {
               e.preventDefault();
+              if (helpBusy) return;
+              setHelpBusy(true);
               try {
                 const res = await api<{ request: HelpRequest }>(`/api/rooms/${roomId}/help`, { body: { message } });
                 await mutateH({ request: res.request }, { revalidate: false });
@@ -145,13 +157,15 @@ export function BottomBar() {
                 toast.success("도움을 요청했어요. 강사님이 곧 확인할 거예요.");
               } catch (err) {
                 toastError(err);
+              } finally {
+                setHelpBusy(false);
               }
             }}
           >
             <Input value={message} maxLength={200} onChange={(e) => setMessage(e.target.value)} placeholder="(선택) 어디서 막혔는지 짧게 적어 주세요" aria-label="도움 요청 메시지" />
             <DialogFooter>
-              <Button type="submit" variant="coral">
-                {pending && <Loader2 className="animate-spin" aria-hidden />}손들기
+              <Button type="submit" variant="coral" disabled={helpBusy}>
+                {helpBusy && <Loader2 className="animate-spin" aria-hidden />}손들기
               </Button>
             </DialogFooter>
           </form>

@@ -1,6 +1,8 @@
 import { isUuid, must, roomHandler } from "@/lib/api/handler";
 import { ApiError, badRequest } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { broadcast } from "@/lib/realtime/server";
+import { fetchPaged } from "@/lib/data/paged";
 import { db } from "@/lib/supabase/admin";
 import type { DirectMessage } from "@/lib/types";
 import { dmPostSchema } from "@/lib/validation/comm";
@@ -25,9 +27,9 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId, sea
   if (actor.kind === "instructor") {
     const pid = search.get("participantId");
     if (!pid) {
-      const rows = must(
-        await d.from("direct_messages").select("participant_id, from_instructor, body, created_at, read_at").eq("room_id", roomId).order("created_at", { ascending: false }).limit(1000),
-      ) as Omit<Row, "id">[];
+      const rows = await fetchPaged<Omit<Row, "id">>((from, to) =>
+        d.from("direct_messages").select("participant_id, from_instructor, body, created_at, read_at").eq("room_id", roomId).order("created_at", { ascending: false }).order("id").range(from, to),
+      );
       const summary = new Map<string, { participantId: string; lastBody: string; lastAt: string; unread: number }>();
       for (const r of rows) {
         const s = summary.get(r.participant_id) ?? { participantId: r.participant_id, lastBody: r.body, lastAt: r.created_at, unread: 0 };
@@ -37,13 +39,13 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId, sea
       return { threads: [...summary.values()] };
     }
     if (!isUuid(pid)) throw badRequest();
-    const rows = must(await d.from("direct_messages").select("*").eq("room_id", roomId).eq("participant_id", pid).order("created_at").limit(300)) as Row[];
+    const rows = (must(await d.from("direct_messages").select("*").eq("room_id", roomId).eq("participant_id", pid).order("created_at", { ascending: false }).limit(300)) as Row[]).reverse();
     await d.from("direct_messages").update({ read_at: new Date().toISOString() }).eq("room_id", roomId).eq("participant_id", pid).eq("from_instructor", false).is("read_at", null);
     return { messages: rows.map(toDm) };
   }
 
   const pid = actor.participant.id;
-  const rows = must(await d.from("direct_messages").select("*").eq("room_id", roomId).eq("participant_id", pid).order("created_at").limit(300)) as Row[];
+  const rows = (must(await d.from("direct_messages").select("*").eq("room_id", roomId).eq("participant_id", pid).order("created_at", { ascending: false }).limit(300)) as Row[]).reverse();
   const unread = rows.filter((r) => r.from_instructor && !r.read_at).length;
   if (search.get("markRead") === "1" && unread > 0) {
     await d.from("direct_messages").update({ read_at: new Date().toISOString() }).eq("room_id", roomId).eq("participant_id", pid).eq("from_instructor", true).is("read_at", null);
@@ -52,6 +54,7 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId, sea
 });
 
 export const POST = roomHandler({ body: dmPostSchema }, async ({ actor, roomId, body }) => {
+  await limitParticipant(actor, "dm", 60, 10);
   let participantId: string;
   if (actor.kind === "instructor") {
     if (!body.participantId) throw badRequest("받는 사람을 골라 주세요.");

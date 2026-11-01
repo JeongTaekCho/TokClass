@@ -28,6 +28,9 @@ function mergeMessages(...lists: ChatMessage[][]) {
   return [...map.values()].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
+/** 서버 응답 전에 먼저 띄운 메시지 id 접두사 */
+const PENDING_PREFIX = "pending-";
+
 const RUN_GAP = 3 * 60_000;
 const authorKey = (m: ChatMessage) => (m.author.kind === "instructor" ? INSTRUCTOR_REACTOR : (m.author.id ?? m.author.nickname));
 
@@ -39,12 +42,24 @@ function sameRun(a: ChatMessage | undefined, b: ChatMessage | undefined) {
 export function ChatPanel({ groupId = null, readOnly = false, className }: { groupId?: string | null; readOnly?: boolean; className?: string }) {
   const { roomId, me, room } = useRoom();
   const key = `/api/rooms/${roomId}/messages${groupId ? `?group=${groupId}` : ""}`;
-  const { data, isLoading, mutate } = useSWR<Page>(key, fetcher, { revalidateOnFocus: false });
   const [older, setOlder] = useState<ChatMessage[]>([]);
   const [olderHasMore, setOlderHasMore] = useState<boolean | null>(null);
   const [live, setLive] = useState<ChatMessage[]>([]);
   const [hiddenOverride, setHiddenOverride] = useState<Record<string, boolean>>({});
   const [reactionOverride, setReactionOverride] = useState<Record<string, MessageReaction[]>>({});
+  // 실시간 반응 이벤트를 받은 횟수(메시지별). 내 요청 응답이 그보다 늦게 오면 낡은 값이라 버려요.
+  const reactionSeq = useRef<Record<string, number>>({});
+  const { data, isLoading } = useSWR<Page>(key, fetcher, {
+    revalidateOnFocus: false,
+    // 다시 받아 온(재연결 포함) 서버 값이 실시간으로 덧씌운 값보다 최신이에요.
+    onSuccess: (page) => {
+      const ids = new Set(page.messages.map((m) => m.id));
+      const omit = <T,>(prev: Record<string, T>) => Object.fromEntries(Object.entries(prev).filter(([id]) => !ids.has(id)));
+      setHiddenOverride(omit);
+      setReactionOverride(omit);
+      setLive((prev) => prev.filter((m) => !ids.has(m.id)));
+    },
+  });
   const [newCount, setNewCount] = useState(0);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -54,6 +69,7 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
 
   const messages = useMemo(() => mergeMessages(older, data?.messages ?? [], live), [older, data, live]);
   const hasMore = olderHasMore ?? data?.hasMore ?? false;
+  const isMine = (author: Pick<ChatMessage["author"], "kind" | "id">) => author.kind === me.kind && (author.id ?? me.id) === me.id;
 
   const scrollToBottom = useCallback((smooth = false) => {
     const el = scrollRef.current;
@@ -61,17 +77,53 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
     setNewCount(0);
   }, []);
 
+  /** 메시지 1건을 서버에서 다시 받아 와 목록에 넣거나 바꿔요 (조 채팅 신호·숨김 해제·조 반응 변경). */
+  async function refetchOne(id: string) {
+    try {
+      const { message } = await api<{ message: ChatMessage }>(`/api/rooms/${roomId}/messages/${id}`);
+      const drop = <T,>(prev: Record<string, T>) => Object.fromEntries(Object.entries(prev).filter(([k]) => k !== id));
+      setHiddenOverride(drop);
+      setReactionOverride(drop);
+      setOlder((prev) => (prev.some((m) => m.id === id) ? prev.map((m) => (m.id === id ? message : m)) : prev));
+      setLive((prev) => [...prev.filter((m) => m.id !== id), message]);
+      return message;
+    } catch {
+      return null;
+    }
+  }
+
+  function receive(message: ChatMessage) {
+    setLive((prev) => {
+      const rest = prev.filter((m) => m.id !== message.id);
+      // 내가 먼저 띄워 둔 말풍선은 서버에서 온 진짜 메시지로 바꿔요.
+      if (isMine(message.author)) {
+        const i = rest.findIndex((m) => m.id.startsWith(PENDING_PREFIX) && m.body === message.body);
+        if (i >= 0) rest.splice(i, 1);
+      }
+      return [...rest, message];
+    });
+    if (!nearBottom.current && !isMine(message.author)) setNewCount((n) => n + 1);
+  }
+
   useRoomEvent("chat.message", ({ message }) => {
     if ((message.groupId ?? null) !== (groupId ?? null)) return;
-    setLive((prev) => [...prev, message]);
-    if (!nearBottom.current && message.author.id !== me.id) setNewCount((n) => n + 1);
+    receive(message);
+  });
+  useRoomEvent("chat.group", ({ groupId: g, id, author }) => {
+    if (g !== groupId || isMine(author)) return;
+    void refetchOne(id).then((m) => m && !nearBottom.current && setNewCount((n) => n + 1));
   });
   useRoomEvent("chat.hidden", ({ id, hidden }) => {
-    setHiddenOverride((prev) => ({ ...prev, [id]: hidden }));
-    if (!hidden) void mutate();
+    if (!messages.some((m) => m.id === id)) return;
+    if (hidden) setHiddenOverride((prev) => ({ ...prev, [id]: true }));
+    // 숨김을 풀면 본문을 받아 와야 해요 (숨긴 상태로 받은 메시지는 본문이 비어 있어요).
+    else void refetchOne(id);
   });
-  useRoomEvent("chat.reactions", ({ id, reactions }) => {
-    setReactionOverride((prev) => ({ ...prev, [id]: reactions }));
+  useRoomEvent("chat.reactions", ({ id, groupId: g, reactions }) => {
+    if ((g ?? null) !== (groupId ?? null)) return;
+    reactionSeq.current[id] = (reactionSeq.current[id] ?? 0) + 1;
+    if (reactions) setReactionOverride((prev) => ({ ...prev, [id]: reactions }));
+    else void refetchOne(id);
   });
 
   // 새 메시지가 오면 바닥 근처일 때만 자동으로 내려가요.
@@ -120,12 +172,14 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
 
   async function react(m: ChatMessage, emoji: string) {
     const before = reactionsOf(m);
+    const seq = reactionSeq.current[m.id] ?? 0;
+    const stale = () => (reactionSeq.current[m.id] ?? 0) !== seq;
     setReactionOverride((prev) => ({ ...prev, [m.id]: toggleReaction(before, emoji, { key: myKey, name: me.kind === "instructor" ? "강사" : me.nickname }) }));
     try {
       const res = await api<{ reactions: MessageReaction[] }>(`/api/rooms/${roomId}/messages/${m.id}/reactions`, { body: { emoji } });
-      setReactionOverride((prev) => ({ ...prev, [m.id]: res.reactions }));
+      if (!stale()) setReactionOverride((prev) => ({ ...prev, [m.id]: res.reactions }));
     } catch (e) {
-      setReactionOverride((prev) => ({ ...prev, [m.id]: before }));
+      if (!stale()) setReactionOverride((prev) => ({ ...prev, [m.id]: before }));
       toastError(e);
     }
   }
@@ -168,6 +222,7 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
         {messages.map((m, i) => {
           const prev = messages[i - 1];
           const hidden = hiddenOverride[m.id] ?? m.hidden;
+          const pending = m.id.startsWith(PENDING_PREFIX);
           return (
             <Fragment key={m.id}>
               {(!prev || formatDay(prev.createdAt) !== formatDay(m.createdAt)) && <DayDivider iso={m.createdAt} />}
@@ -179,8 +234,9 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
                 last={!sameRun(m, messages[i + 1])}
                 reactions={reactionsOf(m)}
                 myKey={myKey}
-                canReact={!disabled && !locked}
-                canModerate={me.kind === "instructor"}
+                pending={pending}
+                canReact={!disabled && !locked && !pending}
+                canModerate={me.kind === "instructor" && !pending}
                 onReact={(emoji) => void react(m, emoji)}
                 onToggleHidden={() => void toggleHidden(m, hidden)}
               />
@@ -203,9 +259,20 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
         <Composer
           roomId={roomId}
           onSend={async (body, imagePath) => {
-            const res = await api<{ message: ChatMessage }>(`/api/rooms/${roomId}/messages`, { body: { body, imagePath, groupId } });
+            // 글만 보낼 때는 서버 응답을 기다리지 않고 말풍선을 바로 띄워요(낙관적 업데이트). 실패하면 지워요.
+            const tempId = `${PENDING_PREFIX}${crypto.randomUUID()}`;
             nearBottom.current = true;
-            setLive((prev) => [...prev, res.message]);
+            if (!imagePath) {
+              const author = me.kind === "instructor" ? { kind: "instructor" as const, id: null, nickname: "강사" } : { kind: "participant" as const, id: me.id, nickname: me.nickname };
+              setLive((prev) => [...prev, { id: tempId, roomId, groupId, author, body, imageUrl: null, hidden: false, createdAt: new Date().toISOString(), reactions: [] }]);
+            }
+            try {
+              const res = await api<{ message: ChatMessage }>(`/api/rooms/${roomId}/messages`, { body: { body, imagePath, groupId } });
+              setLive((prev) => [...prev.filter((m) => m.id !== tempId && m.id !== res.message.id), res.message]);
+            } catch (e) {
+              setLive((prev) => prev.filter((m) => m.id !== tempId));
+              throw e;
+            }
           }}
         />
       ))}
@@ -219,18 +286,17 @@ function Composer({ roomId, onSend }: { roomId: string; onSend: (body: string, i
   const fileRef = useRef<HTMLInputElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
 
-  async function send(imagePath: string | null = null) {
+  // 입력창은 바로 비우고 다음 메시지를 쓸 수 있게 해요. 보내지 못하면 쓴 글을 되돌려 놓아요.
+  async function send() {
     const body = text.trim();
-    if (!body && !imagePath) return;
-    setSending(true);
+    if (!body) return;
+    setText("");
+    taRef.current?.focus();
     try {
-      await onSend(body, imagePath);
-      if (!imagePath || body) setText("");
+      await onSend(body, null);
     } catch (e) {
+      setText((t) => (t ? t : body));
       toastError(e);
-    } finally {
-      setSending(false);
-      taRef.current?.focus();
     }
   }
 

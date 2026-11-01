@@ -1,12 +1,14 @@
 import { isUuid, roomHandler } from "@/lib/api/handler";
 import { notFound } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { canSeeSubmission, loadSubmission, toSubmissions } from "@/lib/data/submissions";
 import { broadcast } from "@/lib/realtime/server";
 import { db } from "@/lib/supabase/admin";
 import { stickerSchema } from "@/lib/validation/board";
 
 /** 스티커 토글 */
-export const POST = roomHandler({ body: stickerSchema }, async ({ actor, roomId, params, body }) => {
+export const POST = roomHandler({ body: stickerSchema, tab: "board" }, async ({ actor, roomId, params, body }) => {
+  await limitParticipant(actor, "sticker", 10, 20);
   if (!isUuid(params.id)) throw notFound();
   const sub = await loadSubmission(roomId, params.id);
   if (!sub || !canSeeSubmission(sub, actor)) throw notFound();

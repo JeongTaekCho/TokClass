@@ -1,5 +1,6 @@
 import { isUuid, must, roomHandler } from "@/lib/api/handler";
 import { notFound } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { canSeeSubmission, loadSubmission } from "@/lib/data/submissions";
 import { broadcast } from "@/lib/realtime/server";
 import { db } from "@/lib/supabase/admin";
@@ -25,7 +26,8 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId, par
   return { comments };
 });
 
-export const POST = roomHandler({ body: commentSchema }, async ({ actor, roomId, params, body }) => {
+export const POST = roomHandler({ body: commentSchema, tab: "board" }, async ({ actor, roomId, params, body }) => {
+  await limitParticipant(actor, "comment", 60, 10);
   if (!isUuid(params.id)) throw notFound();
   const sub = await loadSubmission(roomId, params.id);
   if (!sub || !canSeeSubmission(sub, actor)) throw notFound();

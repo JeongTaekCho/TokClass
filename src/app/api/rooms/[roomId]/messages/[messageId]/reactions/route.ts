@@ -1,5 +1,6 @@
 import { isUuid, roomHandler } from "@/lib/api/handler";
 import { ApiError, notFound } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { loadReactions } from "@/lib/data/chat";
 import { resolveGroupScope } from "@/lib/data/groups";
 import { broadcast } from "@/lib/realtime/server";
@@ -7,7 +8,8 @@ import { db } from "@/lib/supabase/admin";
 import { messageReactionSchema } from "@/lib/validation/comm";
 
 /** 채팅 메시지 이모지 반응 토글: 이미 누른 이모지면 취소, 아니면 추가 */
-export const POST = roomHandler({ body: messageReactionSchema }, async ({ actor, roomId, params, body }) => {
+export const POST = roomHandler({ body: messageReactionSchema, tab: "chat" }, async ({ actor, roomId, params, body }) => {
+  await limitParticipant(actor, "chat-react", 10, 20);
   if (!isUuid(params.messageId)) throw notFound();
   if (actor.kind === "participant" && actor.room.focus_mode) {
     throw new ApiError(423, "지금은 집중 모드라 채팅이 잠겨 있어요.");
@@ -33,6 +35,6 @@ export const POST = roomHandler({ body: messageReactionSchema }, async ({ actor,
   }
 
   const reactions = (await loadReactions([message.id])).get(message.id) ?? [];
-  await broadcast(roomId, "chat.reactions", { id: message.id, reactions });
+  await broadcast(roomId, "chat.reactions", { id: message.id, groupId: message.group_id, reactions: message.group_id ? null : reactions });
   return { reactions };
 });

@@ -22,17 +22,21 @@ export const POST = roomHandler({ roles: ["participant"], body: z.object({ data:
 
   if (row.type === "quiz") {
     const { data: existing } = await db().from("activity_responses").select("id").eq("activity_id", row.id).eq("participant_id", pid).maybeSingle();
-    if (existing) throw new ApiError(409, "퀴즈는 한 번만 답할 수 있어요.");
+    if (existing) throw new ApiError(409, "답을 냈어요. 퀴즈는 한 번만 낼 수 있어요.");
     const elapsed = Date.now() - new Date(row.started_at ?? row.created_at).getTime();
     if (elapsed > ((row.config.timeLimitSec ?? 30) + 2) * 1000) throw new ApiError(409, "제한 시간이 지났어요.");
     score = scoreQuiz(row.config, data.selected as number[], elapsed);
   }
 
-  must(
-    await db()
-      .from("activity_responses")
-      .upsert({ activity_id: row.id, room_id: roomId, participant_id: pid, data, score, updated_at: new Date().toISOString() }, { onConflict: "activity_id,participant_id" }),
-  );
+  const values = { activity_id: row.id, room_id: roomId, participant_id: pid, data, score, updated_at: new Date().toISOString() };
+  if (row.type === "quiz") {
+    // 동시에 두 번 보내도 처음 낸 답만 인정해요 (덮어쓰지 않고 넣기만, 겹치면 유일성 제약에 걸려요).
+    const { error } = await db().from("activity_responses").insert(values);
+    if (error?.code === "23505") throw new ApiError(409, "답을 냈어요. 퀴즈는 한 번만 낼 수 있어요.");
+    if (error) throw error;
+  } else {
+    must(await db().from("activity_responses").upsert(values, { onConflict: "activity_id,participant_id" }));
+  }
   await broadcastResults(row);
   return { ok: true, myResponse: data };
 });

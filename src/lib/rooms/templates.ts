@@ -17,6 +17,8 @@ export type RoomSettings = {
   tabs: TabSetting[];
   defaultTab: TabKey;
   qaRevealAuthor: boolean;
+  /** 작성자 확인을 켠 시각. 이 시각 이후에 올라온 익명 질문만 강사에게 작성자가 보여요. */
+  qaRevealSince: string | null;
   redThreshold: number;
   aiDailyLimit: number;
   sections: string[];
@@ -71,6 +73,7 @@ export function defaultSettings(template: BuiltinTemplate = "lecture"): RoomSett
     tabs: info.tabs.map((t) => ({ ...t })),
     defaultTab: info.defaultTab,
     qaRevealAuthor: false,
+    qaRevealSince: null,
     redThreshold: 30,
     aiDailyLimit: 20,
     sections: [],
@@ -98,9 +101,10 @@ export function normalizeSettings(raw: unknown): RoomSettings {
     tabs,
     defaultTab,
     qaRevealAuthor: Boolean(r.qaRevealAuthor),
+    qaRevealSince: r.qaRevealAuthor && typeof r.qaRevealSince === "string" && !Number.isNaN(Date.parse(r.qaRevealSince)) ? r.qaRevealSince : null,
     redThreshold: clampInt(r.redThreshold, 5, 100, 30),
     aiDailyLimit: clampInt(r.aiDailyLimit, 0, 200, 20),
-    sections: Array.isArray(r.sections) ? r.sections.filter((s) => typeof s === "string").slice(0, 30) : [],
+    sections: Array.isArray(r.sections) ? [...new Set(r.sections.filter((s) => typeof s === "string"))].slice(0, 30) : [],
     groups: {
       active: Boolean(r.groups?.active),
       mode: r.groups?.mode === "manual" || r.groups?.mode === "choice" ? r.groups.mode : "random",
@@ -111,4 +115,12 @@ export function normalizeSettings(raw: unknown): RoomSettings {
 function clampInt(v: unknown, min: number, max: number, fallback: number) {
   const n = typeof v === "number" && Number.isFinite(v) ? Math.round(v) : fallback;
   return Math.min(max, Math.max(min, n));
+}
+
+/**
+ * 익명 질문 작성자를 강사에게 보여도 되는지.
+ * 작성자 확인을 켠 뒤에 올라온 질문만 보여요. 켜기 전에 익명으로 올린 질문은 계속 익명이에요.
+ */
+export function canRevealAnonymousAuthor(settings: Pick<RoomSettings, "qaRevealAuthor" | "qaRevealSince">, questionCreatedAt: string) {
+  return settings.qaRevealAuthor && settings.qaRevealSince !== null && Date.parse(questionCreatedAt) >= Date.parse(settings.qaRevealSince);
 }

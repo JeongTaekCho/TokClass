@@ -17,6 +17,7 @@ export const reactionSchema = z.object({
   emoji: z.enum(REACTION_EMOJIS),
   materialId: z.string().uuid().nullable().optional(),
   page: z.number().int().min(1).max(2000).nullable().optional(),
+  nonce: z.string().max(40).optional(),
 });
 
 export const noteSchema = z.object({

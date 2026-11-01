@@ -12,8 +12,14 @@ export function ReactionLayer() {
   const [items, setItems] = useState<Floating[]>([]);
   const seq = useRef(0);
   const timers = useRef<number[]>([]);
+  const seen = useRef(new Set<string>());
 
-  useRoomEvent("reaction.float", ({ emoji }) => {
+  useRoomEvent("reaction.float", ({ emoji, nonce }) => {
+    // 내가 보낸 반응은 누를 때 이미 띄웠어요. 서버에서 돌아온 같은 반응은 건너뛰어요.
+    if (nonce) {
+      if (seen.current.has(nonce)) return;
+      seen.current.add(nonce);
+    }
     const id = ++seq.current;
     setItems((prev) => [...prev.slice(-29), { id, emoji, left: 8 + Math.random() * 84 }]);
     timers.current.push(window.setTimeout(() => setItems((prev) => prev.filter((i) => i.id !== id)), 2500));

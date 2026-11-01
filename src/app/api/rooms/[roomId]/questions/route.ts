@@ -1,5 +1,6 @@
 import { isUuid, must, roomHandler } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { QUESTION_SELECT, toQuestion, type QuestionRow } from "@/lib/data/questions";
 import { broadcastMany } from "@/lib/realtime/server";
 import { db } from "@/lib/supabase/admin";
@@ -25,9 +26,11 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId, sea
   return { questions: rows.map((r) => toQuestion(r, actor, votedSet.has(r.id))) };
 });
 
-export const POST = roomHandler({ roles: ["participant"], body: questionCreateSchema }, async ({ actor, roomId, body }) => {
+export const POST = roomHandler({ roles: ["participant"], body: questionCreateSchema, tab: "qa" }, async ({ actor, roomId, body }) => {
+  await limitParticipant(actor, "qa", 60, 5);
   if (actor.kind !== "participant") throw new ApiError(403, "권한이 없어요.");
-  let materialId: string | null = null;
+  let materialId
+: string | null = null;
   let page: number | null = null;
   if (body.materialId) {
     const { data } = await db().from("materials").select("id, page_count").eq("id", body.materialId).eq("room_id", roomId).maybeSingle();

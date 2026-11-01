@@ -4,7 +4,7 @@ import { broadcast } from "@/lib/realtime/server";
 import { db } from "@/lib/supabase/admin";
 
 /** 댓글 삭제 (작성자 또는 강사) */
-export const DELETE = roomHandler({}, async ({ actor, roomId, params }) => {
+export const DELETE = roomHandler({ tab: "board" }, async ({ actor, roomId, params }) => {
   if (!isUuid(params.id) || !isUuid(params.commentId)) throw notFound();
   const row = must(await db().from("submission_comments").select("participant_id, submission_id").eq("id", params.commentId).eq("room_id", roomId).maybeSingle()) as { participant_id: string | null; submission_id: string } | null;
   if (!row) throw notFound();

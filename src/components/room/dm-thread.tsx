@@ -42,7 +42,7 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
         {data?.messages.map((m) => {
           const mine = m.fromInstructor === mineIsInstructor;
           return (
-            <div key={m.id} className={cn("flex animate-enter-up flex-col", mine ? "items-end" : "items-start")}>
+            <div key={m.id} className={cn("flex animate-enter-up flex-col", mine ? "items-end" : "items-start", m.id.startsWith("pending-") && "opacity-60")}>
               <div className={cn("max-w-[85%] rounded-[18px] px-3.5 py-2 text-[15px] whitespace-pre-wrap", mine ? "rounded-br-[6px] bg-coral-soft" : "rounded-bl-[6px] bg-primary-soft")}>{m.body}</div>
               <time className="mt-0.5 px-1 text-xs text-muted-foreground">{formatTime(m.createdAt)}</time>
             </div>
@@ -55,13 +55,22 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
           className="flex items-end gap-1.5 border-t border-border p-2"
           onSubmit={async (e) => {
             e.preventDefault();
-            if (!text.trim()) return;
+            const body = text.trim();
+            if (!body) return;
+            // 보내는 말풍선을 바로 띄우고 입력창을 비워요(낙관적 업데이트). 실패하면 글을 되돌려 놓아요.
+            const temp: DirectMessage = { id: `pending-${crypto.randomUUID()}`, participantId: participantId ?? me.id, fromInstructor: mineIsInstructor, body, createdAt: new Date().toISOString(), readAt: null };
+            setText("");
             setPending(true);
             try {
-              await api(`/api/rooms/${roomId}/dms`, { body: { participantId, body: text } });
-              setText("");
-              await mutate();
+              await mutate(
+                async (prev) => {
+                  await api(`/api/rooms/${roomId}/dms`, { body: { participantId, body } });
+                  return prev;
+                },
+                { optimisticData: (prev) => ({ messages: [...(prev?.messages ?? []), temp] }), rollbackOnError: true, revalidate: true },
+              );
             } catch (err) {
+              setText((t) => (t ? t : body));
               toastError(err);
             } finally {
               setPending(false);

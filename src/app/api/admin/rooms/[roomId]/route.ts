@@ -4,7 +4,7 @@ import { loadRoom } from "@/lib/auth/actor";
 import { writeAudit } from "@/lib/admin/server";
 import { broadcast } from "@/lib/realtime/server";
 import { toPublicRoom } from "@/lib/rooms/public";
-import { removeRoomFiles } from "@/lib/storage/server";
+import { deleteRoom } from "@/lib/rooms/delete";
 import { db } from "@/lib/supabase/admin";
 import type { RoomRow } from "@/lib/types";
 import { adminRoomActionSchema, adminRoomDeleteSchema } from "@/lib/validation/admin";
@@ -31,8 +31,7 @@ export const DELETE = adminHandler({ body: adminRoomDeleteSchema }, async ({ par
   const room = await findRoom(params.roomId);
   if (body.confirmTitle.trim() !== room.title.trim()) throw new ApiError(400, "방 제목이 일치하지 않아요.", "confirm_mismatch");
   const { count } = await db().from("participants").select("id", { count: "exact", head: true }).eq("room_id", room.id);
-  await removeRoomFiles(room.id);
-  must(await db().from("rooms").delete().eq("id", room.id));
+  await deleteRoom(room);
   await writeAudit(access, {
     action: "room.delete",
     targetType: "room",
