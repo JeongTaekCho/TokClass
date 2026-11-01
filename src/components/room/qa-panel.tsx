@@ -76,7 +76,7 @@ export function QaPanel({ readOnly = false }: { readOnly?: boolean }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {canAsk && <AskForm roomId={roomId} onAsked={(q) => mutate((prev) => ({ questions: [q, ...(prev?.questions ?? []).filter((x) => x.id !== q.id)] }), { revalidate: false })} />}
+      {canAsk && <AskForm roomId={roomId} revealToInstructor={room.settings.qaRevealAuthor} onAsked={(q) => mutate((prev) => ({ questions: [q, ...(prev?.questions ?? []).filter((x) => x.id !== q.id)] }), { revalidate: false })} />}
       <div className="flex flex-wrap items-center gap-1 border-b border-border px-3 py-2">
         {(["popular", "recent"] as const).map((s) => (
           <Button key={s} size="sm" variant={sort === s ? "soft" : "ghost"} aria-pressed={sort === s} onClick={() => setSort(s)}>
@@ -108,7 +108,7 @@ export function QaPanel({ readOnly = false }: { readOnly?: boolean }) {
   );
 }
 
-function AskForm({ roomId, onAsked }: { roomId: string; onAsked: (q: Question) => void }) {
+function AskForm({ roomId, revealToInstructor, onAsked }: { roomId: string; revealToInstructor: boolean; onAsked: (q: Question) => void }) {
   const [body, setBody] = useState("");
   const [anonymous, setAnonymous] = useState(true);
   const [pending, setPending] = useState(false);
@@ -139,6 +139,7 @@ function AskForm({ roomId, onAsked }: { roomId: string; onAsked: (q: Question) =
           {pending && <Loader2 className="animate-spin" aria-hidden />}질문하기
         </Button>
       </div>
+      {anonymous && revealToInstructor && <p className="text-xs text-muted-foreground">익명으로 올려도 강사님은 작성자를 볼 수 있어요. 다른 수강생에게는 보이지 않아요.</p>}
     </form>
   );
 }

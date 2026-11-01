@@ -1,7 +1,8 @@
 import { must, roomHandler } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
+import { assertHitLimit } from "@/lib/api/rate-limit";
 import { MESSAGE_SELECT, toChatMessages, type MessageRow } from "@/lib/data/chat";
-import { resolveGroupScope } from "@/lib/data/groups";
+import { assertGroupInRoom, resolveGroupScope } from "@/lib/data/groups";
 import { broadcast } from "@/lib/realtime/server";
 import { assertRoomPath } from "@/lib/storage/server";
 import { db } from "@/lib/supabase/admin";
@@ -22,17 +23,16 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId, sea
   return { messages, hasMore };
 });
 
-export const POST = roomHandler({ body: chatPostSchema }, async ({ actor, roomId, body }) => {
+export const POST = roomHandler({ body: chatPostSchema, tab: "chat" }, async ({ actor, roomId, body }) => {
   if (actor.kind === "participant" && actor.room.focus_mode) {
     throw new ApiError(423, "지금은 집중 모드라 채팅이 잠겨 있어요.");
   }
   if (actor.kind === "participant") {
-    // 도배 방지: 10초에 8개까지
-    const since = new Date(Date.now() - 10_000).toISOString();
-    const { count } = await db().from("messages").select("id", { count: "exact", head: true }).eq("participant_id", actor.participant.id).gte("created_at", since);
-    if ((count ?? 0) >= 8) throw new ApiError(429, "메시지를 너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.");
+    // 도배 방지: 10초에 8개까지 (동시에 보내도 정확히 세도록 DB 카운터를 써요)
+    await assertHitLimit(`chat:${actor.participant.id}`, 10, 8, "메시지를 너무 빨리 보내고 있어요. 잠시 후 다시 보내 주세요.");
   }
   const groupId = resolveGroupScope(actor, body.groupId);
+  if (actor.kind === "instructor") await assertGroupInRoom(roomId, groupId);
   if (body.imagePath) {
     try {
       assertRoomPath(roomId, body.imagePath, "chat");
@@ -54,6 +54,7 @@ export const POST = roomHandler({ body: chatPostSchema }, async ({ actor, roomId
       .single(),
   ) as unknown as MessageRow;
   const [message] = await toChatMessages([row], "participant", { withReactions: false });
-  await broadcast(roomId, "chat.message", { message });
+  if (message.groupId) await broadcast(roomId, "chat.group", { groupId: message.groupId, id: message.id, author: { kind: message.author.kind, id: message.author.id } });
+  else await broadcast(roomId, "chat.message", { message });
   return { message };
 });

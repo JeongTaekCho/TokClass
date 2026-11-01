@@ -1,5 +1,6 @@
 import { isUuid, must, roomHandler } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { SUBMISSION_SELECT, canSeeSubmission, toSubmissions, type SubmissionRow } from "@/lib/data/submissions";
 import { broadcast } from "@/lib/realtime/server";
 import { assertRoomPath } from "@/lib/storage/server";
@@ -23,7 +24,8 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId, sea
   return { submissions: await toSubmissions(rows, actor) };
 });
 
-export const POST = roomHandler({ body: submissionCreateSchema }, async ({ actor, roomId, body }) => {
+export const POST = roomHandler({ body: submissionCreateSchema, tab: "board" }, async ({ actor, roomId, body }) => {
+  await limitParticipant(actor, "submit", 60, 5);
   let storagePath: string | null = null;
   if (body.kind === "image" || body.kind === "file") {
     try {
@@ -43,7 +45,7 @@ export const POST = roomHandler({ body: submissionCreateSchema }, async ({ actor
   let section = body.section ?? null;
   if (actor.kind === "participant" && actor.settings.groups.active && actor.participant.group_id) {
     groupId = actor.participant.group_id;
-    const { data: g } = await db().from("groups").select("name").eq("id", groupId).maybeSingle();
+    const { data: g } = await db().from("groups").select("name").eq("id", groupId).eq("room_id", roomId).maybeSingle();
     section = g?.name ?? section;
   }
   if (section && actor.kind === "participant" && !groupId && !actor.settings.sections.includes(section)) section = null;

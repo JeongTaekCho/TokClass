@@ -16,6 +16,6 @@ export const PATCH = roomHandler({ body: helpPatchSchema }, async ({ actor, room
       .update({ status: body.status, resolved_at: body.status === "resolved" ? new Date().toISOString() : null })
       .eq("id", params.id),
   );
-  await broadcast(roomId, "help.changed", { participantId: row.participant_id, status: body.status });
+  await broadcast(roomId, "help.changed", { participantId: row.participant_id, status: body.status, by: actor.kind === "instructor" ? "instructor" : "self" });
   return { ok: true };
 });

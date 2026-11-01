@@ -1,7 +1,9 @@
 import "server-only";
 
 import { must } from "@/lib/api/handler";
+import { fetchPaged } from "@/lib/data/paged";
 import { db } from "@/lib/supabase/admin";
+
 
 export type ManageRoom = {
   id: string;
@@ -27,20 +29,6 @@ export type ManageParticipant = {
 
 /** 수강생 관리 화면 최대 표시 인원 (방 정원 100명 × 여러 방) */
 export const MANAGE_LIMIT = 3000;
-/** Supabase PostgREST max_rows (config.toml) 보다 크게 요청해도 잘려서 와요. */
-const PAGE = 1000;
-
-/** max_rows 제한을 넘는 목록을 쪽 단위로 끝까지(최대 max건) 받아요. */
-export async function fetchPaged<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>, max = MANAGE_LIMIT): Promise<T[]> {
-  const out: T[] = [];
-  for (let from = 0; from < max; from += PAGE) {
-    const rows = must(await page(from, Math.min(from + PAGE, max) - 1)) ?? [];
-    out.push(...rows);
-    if (rows.length < PAGE) break;
-  }
-  return out;
-}
-
 export async function listManageRooms(ownerId: string): Promise<ManageRoom[]> {
   const d = db();
   const rooms = must(
@@ -79,6 +67,7 @@ export async function listManageParticipants(roomIds: string[]): Promise<ManageP
       .order("created_at", { ascending: false })
       .order("id")
       .range(from, to),
+    MANAGE_LIMIT,
   );
   return rows.map((p) => ({
     id: p.id,

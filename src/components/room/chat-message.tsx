@@ -126,13 +126,13 @@ export function MessageItem({ m, hidden, mine, first, last, reactions, myKey, ca
             {(reactable || canModerate) && (
               <div
                 className={cn(
-                  "flex items-center gap-0.5 opacity-0 transition-opacity group-hover/msg:opacity-100 focus-within:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:opacity-50",
+                  "flex items-center gap-0.5 opacity-0 transition-opacity group-hover/msg:opacity-100 focus-within:opacity-100 has-[[data-state=open]]:opacity-100 [@media(hover:none)]:opacity-100",
                   mine && "flex-row-reverse",
                 )}
               >
                 {reactable && (
                   <ReactionPicker mine={mine} myEmojis={myEmojis} onPick={onReact}>
-                    <button type="button" className="inline-flex size-7 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-surface hover:text-foreground hover:shadow-card" aria-label="반응 남기기">
+                    <button type="button" className="relative inline-flex size-7 cursor-pointer items-center justify-center rounded-full text-muted-foreground after:absolute after:-inset-2 after:content-[''] hover:bg-surface hover:text-foreground hover:shadow-card" aria-label="반응 남기기">
                       <SmilePlus className="size-4" aria-hidden />
                     </button>
                   </ReactionPicker>
@@ -140,7 +140,7 @@ export function MessageItem({ m, hidden, mine, first, last, reactions, myKey, ca
                 {canModerate && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button type="button" className="inline-flex size-7 cursor-pointer items-center justify-center rounded-full text-muted-foreground hover:bg-surface hover:text-foreground hover:shadow-card" aria-label="메시지 관리">
+                      <button type="button" className="relative inline-flex size-7 cursor-pointer items-center justify-center rounded-full text-muted-foreground after:absolute after:-inset-2 after:content-[''] hover:bg-surface hover:text-foreground hover:shadow-card" aria-label="메시지 관리">
                         <MoreHorizontal className="size-4" aria-hidden />
                       </button>
                     </DropdownMenuTrigger>
@@ -218,7 +218,7 @@ function ReactionBar({
         <ReactionPicker mine={mine} myEmojis={myEmojis} onPick={onReact}>
           <button
             type="button"
-            className="inline-flex h-7 cursor-pointer items-center rounded-full border border-dashed border-border-strong px-2 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary-soft hover:text-primary-ink"
+            className="relative inline-flex h-7 cursor-pointer items-center rounded-full border border-dashed after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] border-border-strong px-2 text-muted-foreground transition-colors hover:border-primary/50 hover:bg-primary-soft hover:text-primary-ink"
             aria-label="다른 반응 남기기"
           >
             <SmilePlus className="size-3.5" aria-hidden />
@@ -243,18 +243,19 @@ function ReactionChip({ r, active, canReact, onReact }: { r: MessageReaction; ac
   }, [r.count, controls]);
 
   const label = `${EMOJI_LABEL[r.emoji] ?? r.emoji} ${r.count}명${active ? ", 나도 누름" : ""}`;
+  // disabled 대신 aria-disabled를 써서, 누를 수 없을 때(종료·집중 모드)도 누가 눌렀는지 툴팁을 볼 수 있어요.
   return (
     <motion.span layout initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.5, opacity: 0 }} transition={spring}>
       <Tooltip>
         <TooltipTrigger asChild>
           <button
             type="button"
-            disabled={!canReact}
+            aria-disabled={!canReact}
             aria-pressed={active}
             aria-label={label}
-            onClick={() => onReact(r.emoji)}
+            onClick={() => canReact && onReact(r.emoji)}
             className={cn(
-              "inline-flex h-7 items-center gap-1 rounded-full border px-2 text-[13px] font-semibold tabular-nums transition-colors disabled:cursor-default",
+              "relative inline-flex h-7 items-center gap-1 rounded-full border px-2 text-[13px] font-semibold tabular-nums transition-colors after:absolute after:-inset-y-2 after:inset-x-0 after:content-[''] aria-disabled:cursor-default",
               canReact && "cursor-pointer",
               active ? "border-primary/50 bg-primary-soft text-primary-ink" : "border-border bg-surface text-muted-foreground shadow-card",
               canReact && !active && "hover:border-border-strong hover:text-foreground",

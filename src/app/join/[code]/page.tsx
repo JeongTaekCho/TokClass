@@ -8,13 +8,37 @@ import { StatusScreen } from "@/components/status-screen";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/supabase/admin";
 import { loadParticipantFromSession } from "@/lib/auth/actor";
-import { findRoomByCode, isRoomOwnerBlocked } from "@/lib/rooms/lookup";
+import { ApiError } from "@/lib/api/errors";
+import { CODE_LOCKED_MESSAGE, findRoomByCodeGuarded, isRoomOwnerBlocked } from "@/lib/rooms/lookup";
 
 export const metadata: Metadata = { title: "수업 입장" };
 
 export default async function JoinCodePage({ params }: PageProps<"/join/[code]">) {
   const { code } = await params;
-  const room = /^\d{6}$/.test(code) ? await findRoomByCode(code, { allowEnded: true }) : null;
+  let room = null;
+  let codeLocked = false;
+  try {
+    room = /^\d{6}$/.test(code) ? await findRoomByCodeGuarded(code, { allowEnded: true }) : null;
+  } catch (e) {
+    if (!(e instanceof ApiError && e.status === 429)) throw e;
+    codeLocked = true;
+  }
+
+  if (codeLocked) {
+    return (
+      <StatusScreen
+        art={<NoResultsArt />}
+        title="잠시 기다려 주세요"
+        actions={
+          <Button asChild size="lg" variant="outline">
+            <Link href="/join">참여코드 다시 입력</Link>
+          </Button>
+        }
+      >
+        {CODE_LOCKED_MESSAGE}
+      </StatusScreen>
+    );
+  }
 
   if (!room) {
     return (

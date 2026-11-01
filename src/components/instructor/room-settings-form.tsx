@@ -167,7 +167,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
         <div className="divide-y divide-border">
           <ToggleRow id="t-lock" label="입장 마감 (방 잠금)" description="새로운 수강생이 들어올 수 없어요. 이미 참여한 사람은 다시 들어올 수 있어요." checked={room.locked} onChange={(v) => patch({ locked: v }, "lock", v ? "입장을 마감했어요." : "입장을 다시 열었어요.")} />
           <ToggleRow id="t-focus" label="집중 모드" description="수강생 채팅을 잠시 잠가요." checked={room.focusMode} onChange={(v) => patch({ focusMode: v }, "focus", v ? "집중 모드를 켰어요." : "집중 모드를 껐어요.")} />
-          <ToggleRow id="t-reveal" label="익명 질문 작성자 확인" description="켜면 강사 화면에서 익명 질문의 작성자가 보여요. 수강생에게는 계속 익명이에요." checked={room.settings.qaRevealAuthor} onChange={(v) => patch({ qaRevealAuthor: v }, "reveal")} />
+          <ToggleRow id="t-reveal" label="익명 질문 작성자 확인" description="켜면 지금부터 올라오는 익명 질문의 작성자가 강사 화면에 보여요. 이전 질문은 계속 익명이고, 수강생에게는 항상 익명이에요." checked={room.settings.qaRevealAuthor} onChange={(v) => patch({ qaRevealAuthor: v }, "reveal")} />
         </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <form

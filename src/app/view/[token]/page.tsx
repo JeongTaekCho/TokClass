@@ -14,6 +14,7 @@ import { SUBMISSION_SELECT, toSubmissions, type SubmissionRow } from "@/lib/data
 import { formatTime } from "@/lib/format";
 import { db } from "@/lib/supabase/admin";
 import { isRoomOwnerBlocked } from "@/lib/rooms/lookup";
+import { normalizeSettings, type TabKey } from "@/lib/rooms/templates";
 import type { RoomRow } from "@/lib/types";
 
 export const metadata: Metadata = { title: "읽기 전용", robots: { index: false, follow: false } };
@@ -25,13 +26,16 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
   const room = (await db().from("rooms").select("*").eq("readonly_token", token).maybeSingle()).data as RoomRow | null;
   if (!room || (await isRoomOwnerBlocked(room.owner_id))) notFound();
 
+  // 강사가 꺼 둔 탭의 내용은 읽기 전용 링크에도 보여주지 않아요.
+  const enabled = new Set<TabKey>(normalizeSettings(room.settings).tabs.filter((t) => t.enabled).map((t) => t.key));
+  const off = Promise.resolve({ data: [], error: null });
   const d = db();
   const [announcements, materials, msgRows, qRows, sRows] = await Promise.all([
     listAnnouncements(room.id),
-    listMaterials(room.id),
-    d.from("messages").select(MESSAGE_SELECT).eq("room_id", room.id).is("group_id", null).eq("hidden", false).order("created_at", { ascending: false }).limit(80),
-    d.from("questions").select("id, body, anonymous, vote_count, answered, answer, participant:participants!questions_participant_id_fkey(nickname)").eq("room_id", room.id).eq("hidden", false).order("vote_count", { ascending: false }).limit(100),
-    d.from("submissions").select(SUBMISSION_SELECT).eq("room_id", room.id).eq("hidden", false).order("created_at", { ascending: false }).limit(60),
+    enabled.has("slides") ? listMaterials(room.id) : Promise.resolve([]),
+    !enabled.has("chat") ? off : d.from("messages").select(MESSAGE_SELECT).eq("room_id", room.id).is("group_id", null).eq("hidden", false).order("created_at", { ascending: false }).limit(80),
+    !enabled.has("qa") ? off : d.from("questions").select("id, body, anonymous, vote_count, answered, answer, participant:participants!questions_participant_id_fkey(nickname)").eq("room_id", room.id).eq("hidden", false).order("vote_count", { ascending: false }).limit(100),
+    !enabled.has("board") ? off : d.from("submissions").select(SUBMISSION_SELECT).eq("room_id", room.id).eq("hidden", false).order("created_at", { ascending: false }).limit(60),
   ]);
   const messages = await toChatMessages((must(msgRows) as unknown as MessageRow[]).reverse(), "participant");
   const questions = must(qRows) as unknown as { id: string; body: string; anonymous: boolean; vote_count: number; answered: boolean; answer: string | null; participant: { nickname: string } | null }[];
@@ -66,7 +70,7 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
               </p>
             </section>
           )}
-          <section className="border-t border-border pt-4">
+          {enabled.has("board") && <section className="border-t border-border pt-4">
             <h2 className="mb-3 font-semibold">산출물 ({submissions.length})</h2>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {submissions.map((s) => (
@@ -79,10 +83,10 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
                 </li>
               ))}
             </ul>
-          </section>
+          </section>}
         </div>
         <div className="space-y-5">
-          <section className="border-t border-border pt-4">
+          {enabled.has("qa") && <section className="border-t border-border pt-4">
             <h2 className="mb-3 flex items-center gap-1.5 font-semibold">
               <MessagesSquare className="size-4 text-muted-foreground" aria-hidden /> Q&A
             </h2>
@@ -100,8 +104,8 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
                 </li>
               ))}
             </ul>
-          </section>
-          <section className="border-t border-border pt-4">
+          </section>}
+          {enabled.has("chat") && <section className="border-t border-border pt-4">
             <h2 className="mb-3 flex items-center gap-1.5 font-semibold">
               <MessageCircle className="size-4 text-muted-foreground" aria-hidden /> 채팅
             </h2>
@@ -115,7 +119,7 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
                 </li>
               ))}
             </ul>
-          </section>
+          </section>}
         </div>
       </main>
     </div>

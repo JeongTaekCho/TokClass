@@ -30,7 +30,7 @@ export const PATCH = roomHandler({ roles: ["instructor"], body: submissionPatchS
 });
 
 /** 삭제 (작성자 또는 강사) */
-export const DELETE = roomHandler({}, async ({ actor, roomId, params }) => {
+export const DELETE = roomHandler({ tab: "board" }, async ({ actor, roomId, params }) => {
   if (!isUuid(params.id)) throw notFound();
   const row = await loadSubmission(roomId, params.id);
   if (!row) throw notFound();

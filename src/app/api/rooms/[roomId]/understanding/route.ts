@@ -1,7 +1,9 @@
 import { must, roomHandler } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { understandingCounts } from "@/lib/data/understanding";
 import { broadcast } from "@/lib/realtime/server";
+import { fetchPaged } from "@/lib/data/paged";
 import { db } from "@/lib/supabase/admin";
 import { understandingSchema } from "@/lib/validation/class";
 
@@ -14,14 +16,18 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId }) =
   const since = new Date(Date.now() - 30 * 60_000).toISOString();
   const [counts, events] = await Promise.all([
     understandingCounts(roomId),
-    db().from("understanding_events").select("participant_id, status, created_at").eq("room_id", roomId).gte("created_at", since).order("created_at").limit(5000),
+    fetchPaged((from, to) => db().from("understanding_events").select("participant_id, status, created_at").eq("room_id", roomId).gte("created_at", since).order("created_at").order("id").range(from, to)),
   ]);
-  return { counts, events: must(events) };
+  return { counts, events };
 });
 
 export const POST = roomHandler({ roles: ["participant"], body: understandingSchema }, async ({ actor, roomId, body }) => {
+  await limitParticipant(actor, "understanding", 60, 10);
   if (actor.kind !== "participant") throw new ApiError(403, "권한이 없어요.");
   const pid = actor.participant.id;
+  // 같은 상태를 다시 누르면 이력을 쌓지 않아요.
+  const { data: current } = await db().from("understanding_current").select("status").eq("room_id", roomId).eq("participant_id", pid).maybeSingle();
+  if (current?.status === body.status) return { status: body.status };
   must(
     await db()
       .from("understanding_current")

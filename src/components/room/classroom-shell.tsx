@@ -81,9 +81,13 @@ export function ClassroomShell({
   const bump = (key: TabKey) => {
     if (key !== current) setUnread((u) => ({ ...u, [key]: (u[key] ?? 0) + 1 }));
   };
+  const isMine = (author: { kind: "instructor" | "participant"; id: string | null }) => author.kind === me.kind && (author.id ?? me.id) === me.id;
   useRoomEvent("chat.message", ({ message }) => {
+    if (!isMine(message.author)) bump("chat");
+  });
+  useRoomEvent("chat.group", ({ groupId, author }) => {
     const myGroup = me.kind === "participant" ? me.groupId : null;
-    if (message.author.id !== me.id && (isInstructor || !message.groupId || message.groupId === myGroup)) bump("chat");
+    if (!isMine(author) && (isInstructor || groupId === myGroup)) bump("chat");
   });
   useRoomEvent("qa.changed", ({ question }) => {
     if (question && !question.mine && Date.now() - new Date(question.createdAt).getTime() < 5000) bump("qa");

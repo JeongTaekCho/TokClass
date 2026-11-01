@@ -1,11 +1,13 @@
 import { isUuid, roomHandler } from "@/lib/api/handler";
 import { ApiError, notFound } from "@/lib/api/errors";
+import { limitParticipant } from "@/lib/api/rate-limit";
 import { loadQuestion, toQuestion } from "@/lib/data/questions";
 import { broadcast } from "@/lib/realtime/server";
 import { db } from "@/lib/supabase/admin";
 
 /** 공감(👍) 토글 */
-export const POST = roomHandler({ roles: ["participant"] }, async ({ actor, roomId, params }) => {
+export const POST = roomHandler({ roles: ["participant"], tab: "qa" }, async ({ actor, roomId, params }) => {
+  await limitParticipant(actor, "vote", 10, 20);
   if (actor.kind !== "participant") throw new ApiError(403, "권한이 없어요.");
   if (!isUuid(params.id)) throw notFound();
   const existing = await loadQuestion(roomId, params.id);

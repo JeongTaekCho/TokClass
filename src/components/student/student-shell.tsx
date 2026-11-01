@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import useSWR from "swr";
 import { BookOpen, KeyRound, LogOut, MessageSquareText, UserRound, X } from "lucide-react";
 
@@ -71,25 +71,9 @@ export function StudentShell({ code }: { code: string }) {
       }
       tools={
         dmOpen && (
-          <aside
-            aria-label="강사님과 1:1 대화"
-            className={cn(
-              "flex min-h-0 flex-col bg-surface",
-              // 좁은 화면: 전체 화면 / 넓은 화면: 수업 화면 옆에 고정
-              "fixed inset-0 z-50 animate-rise lg:static lg:z-auto lg:w-[360px] lg:shrink-0 lg:animate-fade-in lg:border-l lg:border-border",
-            )}
-          >
-            <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold">강사님과 1:1 대화</p>
-                <p className="text-xs text-muted-foreground">나와 강사님만 볼 수 있어요. 창을 닫아도 대화는 남아 있어요.</p>
-              </div>
-              <Button variant="ghost" size="icon-sm" aria-label="1:1 대화 닫기" onClick={() => setDmOpen(false)}>
-                <X aria-hidden />
-              </Button>
-            </div>
+          <DmPanel onClose={() => setDmOpen(false)}>
             <DmThread onRead={() => void mutateDm()} />
-          </aside>
+          </DmPanel>
         )
       }
       footer={<BottomBar />}
@@ -156,7 +140,7 @@ function ProfileMenu({ code }: { code: string }) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>내 임시 비밀번호</DialogTitle>
-            <DialogDescription>다른 기기나 다음 수업에서 이 비밀번호로 다시 들어올 수 있어요.</DialogDescription>
+            <DialogDescription>다른 기기에서 이 수업에 다시 들어올 때 이 비밀번호를 써요.</DialogDescription>
           </DialogHeader>
           {password ? (
             <div className="-rotate-1 rounded-sm bg-coral-soft p-5 text-center">
@@ -173,5 +157,85 @@ function ProfileMenu({ code }: { code: string }) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+const NARROW = "(max-width: 1023.98px)";
+function useNarrow() {
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia(NARROW);
+      mq.addEventListener("change", cb);
+      return () => mq.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(NARROW).matches,
+    () => false,
+  );
+}
+
+/**
+ * 1:1 대화창. 좁은 화면에서는 전체 화면을 덮는 대화상자(모달)라서 포커스를 안에 가두고 Esc로 닫혀요.
+ * 넓은 화면에서는 수업 화면 옆에 붙는 패널이라 수업을 보면서 대화할 수 있어요.
+ */
+function DmPanel({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  const narrow = useNarrow();
+  const ref = useRef<HTMLElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    closeRef.current?.focus();
+    return () => opener?.focus?.();
+  }, []);
+
+  useEffect(() => {
+    if (!narrow) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") return onClose();
+      if (e.key !== "Tab" || !ref.current) return;
+      const items = [...ref.current.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex='-1'])")];
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [narrow, onClose]);
+
+  return (
+    <aside
+      ref={ref}
+      role={narrow ? "dialog" : undefined}
+      aria-modal={narrow || undefined}
+      aria-labelledby="dm-title"
+      aria-describedby="dm-desc"
+      className={cn(
+        "flex min-h-0 flex-col bg-surface",
+        // 좁은 화면: 전체 화면 / 넓은 화면: 수업 화면 옆에 고정
+        "fixed inset-0 z-50 animate-rise lg:static lg:z-auto lg:w-[360px] lg:shrink-0 lg:animate-fade-in lg:border-l lg:border-border",
+      )}
+    >
+      <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
+        <div className="min-w-0 flex-1">
+          <h2 id="dm-title" className="font-semibold">
+            강사님과 1:1 대화
+          </h2>
+          <p id="dm-desc" className="text-xs text-muted-foreground">
+            이 대화는 강사님만 볼 수 있어요. 창을 닫아도 대화는 남아 있어요.
+          </p>
+        </div>
+        <Button ref={closeRef} variant="ghost" size="icon-sm" aria-label="1:1 대화 닫기" onClick={onClose}>
+          <X aria-hidden />
+        </Button>
+      </div>
+      {children}
+    </aside>
   );
 }

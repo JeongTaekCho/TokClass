@@ -61,8 +61,14 @@ export async function clearAttempts(roomId: string, keys: string[]) {
   await db().from("login_attempts").delete().eq("room_id", roomId).in("key", keys);
 }
 
+/**
+ * 요청한 사람의 IP. Vercel은 x-real-ip를 직접 채우고 x-forwarded-for도 덮어써서 클라이언트가 바꿀 수 없어요.
+ * 그래서 x-real-ip를 먼저 보고, 없을 때만(로컬 등) x-forwarded-for의 첫 값을 써요.
+ */
 export function clientIp(headers: Headers) {
+  const real = headers.get("x-real-ip");
+  if (real) return real.trim();
   const fwd = headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]!.trim();
-  return headers.get("x-real-ip") ?? "unknown";
+  return "unknown";
 }

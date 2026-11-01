@@ -1,8 +1,10 @@
 import { must, roomHandler } from "@/lib/api/handler";
 import { badRequest } from "@/lib/api/errors";
+import { fetchPaged } from "@/lib/data/paged";
 import { db } from "@/lib/supabase/admin";
 import { formatDateTimeFull } from "@/lib/format";
 import { toCsv } from "@/lib/report/csv";
+import { canRevealAnonymousAuthor } from "@/lib/rooms/templates";
 import type { ActivityConfig } from "@/lib/types";
 
 function file(name: string, body: string, type: string) {
@@ -22,9 +24,9 @@ export const GET = roomHandler({ roles: ["instructor"], allowEnded: true }, asyn
   const d = db();
 
   if (type === "chat-txt" || type === "chat-csv") {
-    const rows = must(
-      await d.from("messages").select("created_at, body, image_path, hidden, group:groups(name), participant:participants!messages_participant_id_fkey(nickname)").eq("room_id", roomId).order("created_at").limit(50000),
-    ) as unknown as { created_at: string; body: string; image_path: string | null; hidden: boolean; group: { name: string } | null; participant: { nickname: string } | null }[];
+    const rows = (await fetchPaged((from, to) =>
+      d.from("messages").select("created_at, body, image_path, hidden, group:groups(name), participant:participants!messages_participant_id_fkey(nickname)").eq("room_id", roomId).order("created_at").order("id").range(from, to),
+    )) as unknown as { created_at: string; body: string; image_path: string | null; hidden: boolean; group: { name: string } | null; participant: { nickname: string } | null }[];
     if (type === "chat-txt") {
       const lines = rows.map((r) => `[${formatDateTimeFull(r.created_at)}]${r.group ? ` [${r.group.name}]` : ""} ${r.participant?.nickname ?? "강사"}: ${r.body}${r.image_path ? " (이미지)" : ""}${r.hidden ? " (숨김)" : ""}`);
       return file(`${base}_채팅.txt`, `${actor.room.title} 채팅 기록\r\n\r\n${lines.join("\r\n")}\r\n`, "text/plain");
@@ -37,15 +39,14 @@ export const GET = roomHandler({ roles: ["instructor"], allowEnded: true }, asyn
   }
 
   if (type === "qa-csv") {
-    const rows = must(
-      await d.from("questions").select("created_at, body, anonymous, vote_count, answered, answer, page, hidden, participant:participants!questions_participant_id_fkey(nickname)").eq("room_id", roomId).order("created_at").limit(10000),
-    ) as unknown as { created_at: string; body: string; anonymous: boolean; vote_count: number; answered: boolean; answer: string | null; page: number | null; hidden: boolean; participant: { nickname: string } | null }[];
-    const reveal = actor.settings.qaRevealAuthor;
+    const rows = (await fetchPaged((from, to) =>
+      d.from("questions").select("created_at, body, anonymous, vote_count, answered, answer, page, hidden, participant:participants!questions_participant_id_fkey(nickname)").eq("room_id", roomId).order("created_at").order("id").range(from, to),
+    )) as unknown as { created_at: string; body: string; anonymous: boolean; vote_count: number; answered: boolean; answer: string | null; page: number | null; hidden: boolean; participant: { nickname: string } | null }[];
     return file(
       `${base}_QnA.csv`,
       toCsv(
         ["시각", "작성자", "질문", "공감", "답변 완료", "답변", "교안 페이지", "숨김"],
-        rows.map((r) => [formatDateTimeFull(r.created_at), r.anonymous && !reveal ? "익명" : (r.participant?.nickname ?? ""), r.body, r.vote_count, r.answered ? "O" : "", r.answer ?? "", r.page ?? "", r.hidden ? "O" : ""]),
+        rows.map((r) => [formatDateTimeFull(r.created_at), r.anonymous && !canRevealAnonymousAuthor(actor.settings, r.created_at) ? "익명" : (r.participant?.nickname ?? ""), r.body, r.vote_count, r.answered ? "O" : "", r.answer ?? "", r.page ?? "", r.hidden ? "O" : ""]),
       ),
       "text/csv",
     );
@@ -59,7 +60,9 @@ export const GET = roomHandler({ roles: ["instructor"], allowEnded: true }, asyn
       config: ActivityConfig;
     }[];
     const resps = acts.length
-      ? (must(await d.from("activity_responses").select("activity_id, data, score, created_at, participant:participants!activity_responses_participant_id_fkey(nickname)").in("activity_id", acts.map((a) => a.id)).order("created_at")) as unknown as {
+      ? ((await fetchPaged((from, to) =>
+          d.from("activity_responses").select("activity_id, data, score, created_at, participant:participants!activity_responses_participant_id_fkey(nickname)").in("activity_id", acts.map((a) => a.id)).order("created_at").order("id").range(from, to),
+        )) as unknown as {
           activity_id: string;
           data: Record<string, unknown>;
           score: number;

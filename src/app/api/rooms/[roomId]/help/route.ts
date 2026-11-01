@@ -1,5 +1,6 @@
 import { must, roomHandler } from "@/lib/api/handler";
 import { ApiError } from "@/lib/api/errors";
+import { assertHitLimit } from "@/lib/api/rate-limit";
 import { broadcast } from "@/lib/realtime/server";
 import { db } from "@/lib/supabase/admin";
 import type { HelpRequest } from "@/lib/types";
@@ -33,6 +34,7 @@ export const GET = roomHandler({ allowEnded: true }, async ({ actor, roomId }) =
 export const POST = roomHandler({ roles: ["participant"], body: helpCreateSchema }, async ({ actor, roomId, body }) => {
   if (actor.kind !== "participant") throw new ApiError(403, "권한이 없어요.");
   const pid = actor.participant.id;
+  await assertHitLimit(`help:${pid}`, 60, 3);
   const { data: existing } = await db().from("help_requests").select("id").eq("room_id", roomId).eq("participant_id", pid).eq("status", "open").maybeSingle();
   let row: Row;
   if (existing) {
@@ -40,6 +42,6 @@ export const POST = roomHandler({ roles: ["participant"], body: helpCreateSchema
   } else {
     row = must(await db().from("help_requests").insert({ room_id: roomId, participant_id: pid, message: body.message }).select("*").single()) as Row;
   }
-  await broadcast(roomId, "help.changed", { participantId: pid, status: "open" });
+  await broadcast(roomId, "help.changed", { participantId: pid, status: "open", by: "self" });
   return { request: toHelp(row) };
 });

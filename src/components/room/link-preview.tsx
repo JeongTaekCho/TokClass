@@ -2,12 +2,14 @@
 
 import useSWR from "swr";
 
+import { fetcher } from "@/lib/client/api";
+import { useRoom } from "@/lib/realtime/provider";
+
 type Preview = { url: string; title: string; description: string | null; image: string | null; siteName: string };
 
-const fetchPreview = (url: string) => fetch(url).then((r) => r.json() as Promise<{ preview: Preview | null }>);
-
 export function LinkPreview({ url }: { url: string }) {
-  const { data } = useSWR(`/api/link-preview?url=${encodeURIComponent(url)}`, fetchPreview, {
+  const { roomId } = useRoom();
+  const { data } = useSWR<{ preview: Preview | null }>(`/api/rooms/${roomId}/link-preview?url=${encodeURIComponent(url)}`, fetcher, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
     shouldRetryOnError: false,

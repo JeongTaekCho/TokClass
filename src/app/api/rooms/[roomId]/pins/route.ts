@@ -1,5 +1,6 @@
-import { isUuid, must, roomHandler } from "@/lib/api/handler";
+import { isUuid, roomHandler } from "@/lib/api/handler";
 import { badRequest } from "@/lib/api/errors";
+import { fetchPaged } from "@/lib/data/paged";
 import { db } from "@/lib/supabase/admin";
 
 export type PagePins = Record<number, { questions: number; reactions: Record<string, number>; total: number }>;
@@ -9,17 +10,17 @@ export const GET = roomHandler({ roles: ["instructor"], allowEnded: true }, asyn
   const materialId = search.get("materialId");
   if (!isUuid(materialId)) throw badRequest();
   const [reactions, questions] = await Promise.all([
-    db().from("page_reactions").select("page, emoji").eq("room_id", roomId).eq("material_id", materialId).limit(10000),
-    db().from("questions").select("page").eq("room_id", roomId).eq("material_id", materialId).eq("hidden", false).not("page", "is", null),
+    fetchPaged<{ page: number; emoji: string }>((from, to) => db().from("page_reactions").select("page, emoji").eq("room_id", roomId).eq("material_id", materialId).order("id").range(from, to)),
+    fetchPaged<{ page: number }>((from, to) => db().from("questions").select("page").eq("room_id", roomId).eq("material_id", materialId).eq("hidden", false).not("page", "is", null).order("id").range(from, to)),
   ]);
   const pins: PagePins = {};
   const at = (p: number) => (pins[p] ??= { questions: 0, reactions: {}, total: 0 });
-  for (const r of must(reactions) as { page: number; emoji: string }[]) {
+  for (const r of reactions) {
     const e = at(r.page);
     e.reactions[r.emoji] = (e.reactions[r.emoji] ?? 0) + 1;
     e.total += 1;
   }
-  for (const q of must(questions) as { page: number }[]) {
+  for (const q of questions) {
     const e = at(q.page);
     e.questions += 1;
     e.total += 1;
