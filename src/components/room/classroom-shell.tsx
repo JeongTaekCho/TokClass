@@ -121,11 +121,11 @@ export function ClassroomShell({
                   id={`tab-${key}`}
                   onClick={() => selectTab(key)}
                   className={cn(
-                    "press relative inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-3.5 text-[15px] transition-colors duration-150",
+                    "press relative isolate inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-3.5 text-[15px] transition-colors duration-150",
                     active ? "font-semibold text-primary-foreground" : "font-medium text-muted-foreground hover:bg-sunken hover:text-foreground",
                   )}
                 >
-                  {active && <ActiveIndicator layoutId={`class-tab-${isInstructor ? "i" : "s"}`} className="absolute inset-0 rounded-md bg-primary shadow-brand" />}
+                  {active && <ActiveIndicator layoutId={`class-tab-${isInstructor ? "i" : "s"}`} className="absolute inset-0 -z-10 rounded-md bg-primary shadow-brand" />}
                   <Icon aria-hidden className="relative size-[18px]" strokeWidth={2} />
                   <span className="relative">{TAB_LABELS[key]}</span>
                   {count > 0 && (

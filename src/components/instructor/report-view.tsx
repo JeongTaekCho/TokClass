@@ -259,7 +259,7 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
           <div className="grid gap-10 border-t border-border pt-8 lg:grid-cols-2">
             <section aria-labelledby="topq-title">
               <h2 id="topq-title" className="mb-3 text-heading">
-                공감 많은 질문 TOP {r.topQuestions.length}
+                공감 많은 질문{r.topQuestions.length > 0 && ` TOP ${r.topQuestions.length}`}
               </h2>
               {r.topQuestions.length === 0 && <p className="text-sm text-muted-foreground">질문이 없었어요.</p>}
               <ol className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">

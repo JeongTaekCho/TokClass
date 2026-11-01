@@ -50,12 +50,12 @@ function TabsTrigger({ className, children, value, ...props }: React.ComponentPr
       data-slot="tabs-trigger"
       value={value}
       className={cn(
-        "relative inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:font-semibold data-[state=active]:text-foreground [&_svg]:size-4 [&_svg]:shrink-0",
+        "relative isolate inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:font-semibold data-[state=active]:text-foreground [&_svg]:size-4 [&_svg]:shrink-0",
         className,
       )}
       {...props}
     >
-      {active && <ActiveIndicator layoutId={`tabs-${ctx.id}`} className="absolute inset-0 rounded-[8px] bg-surface shadow-card" />}
+      {active && <ActiveIndicator layoutId={`tabs-${ctx.id}`} className="absolute inset-0 -z-10 rounded-[8px] bg-surface shadow-card" />}
       <span className="relative inline-flex items-center gap-1.5">{children}</span>
     </TabsPrimitive.Trigger>
   );

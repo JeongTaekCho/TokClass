@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { EyeOff, GraduationCap, MoreHorizontal, SmilePlus } from "lucide-react";
+import { EyeOff, GraduationCap, Loader2, MoreHorizontal, SmilePlus } from "lucide-react";
 
 import { LinkPreview } from "@/components/room/link-preview";
 import { firstUrl, MessageBody } from "@/components/room/message-body";
@@ -75,7 +75,7 @@ export function MessageItem({ m, hidden, mine, first, last, pending = false, rea
 
   return (
     <motion.div
-      className={cn("group/msg flex gap-2 transition-opacity", mine && "flex-row-reverse", first ? "pt-3" : "pt-1", pending && "opacity-60")}
+      className={cn("group/msg flex gap-2 transition-opacity", mine && "flex-row-reverse", first ? "pt-3" : "pt-1", pending && "opacity-70")}
       aria-busy={pending || undefined}
       initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -157,7 +157,7 @@ export function MessageItem({ m, hidden, mine, first, last, pending = false, rea
               </div>
             )}
             {pending ? (
-              <span className="px-0.5 text-[11px] whitespace-nowrap text-muted-foreground">보내는 중</span>
+              <Loader2 className="size-3.5 animate-spin text-muted-foreground motion-reduce:animate-none" role="status" aria-label="보내는 중" />
             ) : last && (
               <time dateTime={m.createdAt} className="px-0.5 text-[11px] whitespace-nowrap text-muted-foreground tabular-nums">
                 {formatTime(m.createdAt)}

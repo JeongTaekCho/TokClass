@@ -161,63 +161,38 @@ export function ActivitySummarySkeleton() {
 
 /** 수업 리포트: 요약 두 줄 + 추이 차트 영역 + 두 단 목록 */
 export function ReportSkeleton() {
+  // 섹션 제목은 고정이라 그대로 보여주고, 숫자·그래프·목록 자리만 스켈레톤이에요.
   return (
-    <Loading label="리포트를 만드는 중이에요" className="space-y-10">
-      <div className="space-y-2 rounded-lg border border-border/70 bg-surface px-5 shadow-card py-5">
+    <div role="status" aria-live="polite" className="space-y-10">
+      <span className="sr-only">리포트를 만드는 중이에요</span>
+      <div aria-hidden className="space-y-2 rounded-lg border border-border/70 bg-surface px-5 py-5 shadow-card">
         <Skeleton className="h-6 w-80 max-w-full" />
         <Skeleton className="h-4 w-64 max-w-full" />
       </div>
-      <div className="space-y-3">
-        <Skeleton className="h-5 w-40" />
-        <Skeleton className="h-56 w-full" />
-      </div>
+      <section>
+        <h2 className="mb-3 text-heading">이해도 추이 (5분 단위)</h2>
+        <Skeleton aria-hidden className="h-56 w-full" />
+      </section>
       <div className="grid gap-10 border-t border-border pt-8 lg:grid-cols-2">
-        {[0, 1].map((c) => (
-          <div key={c} className="space-y-3">
-            <Skeleton className="h-5 w-36" />
-            {[0, 1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-5 w-full" />
-            ))}
-          </div>
+        {["공감 많은 질문", "상호작용 종류"].map((title) => (
+          <section key={title}>
+            <h2 className="mb-3 text-heading">{title}</h2>
+            <div aria-hidden className="space-y-3">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-5 w-full" />
+              ))}
+            </div>
+          </section>
         ))}
       </div>
-    </Loading>
-  );
-}
-
-/** 페이지 제목 + 설명 */
-export function PageHeaderSkeleton() {
-  return (
-    <div aria-hidden className="mb-6 space-y-2">
-      <Skeleton className="h-8 w-40" />
-      <Skeleton className="h-4 w-72 max-w-full" />
     </div>
-  );
-}
-
-/** 대시보드 방 목록 행: 제목·부제 / 코드 / 인원 / 버튼 */
-export function RoomListSkeleton({ rows = 4 }: { rows?: number }) {
-  return (
-    <Loading label="방 목록을 불러오는 중이에요" className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
-      {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 py-4 sm:grid-cols-[minmax(0,1fr)_7rem_6rem_auto]">
-          <div className="space-y-1.5">
-            <Skeleton className={cn("h-5", i % 2 ? "w-44" : "w-60")} />
-            <Skeleton className="h-4 w-36" />
-          </div>
-          <Skeleton className="hidden h-4 w-16 sm:block" />
-          <Skeleton className="hidden h-4 w-14 sm:block" />
-          <Skeleton className="h-9 w-28" />
-        </div>
-      ))}
-    </Loading>
   );
 }
 
 /** 관리자·수강생 관리 표: 머리줄 + 행 */
 export function TableSkeleton({ columns = 5, rows = 8 }: { columns?: number; rows?: number }) {
   return (
-    <Loading label="목록을 불러오는 중이에요" className="border-y border-border">
+    <Loading label="목록을 불러오는 중이에요" className="overflow-hidden rounded-lg border border-border/70 bg-surface shadow-card">
       <div className="flex gap-6 border-b border-border bg-sunken px-4 py-3">
         {Array.from({ length: columns }, (_, j) => (
           <Skeleton key={j} className="h-3 w-14 bg-border" />
@@ -239,7 +214,7 @@ export function ClassroomSkeleton() {
   return (
     <Loading label="수업 화면을 불러오는 중이에요" className="flex h-full flex-col">
       <div className="border-b border-border bg-surface">
-        <div className="mx-auto flex h-14 max-w-5xl items-center gap-3 px-3">
+        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-3">
           <Skeleton className="h-5 w-48" />
           <Skeleton className="ml-auto h-9 w-24" />
         </div>

@@ -66,9 +66,19 @@ export async function findRoomByCodeGuarded(code: string, opts: { allowEnded?: b
   return room;
 }
 
+// 수강생 요청마다 강사 상태를 조회하지 않도록 서버 인스턴스에 잠깐(15초) 기억해 둬요.
+// 강사를 정지하면 늦어도 15초 안에 수강생 요청이 막혀요.
+const OWNER_STATUS_TTL_MS = 15_000;
+const ownerStatusCache = new Map<string, { blocked: boolean; at: number }>();
+
 /** 방 주인이 정지·거절된 강사면 수강생이 들어올 수 없어요. 기록은 그대로 둬요. */
 export async function isRoomOwnerBlocked(ownerId: string): Promise<boolean> {
+  const hit = ownerStatusCache.get(ownerId);
+  if (hit && Date.now() - hit.at < OWNER_STATUS_TTL_MS) return hit.blocked;
   const { data, error } = await db().from("instructor_profiles").select("status").eq("user_id", ownerId).maybeSingle();
   if (error) throw error;
-  return blocksParticipants((data?.status as InstructorStatus | undefined) ?? null);
+  const blocked = blocksParticipants((data?.status as InstructorStatus | undefined) ?? null);
+  if (ownerStatusCache.size > 5000) ownerStatusCache.clear();
+  ownerStatusCache.set(ownerId, { blocked, at: Date.now() });
+  return blocked;
 }

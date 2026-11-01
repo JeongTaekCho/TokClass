@@ -33,23 +33,24 @@ export async function loadParticipantFromSession(roomId: string): Promise<Partic
  * 화면에서 `x-tk-as` 헤더로 어떤 역할로 요청하는지 알려줍니다.
  */
 export async function resolveActor(roomId: string, prefer: ActorKind | null, roomRow?: RoomRow | null): Promise<Actor | null> {
-  const room = roomRow ?? (await loadRoom(roomId));
+  // 방·우선 역할 확인을 동시에 시작해요 (DB 왕복을 차례로 기다리지 않게).
+  const preferInstructor = prefer === "instructor";
+  const [room, first] = await Promise.all([
+    roomRow ? Promise.resolve(roomRow) : loadRoom(roomId),
+    preferInstructor ? getApprovedInstructor() : loadParticipantFromSession(roomId),
+  ]);
   if (!room) return null;
   const settings = normalizeSettings(room.settings);
 
-  const asInstructor = async (): Promise<Actor | null> => {
-    // 승인 전·거절·정지된 강사는 자기 방이어도 강사로 인정하지 않아요.
-    const access = await getApprovedInstructor();
-    if (access && access.user.id === room.owner_id) return { kind: "instructor", userId: access.user.id, room, settings };
-    return null;
-  };
-  const asParticipant = async (): Promise<Actor | null> => {
-    const participant = await loadParticipantFromSession(roomId);
-    return participant ? { kind: "participant", participant, room, settings } : null;
-  };
+  // 승인 전·거절·정지된 강사는 자기 방이어도 강사로 인정하지 않아요.
+  const instructorActor = (access: Awaited<ReturnType<typeof getApprovedInstructor>>): Actor | null =>
+    access && access.user.id === room.owner_id ? { kind: "instructor", userId: access.user.id, room, settings } : null;
+  const participantActor = (participant: ParticipantRow | null): Actor | null => (participant ? { kind: "participant", participant, room, settings } : null);
 
-  if (prefer === "instructor") return (await asInstructor()) ?? (await asParticipant());
-  return (await asParticipant()) ?? (await asInstructor());
+  if (preferInstructor) {
+    return instructorActor(first as Awaited<ReturnType<typeof getApprovedInstructor>>) ?? participantActor(await loadParticipantFromSession(roomId));
+  }
+  return participantActor(first as ParticipantRow | null) ?? instructorActor(await getApprovedInstructor());
 }
 
 export function actorNickname(actor: Actor) {
