@@ -21,6 +21,8 @@ export async function updateSupabaseSession(request: NextRequest) {
     },
   });
 
-  const { data } = await supabase.auth.getUser();
-  return { response, user: data.user, supabase };
+  // 만료된 세션은 여기서 갱신(쿠키 재발급)하고, JWT는 공개 키로 서버에서 바로 검증해요 (Auth 서버 왕복 없음).
+  const { data } = await supabase.auth.getClaims();
+  const sub = data?.claims?.sub;
+  return { response, user: sub ? { id: sub } : null, supabase };
 }

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { ZodError, type ZodType } from "zod";
 
 import { resolveActor, type Actor, type ActorKind } from "@/lib/auth/actor";
@@ -83,7 +83,11 @@ export function roomHandler<B = undefined>(
       if (isWrite && actor.kind === "participant") {
         const last = new Date(actor.participant.last_active_at).getTime();
         if (Date.now() - last > 30_000) {
-          await db().from("participants").update({ last_active_at: new Date().toISOString() }).eq("id", actor.participant.id);
+          // 응답을 먼저 보내고 기록해요 (요청을 기다리게 하지 않아요).
+          const id = actor.participant.id;
+          after(async () => {
+            await db().from("participants").update({ last_active_at: new Date().toISOString() }).eq("id", id);
+          });
         }
       }
 

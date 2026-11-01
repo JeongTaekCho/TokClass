@@ -41,13 +41,14 @@ export function HeaderNav({ items, group, label, className, compact = false }: {
             href={it.href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm transition-colors duration-150",
+              "relative isolate inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm transition-colors duration-150",
               active ? "font-semibold text-primary-ink" : "font-medium text-muted-foreground hover:bg-sunken hover:text-foreground",
             )}
           >
-            {active && <ActiveIndicator layoutId={`nav-${group}`} className="absolute inset-0 rounded-md bg-primary-soft" />}
+            {active && <ActiveIndicator layoutId={`nav-${group}`} className="absolute inset-0 -z-10 rounded-md bg-primary-soft" />}
             <Icon aria-hidden className="relative size-4" strokeWidth={2} />
-            <span className={cn("relative", compact && "sr-only md:not-sr-only")}>{it.label}</span>
+            {/* 알약(-z-10)을 글자 뒤에 깔아요. sr-only를 풀 때 position이 static으로 바뀌어도 글자가 가려지지 않아요. */}
+            <span className={cn(compact && "sr-only md:not-sr-only")}>{it.label}</span>
             {it.badge && <span className="relative">{it.badge}</span>}
           </Link>
         );

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * 접근 제어 (비로그인 / 승인 대기·정지 강사 / 일반 강사 / 관리자)를 Supabase 없이 확인해요.
- * Supabase Auth의 getUser와 instructor_profiles 조회만 가짜로 바꿉니다.
+ * Supabase Auth의 getClaims(JWT 검증)와 instructor_profiles 조회만 가짜로 바꿉니다.
  */
 const state: { user: { id: string; email: string; created_at: string; user_metadata: Record<string, unknown> } | null; profile: Record<string, unknown> | null } = {
   user: null,
@@ -17,7 +17,16 @@ vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "test-service");
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ cookies: async () => ({ getAll: () => [], set: () => {} }), headers: async () => new Headers() }));
-vi.mock("@supabase/ssr", () => ({ createServerClient: () => ({ auth: { getUser: async () => ({ data: { user: state.user }, error: null }) } }) }));
+vi.mock("@supabase/ssr", () => ({
+  createServerClient: () => ({
+    auth: {
+      getClaims: async () => ({
+        data: state.user ? { claims: { sub: state.user.id, email: state.user.email, user_metadata: state.user.user_metadata } } : null,
+        error: null,
+      }),
+    },
+  }),
+}));
 vi.mock("@/lib/supabase/admin", () => {
   const chain = {
     select: () => chain,

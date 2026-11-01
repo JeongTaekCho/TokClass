@@ -12,13 +12,12 @@ const matches = (pathname: string, prefixes: string[]) => prefixes.some((p) => p
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const hasSupabaseCookie = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
-  const needsApproved = matches(pathname, APPROVED_PREFIXES);
-  const needsInstructor = needsApproved || matches(pathname, LOGIN_PREFIXES);
+  const needsInstructor = matches(pathname, APPROVED_PREFIXES) || matches(pathname, LOGIN_PREFIXES);
 
   // 수강생 화면·API는 Supabase 세션이 필요 없어요. 강사 쿠키가 있을 때만 갱신합니다.
   if (!hasSupabaseCookie && !needsInstructor) return NextResponse.next();
 
-  const { response, user, supabase } = await updateSupabaseSession(request);
+  const { response, user } = await updateSupabaseSession(request);
 
   if (needsInstructor && !user) {
     const loginUrl = new URL("/login", request.url);
@@ -26,16 +25,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 낙관적 확인: 본인 프로필(RLS self read)이 승인 상태가 아니면 안내 화면으로. 실제 권한 확인은 페이지·API가 서버에서 다시 해요.
-  // 행을 읽지 못하면(정책 미적용 등) 여기서 판단하지 않아요. /pending ↔ /dashboard 리다이렉트 반복을 막기 위해서예요.
-  if (needsApproved && user && supabase) {
-    const { data } = await supabase.from("instructor_profiles").select("status").eq("user_id", user.id).maybeSingle();
-    if (data && data.status !== "approved") {
-      const redirect = NextResponse.redirect(new URL("/pending", request.url));
-      response.cookies.getAll().forEach((c) => redirect.cookies.set(c));
-      return redirect;
-    }
-  }
+  // 승인 여부는 페이지·API가 서버에서 확인해요(requireApprovedInstructor → /pending). 여기서 한 번 더 조회하지 않아 화면 이동이 빨라요.
   return response;
 }
 

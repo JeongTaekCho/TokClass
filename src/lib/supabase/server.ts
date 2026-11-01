@@ -30,11 +30,20 @@ export async function createSupabaseServerClient() {
 }
 
 /** 현재 로그인한 강사 (없으면 null). 승인 여부는 보지 않아요. */
-export const getInstructor = cache(async () => {
+export const getInstructor = cache(async (): Promise<User | null> => {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) return null;
-  return data.user;
+  // getClaims는 비대칭 서명 키(ES256)로 JWT를 서버에서 바로 검증해요. 요청마다 Auth 서버에 묻지 않아서 빨라요.
+  const { data, error } = await supabase.auth.getClaims();
+  const c = data?.claims;
+  if (error || !c?.sub) return null;
+  return {
+    id: c.sub,
+    email: typeof c.email === "string" ? c.email : undefined,
+    user_metadata: (c.user_metadata as Record<string, unknown> | undefined) ?? {},
+    app_metadata: (c.app_metadata as Record<string, unknown> | undefined) ?? {},
+    aud: typeof c.aud === "string" ? c.aud : "authenticated",
+    created_at: "",
+  } as User;
 });
 
 export type InstructorProfile = {

@@ -42,9 +42,13 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
         {data?.messages.map((m) => {
           const mine = m.fromInstructor === mineIsInstructor;
           return (
-            <div key={m.id} className={cn("flex animate-enter-up flex-col", mine ? "items-end" : "items-start", m.id.startsWith("pending-") && "opacity-60")}>
+            <div key={m.id} className={cn("flex animate-enter-up flex-col", mine ? "items-end" : "items-start", m.id.startsWith("pending-") && "opacity-70")}>
               <div className={cn("max-w-[85%] rounded-[18px] px-3.5 py-2 text-[15px] whitespace-pre-wrap", mine ? "rounded-br-[6px] bg-coral-soft" : "rounded-bl-[6px] bg-primary-soft")}>{m.body}</div>
-              <time className="mt-0.5 px-1 text-xs text-muted-foreground">{formatTime(m.createdAt)}</time>
+              {m.id.startsWith("pending-") ? (
+                <Loader2 className="mt-1 size-3.5 animate-spin text-muted-foreground motion-reduce:animate-none" role="status" aria-label="보내는 중" />
+              ) : (
+                <time className="mt-0.5 px-1 text-xs text-muted-foreground">{formatTime(m.createdAt)}</time>
+              )}
             </div>
           );
         })}

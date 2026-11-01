@@ -6,7 +6,6 @@ import { IconChip } from "@/components/icon-chip";
 import { EmptyRoomsArt, TeacherDeskArt } from "@/components/illustrations";
 import { FadeIn, Stagger, StaggerItem } from "@/components/motion";
 import { Badge } from "@/components/ui/badge";
-import { InstructorHeader } from "@/components/instructor/instructor-header";
 import { NewRoomDialog } from "@/components/instructor/new-room-dialog";
 import { TemplateList } from "@/components/instructor/template-list";
 import { Button } from "@/components/ui/button";
@@ -56,9 +55,7 @@ export default async function DashboardPage() {
   const totalStudents = list.reduce((n, r) => n + (r.participants?.[0]?.count ?? 0), 0);
 
   return (
-    <div className="min-h-dvh">
-      <InstructorHeader name={name} isAdmin={access.profile.isAdmin} />
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+    <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
         {/* 인사 배너: 오늘의 요약 + 새 방 만들기 */}
         <FadeIn className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-primary-soft via-surface to-coral-soft shadow-card">
           <div className="grid items-center gap-4 p-6 sm:p-8 md:grid-cols-[minmax(0,1fr)_240px]">
@@ -129,8 +126,7 @@ export default async function DashboardPage() {
             <TemplateList templates={templates ?? []} />
           </aside>
         </div>
-      </main>
-    </div>
+    </main>
   );
 }
 
