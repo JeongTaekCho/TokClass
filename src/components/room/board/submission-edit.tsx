@@ -34,20 +34,21 @@ export function SubmissionEditForm({ s, onSaved, onCancel }: { s: Submission; on
       onSubmit={async (e) => {
         e.preventDefault();
         if (!valid || pending) return;
+        const patch = {
+          title: title.trim(),
+          body: body.trim(),
+          ...(s.kind === "link" ? { url: url.trim() } : {}),
+          ...(sections.length > 0 ? { section: section === "none" ? null : section } : {}),
+        };
+        // 저장을 누르면 바로 반영하고 창을 닫아요(낙관적 업데이트). 실패하면 원래대로 되돌려요.
         setPending(true);
+        onSaved({ ...s, ...patch });
         try {
-          const res = await api<{ submission: Submission }>(`/api/rooms/${roomId}/submissions/${s.id}`, {
-            method: "PATCH",
-            body: {
-              title: title.trim(),
-              body: body.trim(),
-              ...(s.kind === "link" ? { url: url.trim() } : {}),
-              ...(sections.length > 0 ? { section: section === "none" ? null : section } : {}),
-            },
-          });
+          const res = await api<{ submission: Submission }>(`/api/rooms/${roomId}/submissions/${s.id}`, { method: "PATCH", body: patch });
           onSaved(res.submission);
           toast.success("산출물을 고쳤어요.");
         } catch (err) {
+          onSaved(s);
           toastError(err);
         } finally {
           setPending(false);
