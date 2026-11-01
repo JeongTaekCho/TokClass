@@ -25,7 +25,8 @@ const KINDS: { kind: Kind; label: string; icon: typeof ImagePlus }[] = [
   { kind: "text", label: "텍스트", icon: Type },
 ];
 
-export function SubmitDialog({ onCreated, groupLabel }: { onCreated: (s: Submission) => void; groupLabel?: string | null }) {
+/** defaultSection: 섹션에서 [올리기]를 누르면 그 섹션이 미리 골라져 있어요. trigger로 버튼 모양을 바꿀 수 있어요. */
+export function SubmitDialog({ onCreated, groupLabel, defaultSection = null, trigger }: { onCreated: (s: Submission) => void; groupLabel?: string | null; defaultSection?: string | null; trigger?: React.ReactNode }) {
   const { roomId, room } = useRoom();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<Kind>("image");
@@ -37,7 +38,7 @@ export function SubmitDialog({ onCreated, groupLabel }: { onCreated: (s: Submiss
   const [preview, setPreview] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const sections = room.settings.sections;
+  const sections = [...new Set([...room.settings.sections, ...(defaultSection ? [defaultSection] : [])])];
 
   function reset() {
     setTitle("");
@@ -55,18 +56,21 @@ export function SubmitDialog({ onCreated, groupLabel }: { onCreated: (s: Submiss
       open={open}
       onOpenChange={(o) => {
         setOpen(o);
+        if (o) setSection(defaultSection ?? "none");
         if (!o) reset();
       }}
     >
       <DialogTrigger asChild>
-        <Button size="sm" disabled={room.status !== "active"}>
-          <Upload aria-hidden /> 올리기
-        </Button>
+        {trigger ?? (
+          <Button size="sm" disabled={room.status !== "active"}>
+            <Upload aria-hidden /> 올리기
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>산출물 올리기</DialogTitle>
-          <DialogDescription>{groupLabel ? `${groupLabel} 섹션에 올라가요.` : "모두가 보고 댓글·스티커로 피드백할 수 있어요."}</DialogDescription>
+          <DialogDescription>{groupLabel ? `${groupLabel} 섹션에 올라가요.` : defaultSection ? `${defaultSection} 섹션에 올라가요.` : "모두가 보고 댓글·스티커로 피드백할 수 있어요."}</DialogDescription>
         </DialogHeader>
         <form
           className="space-y-4"

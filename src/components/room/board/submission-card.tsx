@@ -2,6 +2,7 @@
 
 import { ExternalLink, FileText, MessageCircle, Trophy } from "lucide-react";
 
+import { useLinkPreview } from "@/components/room/link-preview";
 import { MessageBody } from "@/components/room/message-body";
 import type { Submission } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -24,12 +25,7 @@ export function SubmissionCard({ s, onOpen }: { s: Submission; onOpen: () => voi
           <span className="line-clamp-2 text-sm font-medium break-all">{s.fileName}</span>
         </div>
       )}
-      {s.kind === "link" && (
-        <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 bg-primary-soft p-4 text-center">
-          <ExternalLink className="size-7 text-primary-ink" aria-hidden />
-          <span className="line-clamp-3 text-sm font-medium break-all text-primary-ink">{s.url}</span>
-        </div>
-      )}
+      {s.kind === "link" && s.url && <LinkThumb url={s.url} />}
       {s.kind === "text" && (
         <div className="aspect-[4/3] w-full overflow-hidden bg-warning-soft p-4">
           <MessageBody text={s.body} className="line-clamp-[8] text-sm" />
@@ -59,5 +55,27 @@ export function SubmissionCard({ s, onOpen }: { s: Submission; onOpen: () => voi
         </div>
       </div>
     </button>
+  );
+}
+
+/** 링크 산출물 썸네일: 사이트 대표 이미지(og)와 제목. 이미지가 없으면 주소를 보여줘요. */
+function LinkThumb({ url }: { url: string }) {
+  const { preview, isLoading } = useLinkPreview(url);
+  if (preview?.image) {
+    return (
+      <div className="relative aspect-[4/3] w-full bg-sunken">
+        <img src={preview.image} alt="" loading="lazy" referrerPolicy="no-referrer" className="size-full object-cover" />
+        <span className="absolute inset-x-0 bottom-0 flex items-center gap-1 bg-gradient-to-t from-ink/80 to-transparent px-2.5 pt-6 pb-2 text-xs font-medium text-white">
+          <ExternalLink className="size-3.5 shrink-0" aria-hidden />
+          <span className="truncate">{preview.siteName}</span>
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className={cn("flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 bg-primary-soft p-4 text-center", isLoading && "animate-pulse")}>
+      <ExternalLink className="size-7 text-primary-ink" aria-hidden />
+      <span className="line-clamp-3 text-sm font-medium break-all text-primary-ink">{preview?.title ?? url}</span>
+    </div>
   );
 }

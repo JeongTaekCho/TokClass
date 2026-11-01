@@ -9,6 +9,11 @@ export function firstUrl(text: string) {
   return m?.[0] ?? null;
 }
 
+/** 본문의 링크들 (코드 블록 안은 빼고, 겹치는 주소는 한 번만) */
+export function allUrls(text: string, max = 3) {
+  return [...new Set(text.replace(/```[\s\S]*?```/g, "").match(URL_RE) ?? [])].slice(0, max);
+}
+
 function Inline({ text, inverse }: { text: string; inverse?: boolean }) {
   // `인라인 코드`와 링크만 처리 (HTML은 그대로 텍스트로 출력돼 안전해요)
   const parts = text.split(/(`[^`\n]+`)/g);

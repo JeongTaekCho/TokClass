@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { Download, ExternalLink, EyeOff, Loader2, Send, Trash2, Trophy } from "lucide-react";
+import { Download, ExternalLink, EyeOff, Loader2, Pencil, Send, Trash2, Trophy } from "lucide-react";
 
+import { SubmissionEditForm } from "@/components/room/board/submission-edit";
 import { LinkPreview } from "@/components/room/link-preview";
-import { MessageBody } from "@/components/room/message-body";
+import { allUrls, MessageBody } from "@/components/room/message-body";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Input } from "@/components/ui/input";
@@ -28,15 +29,33 @@ export function SubmissionContent({ s, large = false }: { s: Submission; large?:
         </a>
       )}
       {s.kind === "link" && s.url && (
-        <div>
-          <a href={s.url} target="_blank" rel="noopener noreferrer nofollow" className={cn("inline-flex items-center gap-1.5 font-semibold break-all text-primary underline", large && "text-2xl")}>
-            <ExternalLink className="size-4 shrink-0" aria-hidden /> {s.url}
-          </a>
-          <LinkPreview url={s.url} />
+        <div className="space-y-2">
+          <LinkPreview url={s.url} variant="bookmark" />
+          {large && (
+            <a href={s.url} target="_blank" rel="noopener noreferrer nofollow" className="inline-flex items-center gap-1.5 text-2xl font-semibold break-all text-primary underline">
+              <ExternalLink className="size-5 shrink-0" aria-hidden /> {s.url}
+            </a>
+          )}
         </div>
       )}
       {s.body && <MessageBody text={s.body} className={cn("mt-2", large && "text-xl leading-relaxed")} />}
+      <BodyBookmarks s={s} />
     </>
+  );
+}
+
+/** 설명에 넣은 링크는 북마크 카드(대표 이미지·제목·주소)로 모아 보여줘요. */
+function BodyBookmarks({ s }: { s: Submission }) {
+  const urls = allUrls(s.body).filter((u) => u !== s.url);
+  if (urls.length === 0) return null;
+  return (
+    <ul className="mt-3 space-y-2" aria-label="설명 속 링크">
+      {urls.map((u) => (
+        <li key={u}>
+          <LinkPreview url={u} variant="bookmark" />
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -47,6 +66,8 @@ export function SubmissionDetail({ submission, onClose, onChanged }: { submissio
   const { data, mutate } = useSWR<{ comments: SubmissionComment[] }>(key, fetcher);
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const editing = Boolean(s && editingId === s.id);
   useRoomEvent("submission.changed", ({ id }) => {
     if (s && id === s.id) void mutate();
   });
@@ -79,7 +100,18 @@ export function SubmissionDetail({ submission, onClose, onChanged }: { submissio
               </SheetDescription>
             </SheetHeader>
             <div className="space-y-4 p-5">
-              <SubmissionContent s={s} />
+              {editing ? (
+                <SubmissionEditForm
+                  s={s}
+                  onCancel={() => setEditingId(null)}
+                  onSaved={(next) => {
+                    onChanged(next);
+                    setEditingId(null);
+                  }}
+                />
+              ) : (
+                <SubmissionContent s={s} />
+              )}
 
               <div className="flex flex-wrap gap-1.5" role="group" aria-label="스티커">
                 {STICKERS.map((st) => {
@@ -111,8 +143,13 @@ export function SubmissionDetail({ submission, onClose, onChanged }: { submissio
                 })}
               </div>
 
-              {(isInstructor || s.mine) && (
+              {(isInstructor || s.mine) && !editing && (
                 <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+                  {s.mine && (active || isInstructor) && (
+                    <Button size="sm" variant="outline" onClick={() => setEditingId(s.id)}>
+                      <Pencil aria-hidden /> 수정
+                    </Button>
+                  )}
                   {isInstructor && (
                     <>
                       <Button size="sm" variant={s.isBest ? "coral" : "outline"} onClick={() => patch({ isBest: !s.isBest })}>
