@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Clock, DoorOpen, UserCheck, Users } from "lucide-react";
+import { GraduationCap, MonitorPlay, UserCheck, Users } from "lucide-react";
 
+import { IconChip } from "@/components/icon-chip";
+import { AnimatedNumber, Stagger, StaggerItem } from "@/components/motion";
+import { Badge } from "@/components/ui/badge";
 import { startOfTodayKst } from "@/lib/format";
 import { db } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "개요" };
 
@@ -19,43 +23,58 @@ export default async function AdminOverviewPage() {
     d.from("participants").select("id", head).gte("last_active_at", startOfTodayKst()),
   ]);
 
-  const stats = [
-    { label: "승인 대기", value: pending.count ?? 0, icon: Clock, href: "/admin/instructors?status=pending", highlight: (pending.count ?? 0) > 0 },
-    { label: "전체 강사", value: instructors.count ?? 0, icon: UserCheck, href: "/admin/instructors?status=approved" },
-    { label: "진행 중인 방", value: activeRooms.count ?? 0, icon: DoorOpen, href: "/admin/rooms?status=active" },
-    { label: "오늘 참여한 수강생", value: today.count ?? 0, icon: Users, hint: "오늘 0시(한국 시간) 이후 활동" },
-  ];
+  const pendingCount = pending.count ?? 0;
 
   return (
     <>
-      <h1 className="mb-1 text-2xl font-extrabold">관리자</h1>
-      <p className="mb-6 text-muted-foreground">강사 승인, 방 관리, 작업 기록을 한곳에서 볼 수 있어요.</p>
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((s) => {
+      <h1 className="mb-1 text-title">관리자</h1>
+      <p className="mb-8 text-muted-foreground">강사 승인, 방 관리, 작업 기록을 한곳에서 볼 수 있어요.</p>
+
+      <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerItem>
+          <Link
+            href="/admin/instructors?status=pending"
+            className={cn(
+              "flex h-full flex-col rounded-lg border p-5 shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-raised",
+              pendingCount > 0 ? "border-coral/50 bg-coral-soft" : "border-border/70 bg-surface",
+            )}
+          >
+            <span className="flex items-center justify-between">
+              <IconChip icon={UserCheck} tone="coral" />
+              {pendingCount > 0 && <Badge variant="coral">처리 필요</Badge>}
+            </span>
+            <span className="mt-4 text-sm text-muted-foreground">승인 대기 강사</span>
+            <AnimatedNumber value={pendingCount} suffix="명" className="text-[1.75rem] leading-tight font-bold tabular-nums" />
+          </Link>
+        </StaggerItem>
+        {[
+          { href: "/admin/instructors?status=approved", icon: GraduationCap, tone: "primary" as const, label: "전체 강사", value: instructors.count ?? 0, suffix: "명" },
+          { href: "/admin/rooms?status=active", icon: MonitorPlay, tone: "mint" as const, label: "진행 중인 방", value: activeRooms.count ?? 0, suffix: "개" },
+          { href: null, icon: Users, tone: "sun" as const, label: "오늘 참여한 수강생", value: today.count ?? 0, suffix: "명" },
+        ].map((st) => {
           const body = (
             <>
-              <s.icon className="size-5 text-primary" aria-hidden />
-              <p className="mt-3 text-sm text-muted-foreground">{s.label}</p>
-              <p className="mt-1 flex items-center gap-2 text-3xl font-extrabold">
-                {s.value.toLocaleString("ko-KR")}
-                {s.highlight && <span className="rounded-full bg-coral px-2 py-0.5 text-xs font-bold text-white">처리 필요</span>}
-              </p>
-              {s.hint && <p className="mt-1 text-xs text-muted-foreground">{s.hint}</p>}
+              <IconChip icon={st.icon} tone={st.tone} />
+              <span className="mt-4 text-sm text-muted-foreground">{st.label}</span>
+              <AnimatedNumber value={st.value} suffix={st.suffix} className="text-[1.75rem] leading-tight font-bold tabular-nums" />
             </>
           );
+          const cls = "flex h-full flex-col rounded-lg border border-border/70 bg-surface p-5 shadow-card";
           return (
-            <li key={s.label}>
-              {s.href ? (
-                <Link href={s.href} className="block rounded-2xl border border-border bg-card p-5 shadow-soft transition hover:border-primary/40">
+            <StaggerItem key={st.label}>
+              {st.href ? (
+                <Link href={st.href} className={cn(cls, "transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-raised")}>
                   {body}
                 </Link>
               ) : (
-                <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">{body}</div>
+                <div className={cls} title="오늘 0시(한국 시간) 이후 활동">
+                  {body}
+                </div>
               )}
-            </li>
+            </StaggerItem>
           );
         })}
-      </ul>
+      </Stagger>
     </>
   );
 }

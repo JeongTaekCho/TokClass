@@ -8,6 +8,12 @@ export function formatDateTime(iso: string | null | undefined) {
 export function formatDate(iso: string | null | undefined) {
   return iso ? shortFmt.format(new Date(iso)) : "";
 }
+const dayFmt = new Intl.DateTimeFormat("ko-KR", { year: "numeric", month: "long", day: "numeric", weekday: "long", timeZone: "Asia/Seoul" });
+/** 채팅 날짜 구분선: "2026년 11월 1일 일요일" */
+export function formatDay(iso: string) {
+  return dayFmt.format(new Date(iso));
+}
+
 export function formatTime(iso: string | null | undefined) {
   return iso ? timeFmt.format(new Date(iso)) : "";
 }

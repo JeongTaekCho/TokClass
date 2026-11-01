@@ -2,12 +2,14 @@
 
 import { useMemo, useRef, useState } from "react";
 import useSWR from "swr";
-import { LayoutGrid, Loader2, Presentation } from "lucide-react";
 
 import { PresentMode } from "@/components/room/board/present-mode";
 import { SubmitDialog } from "@/components/room/board/submit-dialog";
 import { SubmissionCard } from "@/components/room/board/submission-card";
 import { SubmissionDetail } from "@/components/room/board/submission-detail";
+import { EmptyState } from "@/components/empty-state";
+import { BoardEmptyArt } from "@/components/illustrations";
+import { BoardGridSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { fetcher } from "@/lib/client/api";
 import { useRoom, useRoomEvent } from "@/lib/realtime/provider";
@@ -64,7 +66,7 @@ export function BoardPanel({ readOnly = false, groupId = null }: { readOnly?: bo
         <div className="ml-auto flex gap-1">
           {items.length > 0 && (
             <Button size="sm" variant="outline" onClick={() => setPresenting(0)}>
-              <Presentation aria-hidden /> 발표 모드
+              발표 모드
             </Button>
           )}
           {!readOnly && <SubmitDialog groupLabel={myGroup?.name ?? null} onCreated={(s) => void mutate({ submissions: [s, ...items.filter((x) => x.id !== s.id)] }, { revalidate: false })} />}
@@ -84,12 +86,11 @@ export function BoardPanel({ readOnly = false, groupId = null }: { readOnly?: bo
       )}
 
       <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-3">
-        {isLoading && <Loader2 className="mx-auto mt-8 size-6 animate-spin text-muted-foreground" aria-label="불러오는 중" />}
+        {isLoading && <BoardGridSkeleton />}
         {!isLoading && items.length === 0 && (
-          <div className="mt-10 flex flex-col items-center text-center text-muted-foreground">
-            <LayoutGrid className="size-10 text-primary/50" aria-hidden />
-            <p className="mt-2">{mine ? "아직 내가 올린 산출물이 없어요." : "첫 산출물을 올려 보세요!"}</p>
-          </div>
+          <EmptyState className="mt-4" art={<BoardEmptyArt />} title={mine ? "아직 내가 올린 산출물이 없어요" : "게시판이 비어 있어요"}>
+            {mine ? "[올리기]로 사진이나 글을 남겨 보세요." : "첫 산출물을 올려 보세요!"}
+          </EmptyState>
         )}
         <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {items.map((s, i) => (

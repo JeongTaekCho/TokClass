@@ -2,11 +2,14 @@
 
 import { useRef, useState } from "react";
 import useSWR from "swr";
-import { ChevronLeft, ChevronRight, FileText, FileUp, Loader2, Maximize, MessageCircleQuestion, NotebookPen, Radio, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, FileUp, Loader2, Maximize, MessageCircleQuestion, NotebookPen, Radio, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { ReactionLayer } from "@/components/room/reaction-layer";
 import { countPdfPages, PdfView, useStableMaterialUrl } from "@/components/room/slides/pdf";
+import { EmptyState } from "@/components/empty-state";
+import { UploadSlidesArt } from "@/components/illustrations";
+import { SlideSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ConfirmButton } from "@/components/ui/confirm-button";
@@ -82,17 +85,14 @@ export function ClassSlides() {
     return isInstructor ? (
       <div className="flex min-h-0 flex-1 flex-col p-3">
         <InstructorMaterialBar materials={materials} material={null} onChanged={mutate} onGo={go} stageRef={stageRef} />
-        <div className="m-auto flex flex-col items-center p-8 text-center">
-          <FileUp className="size-10 text-primary" aria-hidden />
-          <p className="mt-2 font-bold">교안 PDF를 올려 주세요</p>
-          <p className="text-sm text-muted-foreground">최대 30MB. 넘기면 수강생 화면도 함께 넘어가요.</p>
-        </div>
+        <EmptyState className="m-auto max-w-sm" art={<UploadSlidesArt />} title="교안 PDF를 올려 주세요">
+          최대 30MB. 넘기면 수강생 화면도 함께 넘어가요.
+        </EmptyState>
       </div>
     ) : (
-      <div className="m-auto flex flex-col items-center p-8 text-center text-muted-foreground">
-        <FileText className="size-10 text-primary/60" aria-hidden />
-        <p className="mt-2">아직 올라온 교안이 없어요.</p>
-      </div>
+      <EmptyState className="m-auto" art={<UploadSlidesArt />} title="아직 올라온 교안이 없어요">
+        강사님이 교안을 올리면 여기에 바로 떠요.
+      </EmptyState>
     );
   }
 
@@ -103,7 +103,7 @@ export function ClassSlides() {
           <InstructorMaterialBar materials={materials} material={material} onChanged={mutate} onGo={go} stageRef={stageRef} />
         ) : (
           <>
-            <div className="flex items-center gap-2 rounded-xl bg-card px-3 py-1.5 shadow-soft">
+            <div className="flex items-center gap-2 py-1.5">
               <Switch id="follow" checked={follow} onCheckedChange={setFollow} />
               <Label htmlFor="follow" className="cursor-pointer">
                 <Radio className={cn("size-4", follow ? "text-primary" : "text-muted-foreground")} aria-hidden /> 강사 따라가기
@@ -133,7 +133,7 @@ export function ClassSlides() {
       </div>
 
       <div ref={stageRef} className="relative flex min-h-0 flex-1 items-center justify-center p-3 [&:fullscreen]:bg-black" {...swipeHandlers(() => move(-1), () => move(1))}>
-        {!material || !url ? <Loader2 className="size-8 animate-spin text-muted-foreground" aria-label="불러오는 중" /> : <PdfView url={url} page={page} title={material.title} />}
+        {!material || !url ? <SlideSkeleton /> : <PdfView url={url} page={page} title={material.title} />}
         <ReactionLayer />
       </div>
 
@@ -299,13 +299,13 @@ function PagePinsBar({ materialId, page, pageCount, onGo }: { materialId: string
               aria-current={p === page ? "page" : undefined}
               aria-label={`${p}페이지${pin ? `, 질문 ${pin.questions}개, 반응 ${pin.total - pin.questions}개` : ""}`}
               className={cn(
-                "relative flex min-h-10 min-w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border px-2 text-sm font-semibold tabular-nums transition",
-                p === page ? "border-primary bg-primary text-white" : "border-border bg-card hover:border-primary/40",
+                "relative flex min-h-10 min-w-10 shrink-0 cursor-pointer items-center justify-center rounded-md border px-2 text-sm font-semibold tabular-nums transition",
+                p === page ? "border-primary bg-primary text-white" : "border-border bg-surface hover:border-border-strong",
               )}
             >
               {p}
               {pin && pin.total > 0 && (
-                <span className={cn("absolute -top-1.5 -right-1.5 rounded-full px-1.5 text-[10px] leading-4 font-bold", pin.questions > 0 ? "bg-coral text-white" : "bg-primary-soft text-primary-hover")}>
+                <span className={cn("absolute -top-1.5 -right-1.5 rounded-full px-1.5 text-[10px] leading-4 font-semibold", pin.questions > 0 ? "bg-coral text-ink" : "bg-primary-soft text-primary-ink")}>
                   {pin.total}
                 </span>
               )}
@@ -314,12 +314,12 @@ function PagePinsBar({ materialId, page, pageCount, onGo }: { materialId: string
         })}
       </div>
       {(current || (qData?.questions.length ?? 0) > 0) && (
-        <div className="mt-2 rounded-xl bg-muted/60 p-3 text-sm">
+        <div className="mt-2 rounded-lg bg-sunken p-3 text-sm">
           <p className="font-semibold">{page}페이지 반응 (강사만 보여요)</p>
           {current && Object.keys(current.reactions).length > 0 && (
             <p className="mt-1 flex flex-wrap gap-2">
               {Object.entries(current.reactions).map(([emoji, n]) => (
-                <span key={emoji} className="rounded-full bg-card px-2 py-0.5">
+                <span key={emoji} className="rounded-full bg-surface px-2 py-0.5">
                   {emoji} {n}
                 </span>
               ))}
@@ -328,7 +328,7 @@ function PagePinsBar({ materialId, page, pageCount, onGo }: { materialId: string
           <ul className="mt-2 space-y-1">
             {qData?.questions.map((q) => (
               <li key={q.id} className="flex items-start gap-1.5">
-                <MessageCircleQuestion className="mt-0.5 size-4 shrink-0 text-coral" aria-hidden />
+                <MessageCircleQuestion className="mt-0.5 size-4 shrink-0 text-coral-ink" aria-hidden />
                 <span>
                   {q.body} <span className="text-muted-foreground">· 👍 {q.voteCount}</span>
                 </span>
@@ -361,7 +361,7 @@ function StudentPageActions({ materialId, page }: { materialId: string; page: nu
     <>
       <div className="flex flex-wrap items-center justify-center gap-1 px-3 py-2" role="group" aria-label="반응 보내기">
         {REACTION_EMOJIS.map((e) => (
-          <button key={e} onClick={() => sendReaction(e)} className="inline-flex size-11 cursor-pointer items-center justify-center rounded-xl text-2xl transition hover:bg-primary-soft active:scale-90" aria-label={`${e} 반응`}>
+          <button key={e} onClick={() => sendReaction(e)} className="inline-flex size-11 cursor-pointer items-center justify-center rounded-md text-2xl transition-transform duration-150 hover:bg-sunken active:scale-90" aria-label={`${e} 반응`}>
             {e}
           </button>
         ))}
@@ -404,7 +404,7 @@ function NoteEditor({ materialId, page }: { materialId: string; page: number }) 
   }
 
   return (
-    <div className="border-t border-border bg-card px-3 py-2">
+    <div className="border-t border-border bg-surface px-3 py-2">
       <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
         <span className="font-semibold text-foreground">{page}페이지 내 메모 (나만 보여요)</span>
         <span aria-live="polite">{state === "saving" ? "저장 중…" : state === "saved" ? "저장했어요" : ""}</span>

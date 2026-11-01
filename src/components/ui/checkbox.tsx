@@ -28,7 +28,7 @@ function Checkbox({
         onCheckedChange?.(e.target.checked);
       }}
       className={cn(
-        "peer size-5 shrink-0 cursor-pointer appearance-none rounded-md border-2 border-input bg-card bg-center bg-no-repeat shadow-xs transition outline-none",
+        "peer size-5 shrink-0 cursor-pointer appearance-none rounded-sm border-2 border-input bg-surface bg-center bg-no-repeat transition outline-none",
         "checked:border-primary checked:bg-primary checked:bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E\")] checked:bg-[length:14px_14px]",
         "focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
         className,

@@ -46,12 +46,12 @@ export function AuthForm({ mode, next }: { mode: "login" | "signup"; next?: stri
           />
         </div>
         {state?.error && (
-          <p role="alert" className="rounded-xl bg-coral-soft px-3 py-2 text-sm font-medium text-[#c2410c]">
+          <p role="alert" className="rounded-lg bg-coral-soft px-3 py-2 text-sm font-medium text-coral-ink">
             {state.error}
           </p>
         )}
         {state?.message && (
-          <p role="status" className="rounded-xl bg-primary-soft px-3 py-2 text-sm font-medium text-primary-hover">
+          <p role="status" className="rounded-lg bg-primary-soft px-3 py-2 text-sm font-medium text-primary-ink">
             {state.message}
           </p>
         )}
@@ -86,7 +86,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "signup"; next?: stri
 function ResendConfirmation({ email }: { email: string }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(resendConfirmationAction, undefined);
   return (
-    <form action={action} className="mt-4 rounded-xl bg-muted/60 px-3 py-3 text-sm">
+    <form action={action} className="mt-4 rounded-lg bg-sunken px-3 py-3 text-sm">
       <input type="hidden" name="email" value={email} />
       <p className="text-muted-foreground">메일이 오지 않았나요? 스팸함도 확인해 주세요.</p>
       <Button type="submit" variant="outline" size="sm" className="mt-2" disabled={pending}>
@@ -94,12 +94,12 @@ function ResendConfirmation({ email }: { email: string }) {
         인증 메일 다시 보내기
       </Button>
       {state?.message && (
-        <p role="status" className="mt-2 font-medium text-primary-hover">
+        <p role="status" className="mt-2 font-medium text-primary-ink">
           {state.message}
         </p>
       )}
       {state?.error && (
-        <p role="alert" className="mt-2 font-medium text-[#c2410c]">
+        <p role="alert" className="mt-2 font-medium text-coral-ink">
           {state.error}
         </p>
       )}

@@ -91,11 +91,11 @@ export function NewRoomDialog({ templates, defaultTemplate }: { templates: MyTem
                   key={o.value}
                   onClick={() => setTemplate(o.value)}
                   className={cn(
-                    "min-h-11 cursor-pointer rounded-xl border p-3 text-left transition",
-                    template === o.value ? "border-primary bg-primary-soft" : "border-border bg-card hover:border-primary/40",
+                    "min-h-11 cursor-pointer rounded-lg border p-3 text-left transition",
+                    template === o.value ? "border-primary bg-primary-soft" : "border-border bg-surface hover:border-border-strong",
                   )}
                 >
-                  <span className="block font-bold">{o.name}</span>
+                  <span className="block font-semibold">{o.name}</span>
                   <span className="mt-0.5 block text-xs text-muted-foreground">{o.description}</span>
                 </button>
               ))}

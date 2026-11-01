@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import { AlertTriangle, RotateCcw } from "lucide-react";
 
+import { AnimatePresence, AnimatedNumber, PresenceItem, motion, spring } from "@/components/motion";
 import { SIGNALS } from "@/components/room/signal";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
@@ -34,57 +35,92 @@ export function UnderstandingPanel() {
   const people = (pData?.participants ?? []).filter((p) => !p.kicked);
   const trend = bucketUnderstanding(data?.events ?? [], 2 * 60_000).slice(-15);
 
+  const tileTone = { green: "bg-mint-soft", yellow: "bg-sun-soft", red: "bg-destructive-soft" } as const;
+
   return (
-    <div className="space-y-4">
-      <div className={cn("rounded-2xl border p-4", alert ? "border-coral bg-coral-soft" : "border-border")}>
-        <div className="flex items-center justify-between">
-          <h3 className="font-bold">지금 이해도</h3>
-          <span className="text-sm text-muted-foreground">
-            {responded}/{counts.total}명 응답
+    <div className="space-y-5">
+      <section aria-labelledby="und-now" className={cn("rounded-lg border p-4 transition-colors duration-300", alert ? "border-coral/40 bg-coral-soft" : "border-border bg-surface shadow-card")}>
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 id="und-now" className="font-bold">
+            지금 이해도
+          </h3>
+          <span className="text-sm text-muted-foreground tabular-nums">
+            <AnimatedNumber value={responded} className="font-semibold text-foreground" />/{counts.total}명 응답
           </span>
         </div>
-        {alert && (
-          <p className="mt-2 flex items-center gap-1.5 text-sm font-bold text-[#b42318]" role="alert">
-            <AlertTriangle className="size-4" aria-hidden /> 🔴 막힌 수강생이 {redPct}%예요 (기준 {room.settings.redThreshold}%)
-          </p>
-        )}
-        <div className="mt-3 flex h-8 overflow-hidden rounded-xl bg-muted" role="img" aria-label={SIGNALS.map((s) => `${s.label} ${counts[s.status]}명`).join(", ")}>
-          {SIGNALS.map((s) =>
-            counts[s.status] > 0 ? (
-              <div key={s.status} className={cn("transition-all", s.color)} style={{ width: `${pct(counts[s.status])}%` }} />
-            ) : null,
+        <AnimatePresence>
+          {alert && (
+            <motion.p
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-2 flex items-center gap-1.5 overflow-hidden text-sm font-semibold text-destructive"
+              role="alert"
+            >
+              <AlertTriangle className="size-4 shrink-0" aria-hidden /> 막힌 수강생이 {redPct}%예요 (기준 {room.settings.redThreshold}%)
+            </motion.p>
           )}
+        </AnimatePresence>
+        {/* 비율 바: 각 조각을 transform으로만 움직여서 값이 바뀌어도 주변이 흔들리지 않아요. */}
+        <div className="relative mt-3 h-3 overflow-hidden rounded-full bg-sunken" role="img" aria-label={SIGNALS.map((s) => `${s.label} ${counts[s.status]}명`).join(", ")}>
+          {SIGNALS.map((s, i) => {
+            const start = SIGNALS.slice(0, i).reduce((sum, x) => sum + pct(counts[x.status]), 0);
+            return (
+              <motion.div
+                key={s.status}
+                className={cn("absolute inset-y-0 left-0 w-full", s.color)}
+                style={{ originX: 0 }}
+                initial={false}
+                animate={{ x: `${start}%`, scaleX: pct(counts[s.status]) / 100 }}
+                transition={spring}
+              />
+            );
+          })}
         </div>
-        <ul className="mt-3 grid grid-cols-3 gap-2 text-center text-sm">
+        <ul className="mt-3 grid grid-cols-3 gap-2">
           {SIGNALS.map((s) => (
-            <li key={s.status} className={cn("rounded-xl border p-2", s.soft, s.status === "red" && alert && "ring-2 ring-coral")}>
-              <span aria-hidden>{s.emoji}</span> {s.short}
-              <span className="block text-lg font-extrabold">{counts[s.status]}명</span>
-              <span className="block text-xs">{pct(counts[s.status])}%</span>
+            <li key={s.status} className={cn("rounded-md px-2.5 py-2", tileTone[s.status], s.status === "red" && alert && "ring-2 ring-destructive/40")}>
+              <p className="text-xs font-medium text-muted-foreground">
+                <span aria-hidden>{s.emoji}</span> {s.short}
+              </p>
+              <p className="mt-0.5 flex items-baseline gap-1">
+                <AnimatedNumber value={counts[s.status]} suffix="명" className="text-lg font-bold tabular-nums" />
+                <span className="text-xs text-muted-foreground tabular-nums">{pct(counts[s.status])}%</span>
+              </p>
             </li>
           ))}
         </ul>
-      </div>
+      </section>
 
       {trend.length > 1 && (
-        <div>
-          <h3 className="mb-1 text-sm font-bold">최근 30분 흐름</h3>
-          <div className="flex h-16 items-end gap-0.5" role="img" aria-label="최근 이해도 흐름 막대">
-            {trend.map((b) => {
+        <section aria-labelledby="und-trend">
+          <h3 id="und-trend" className="mb-2 text-sm font-semibold text-muted-foreground">
+            최근 30분 흐름
+          </h3>
+          <div className="flex h-20 items-end gap-1 rounded-lg bg-surface p-2 shadow-card" role="img" aria-label="최근 이해도 흐름 막대">
+            {trend.map((b, i) => {
               const t = b.green + b.yellow + b.red || 1;
               return (
-                <div key={b.at} className="flex h-full flex-1 flex-col-reverse overflow-hidden rounded-sm bg-muted" title={`🟢${b.green} 🟡${b.yellow} 🔴${b.red}`}>
+                <motion.div
+                  key={b.at}
+                  className="flex h-full flex-1 flex-col-reverse overflow-hidden rounded-[4px] bg-sunken"
+                  style={{ originY: 1 }}
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  transition={{ ...spring, delay: i * 0.02 }}
+                  title={`🟢${b.green} 🟡${b.yellow} 🔴${b.red}`}
+                >
                   <div className="bg-signal-green" style={{ height: `${(b.green / t) * 100}%` }} />
                   <div className="bg-signal-yellow" style={{ height: `${(b.yellow / t) * 100}%` }} />
                   <div className="bg-signal-red" style={{ height: `${(b.red / t) * 100}%` }} />
-                </div>
+                </motion.div>
               );
             })}
           </div>
-        </div>
+        </section>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {SIGNALS.slice()
           .reverse()
           .map((s) => {
@@ -93,9 +129,17 @@ export function UnderstandingPanel() {
             return (
               <div key={s.status}>
                 <p className="text-sm font-semibold">
-                  {s.emoji} {s.label} ({names.length})
+                  {s.emoji} {s.label} <span className="font-normal text-muted-foreground tabular-nums">{names.length}명</span>
                 </p>
-                <p className="text-sm text-muted-foreground">{names.map((p) => p.nickname).join(", ")}</p>
+                <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                  <AnimatePresence initial={false}>
+                    {names.map((p) => (
+                      <PresenceItem key={p.id} className={cn("rounded-full px-2.5 py-1 text-sm font-medium", s.status === "red" ? s.soft : "bg-surface shadow-card")}>
+                        {p.nickname}
+                      </PresenceItem>
+                    ))}
+                  </AnimatePresence>
+                </ul>
               </div>
             );
           })}

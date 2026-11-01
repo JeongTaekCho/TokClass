@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { DmInbox } from "@/components/instructor/live/dm-inbox";
 import { SIGNALS } from "@/components/room/signal";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/empty-state";
+import { NoStudentsArt } from "@/components/illustrations";
+import { ParticipantTableSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -65,9 +68,9 @@ export function ParticipantsManager() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
+      <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
         <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
+          <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
             <tr>
               <th className="px-4 py-3">닉네임</th>
               <th className="px-4 py-3">접속</th>
@@ -78,18 +81,21 @@ export function ParticipantsManager() {
             </tr>
           </thead>
           <tbody>
-            {active.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                  아직 참여자가 없어요.
-                </td>
-              </tr>
-            )}
+            {active.length === 0 &&
+              (!data ? (
+                <ParticipantTableSkeleton columns={6} />
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-4 py-4">
+                    <EmptyState art={<NoStudentsArt />}>아직 참여자가 없어요. 참여코드를 공유해 보세요.</EmptyState>
+                  </td>
+                </tr>
+              ))}
             {active.map((p) => {
               const sig = SIGNALS.find((s) => s.status === p.understanding);
               const isOn = online.has(p.id);
               return (
-                <tr key={p.id} className="border-b border-border/60 last:border-0">
+                <tr key={p.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-2.5 font-semibold">
                     {p.nickname}
                     {p.needsHelp && (
@@ -144,10 +150,10 @@ export function ParticipantsManager() {
 
       {kicked.length > 0 && (
         <section>
-          <h2 className="mb-2 font-bold">내보낸 참여자</h2>
+          <h2 className="mb-2 font-semibold">내보낸 참여자</h2>
           <ul className="flex flex-wrap gap-2">
             {kicked.map((p) => (
-              <li key={p.id} className="flex items-center gap-1 rounded-full border border-border bg-card py-1 pr-1 pl-3 text-sm">
+              <li key={p.id} className="flex items-center gap-1 rounded-full border border-border bg-surface py-1 pr-1 pl-3 text-sm">
                 {p.nickname}
                 <Button size="sm" variant="ghost" onClick={() => act(p, "restore")}>
                   <Undo2 aria-hidden /> 복구
@@ -165,8 +171,8 @@ export function ParticipantsManager() {
             <DialogDescription>이 창을 닫으면 다시 볼 수 없어요. 수강생에게 바로 알려 주세요.</DialogDescription>
           </DialogHeader>
           {issued && (
-            <div className="rounded-2xl bg-primary-soft p-5 text-center">
-              <p className="font-mono text-4xl font-extrabold tracking-[0.3em] text-primary-hover">{issued.password}</p>
+            <div className="-rotate-1 rounded-sm bg-coral-soft p-5 text-center">
+              <p className="font-mono text-4xl font-bold tracking-[0.3em] text-ink">{issued.password}</p>
               <Button variant="outline" size="sm" className="mt-3" onClick={() => copyText(issued.password, "비밀번호를 복사했어요.")}>
                 <Copy aria-hidden /> 복사
               </Button>

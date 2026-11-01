@@ -12,10 +12,10 @@ import { TEMPLATE_INFO, TAB_LABELS, type BuiltinTemplate } from "@/lib/rooms/tem
 export function TemplateList({ templates }: { templates: { id: string; name: string; created_at: string }[] }) {
   const router = useRouter();
   return (
-    <div className="space-y-3">
+    <div className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
       {(Object.keys(TEMPLATE_INFO) as BuiltinTemplate[]).map((k) => (
-        <div key={k} className="rounded-xl border border-border bg-card p-3">
-          <p className="font-bold">{TEMPLATE_INFO[k].name}</p>
+        <div key={k} className="py-2.5">
+          <p className="font-medium">{TEMPLATE_INFO[k].name}</p>
           <p className="text-xs text-muted-foreground">
             {TEMPLATE_INFO[k].tabs
               .filter((t) => t.enabled)
@@ -25,9 +25,9 @@ export function TemplateList({ templates }: { templates: { id: string; name: str
         </div>
       ))}
       {templates.map((t) => (
-        <div key={t.id} className="flex items-center gap-2 rounded-xl border border-primary/30 bg-primary-soft/40 p-3">
+        <div key={t.id} className="flex items-center gap-2 py-2.5">
           <div className="min-w-0 flex-1">
-            <p className="truncate font-bold">{t.name}</p>
+            <p className="truncate font-medium">{t.name}</p>
             <p className="text-xs text-muted-foreground">내 템플릿</p>
           </div>
           <Button

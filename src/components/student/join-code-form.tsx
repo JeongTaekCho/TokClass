@@ -31,7 +31,7 @@ export function JoinCodeForm({ initialCode = "" }: { initialCode?: string }) {
         placeholder="123456"
         value={code}
         onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-        className="h-14 text-center text-2xl font-bold tracking-[0.4em]"
+        className="h-14 text-center text-2xl font-semibold tracking-[0.4em] tabular-nums"
         aria-describedby="join-code-help"
       />
       <p id="join-code-help" className="text-sm text-muted-foreground">

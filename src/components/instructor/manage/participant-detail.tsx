@@ -1,9 +1,10 @@
 "use client";
 
 import useSWR from "swr";
-import { Hand, Loader2 } from "lucide-react";
+import { Hand } from "lucide-react";
 
 import { SIGNALS } from "@/components/room/signal";
+import { ActivitySummarySkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { fetcher } from "@/lib/client/api";
@@ -56,32 +57,30 @@ export function ParticipantDetail({
             </dl>
 
             {isLoading || !data ? (
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" aria-hidden /> 불러오는 중이에요
-              </p>
+              <ActivitySummarySkeleton />
             ) : (
               <>
                 <section aria-labelledby="pd-activity">
-                  <h3 id="pd-activity" className="mb-2 font-bold">
+                  <h3 id="pd-activity" className="mb-2 font-semibold">
                     활동
                   </h3>
-                  <dl className="grid grid-cols-2 gap-2">
+                  <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
                     {[
                       { label: "채팅", value: data.counts.chats },
                       { label: "질문", value: data.counts.questions },
                       { label: "산출물", value: data.counts.submissions },
                       { label: "활동 응답", value: data.counts.responses },
                     ].map((c) => (
-                      <div key={c.label} className="rounded-xl bg-muted/60 p-3">
-                        <dt className="text-xs text-muted-foreground">{c.label}</dt>
-                        <dd className="text-xl font-bold">{c.value}</dd>
+                      <div key={c.label} className="flex items-baseline gap-1.5">
+                        <dt className="text-muted-foreground">{c.label}</dt>
+                        <dd className="font-semibold tabular-nums">{c.value}</dd>
                       </div>
                     ))}
                   </dl>
                 </section>
 
                 <section aria-labelledby="pd-understanding">
-                  <h3 id="pd-understanding" className="mb-2 font-bold">
+                  <h3 id="pd-understanding" className="mb-2 font-semibold">
                     이해도 기록
                   </h3>
                   <p className="mb-2 text-sm">
@@ -98,8 +97,8 @@ export function ParticipantDetail({
                             <span className="w-16 shrink-0">
                               {s.emoji} {s.short}
                             </span>
-                            <span className="h-2 flex-1 overflow-hidden rounded-full bg-muted" aria-hidden>
-                              <span className="block h-full bg-primary" style={{ width: `${Math.round((n / uTotal) * 100)}%` }} />
+                            <span className="h-2 flex-1 overflow-hidden rounded-full bg-sunken" aria-hidden>
+                              <span className={`block h-full w-full origin-left ${s.color}`} style={{ transform: `scaleX(${n / uTotal})` }} />
                             </span>
                             <span className="w-10 text-right tabular-nums">{n}회</span>
                           </li>
@@ -110,17 +109,17 @@ export function ParticipantDetail({
                 </section>
 
                 <section aria-labelledby="pd-help">
-                  <h3 id="pd-help" className="mb-2 font-bold">
+                  <h3 id="pd-help" className="mb-2 font-semibold">
                     도움 요청 이력
                   </h3>
                   {data.help.length === 0 ? (
                     <p className="text-sm text-muted-foreground">도움 요청이 없었어요.</p>
                   ) : (
-                    <ul className="space-y-2 text-sm">
+                    <ul className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card text-sm">
                       {data.help.map((h) => (
-                        <li key={h.id} className="rounded-xl border border-border p-2.5">
+                        <li key={h.id} className="py-2.5">
                           <p className="flex items-center gap-1.5">
-                            <Hand className="size-3.5 text-coral" aria-hidden />
+                            <Hand className="size-3.5 text-coral-ink" aria-hidden />
                             {h.message || "(메시지 없음)"}
                             {h.status === "open" && (
                               <Badge variant="coral-soft" className="ml-auto">

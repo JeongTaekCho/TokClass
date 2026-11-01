@@ -8,7 +8,7 @@ function Toaster(props: ToasterProps) {
       position="top-center"
       toastOptions={{
         classNames: {
-          toast: "!rounded-2xl !border-border !shadow-lifted !font-sans",
+          toast: "!rounded-lg !border-border !shadow-overlay !font-sans",
         },
       }}
       style={

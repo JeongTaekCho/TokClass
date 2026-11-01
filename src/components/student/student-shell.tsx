@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
-import { BookOpen, Eye, KeyRound, LogOut, MessageSquareText, UserRound, X } from "lucide-react";
+import { BookOpen, KeyRound, LogOut, MessageSquareText, UserRound, X } from "lucide-react";
 
 import { ClassroomShell, useMe } from "@/components/room/classroom-shell";
 import { DmThread } from "@/components/room/dm-thread";
@@ -55,7 +55,7 @@ export function StudentShell({ code }: { code: string }) {
           >
             <MessageSquareText aria-hidden />
             <span>1:1 대화</span>
-            {dmUnread > 0 && <span className="rounded-full bg-coral px-1.5 text-[11px] leading-5 font-bold text-white">{dmUnread}</span>}
+            {dmUnread > 0 && <span className="rounded-full bg-coral px-1.5 text-[11px] leading-5 font-semibold text-ink tabular-nums">{dmUnread}</span>}
           </Button>
           <ProfileMenu code={code} />
         </>
@@ -74,15 +74,14 @@ export function StudentShell({ code }: { code: string }) {
           <aside
             aria-label="강사님과 1:1 대화"
             className={cn(
-              "flex min-h-0 flex-col bg-card",
+              "flex min-h-0 flex-col bg-surface",
               // 좁은 화면: 전체 화면 / 넓은 화면: 수업 화면 옆에 고정
-              "fixed inset-0 z-50 lg:static lg:z-auto lg:w-[360px] lg:shrink-0 lg:border-l lg:border-border",
+              "fixed inset-0 z-50 animate-rise lg:static lg:z-auto lg:w-[360px] lg:shrink-0 lg:animate-fade-in lg:border-l lg:border-border",
             )}
           >
             <div className="flex items-center gap-2 border-b border-border px-3 py-2.5">
-              <MessageSquareText className="size-4 text-primary" aria-hidden />
               <div className="min-w-0 flex-1">
-                <p className="font-bold">강사님과 1:1 대화</p>
+                <p className="font-semibold">강사님과 1:1 대화</p>
                 <p className="text-xs text-muted-foreground">나와 강사님만 볼 수 있어요. 창을 닫아도 대화는 남아 있어요.</p>
               </div>
               <Button variant="ghost" size="icon-sm" aria-label="1:1 대화 닫기" onClick={() => setDmOpen(false)}>
@@ -160,15 +159,14 @@ function ProfileMenu({ code }: { code: string }) {
             <DialogDescription>다른 기기나 다음 수업에서 이 비밀번호로 다시 들어올 수 있어요.</DialogDescription>
           </DialogHeader>
           {password ? (
-            <div className="rounded-2xl bg-primary-soft p-5 text-center">
-              <p className="font-mono text-3xl font-extrabold tracking-[0.3em] text-primary-hover">{password}</p>
-              <Button variant="outline" size="sm" className="mt-3" onClick={() => copyText(password, "비밀번호를 복사했어요.")}>
-                복사
+            <div className="-rotate-1 rounded-sm bg-coral-soft p-5 text-center">
+              <p className="font-mono text-3xl font-bold tracking-[0.3em] text-ink">{password}</p>
+              <Button variant="ghost" size="sm" className="mt-2" onClick={() => copyText(password, "비밀번호를 복사했어요.")}>
+                복사하기
               </Button>
             </div>
           ) : (
-            <p className="flex items-start gap-2 rounded-xl bg-muted p-3 text-sm">
-              <Eye className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <p className="rounded-md bg-sunken p-3 text-sm">
               보안을 위해 비밀번호는 처음 받은 기기의 이 브라우저 탭에서만 다시 볼 수 있어요. 잊어버렸다면 강사님께 재발급을 요청해 주세요.
             </p>
           )}

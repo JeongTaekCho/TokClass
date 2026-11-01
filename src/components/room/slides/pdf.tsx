@@ -1,15 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Loader2 } from "lucide-react";
 
 import type { PdfViewProps } from "@/components/room/slides/pdf-view";
+import { SlideSkeleton } from "@/components/skeletons";
 import type { Material } from "@/lib/types";
 
 /** pdf.js는 브라우저에서만 동작해서 동적으로 불러와요. */
 export const PdfView = dynamic<PdfViewProps>(() => import("@/components/room/slides/pdf-view"), {
   ssr: false,
-  loading: () => <Loader2 className="m-auto size-8 animate-spin text-muted-foreground" aria-label="교안 뷰어 준비 중" />,
+  loading: () => <SlideSkeleton className="m-auto" />,
 });
 
 export async function countPdfPages(file: File) {

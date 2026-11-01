@@ -5,6 +5,8 @@ import { Search, ShieldCheck } from "lucide-react";
 import { InstructorActions } from "@/components/admin/instructor-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/empty-state";
+import { NoResultsArt } from "@/components/illustrations";
 import { Input } from "@/components/ui/input";
 import { INSTRUCTOR_STATUSES, STATUS_LABEL, isInstructorStatus, type InstructorStatus } from "@/lib/admin/rules";
 import { ilikeAny, searchTerm } from "@/lib/admin/search";
@@ -46,7 +48,7 @@ export default async function AdminInstructorsPage({ searchParams }: PageProps<"
     <>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold">강사 관리</h1>
+          <h1 className="text-title">강사 관리</h1>
           <p className="text-muted-foreground">이메일 인증을 마친 가입 신청을 승인하거나, 문제가 있는 계정을 정지할 수 있어요.</p>
         </div>
         <form className="relative w-full max-w-xs" action="/admin/instructors">
@@ -61,15 +63,15 @@ export default async function AdminInstructorsPage({ searchParams }: PageProps<"
           <Button key={s} asChild size="sm" variant={s === status ? "soft" : "ghost"}>
             <Link href={tabHref(s)} aria-current={s === status ? "page" : undefined}>
               {STATUS_LABEL[s]}
-              <span className={cn("rounded-full px-1.5 text-xs", s === "pending" && (counts[i]?.count ?? 0) > 0 ? "bg-coral text-white" : "bg-muted")}>{counts[i]?.count ?? 0}</span>
+              <span className={cn("rounded-full px-1.5 text-xs", s === "pending" && (counts[i]?.count ?? 0) > 0 ? "bg-coral text-ink" : "bg-sunken")}>{counts[i]?.count ?? 0}</span>
             </Link>
           </Button>
         ))}
       </nav>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
+      <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
         <table className="w-full min-w-[860px] text-left text-sm">
-          <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
+          <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
             <tr>
               <th className="px-4 py-3">이름</th>
               <th className="px-4 py-3">이메일</th>
@@ -83,13 +85,13 @@ export default async function AdminInstructorsPage({ searchParams }: PageProps<"
           <tbody>
             {profiles.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
-                  {q ? `"${q}"에 맞는 강사가 없어요.` : `${STATUS_LABEL[status]} 상태인 강사가 없어요.`}
+                <td colSpan={7} className="px-4 py-4">
+                  <EmptyState art={q ? <NoResultsArt /> : undefined}>{q ? `"${q}"에 맞는 강사가 없어요.` : `${STATUS_LABEL[status]} 상태인 강사가 없어요.`}</EmptyState>
                 </td>
               </tr>
             )}
             {profiles.map((p) => (
-              <tr key={p.userId} className="border-b border-border/60 last:border-0">
+              <tr key={p.userId} className="border-b border-border last:border-0">
                 <td className="px-4 py-2.5 font-semibold">
                   <Link href={`/admin/instructors/${p.userId}`} className="hover:text-primary hover:underline">
                     {p.name || "(이름 없음)"}

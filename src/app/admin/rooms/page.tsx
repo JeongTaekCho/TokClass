@@ -5,6 +5,8 @@ import { Search } from "lucide-react";
 import { RoomActions } from "@/components/admin/room-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/empty-state";
+import { NoResultsArt } from "@/components/illustrations";
 import { Input } from "@/components/ui/input";
 import { blocksParticipants, type InstructorStatus } from "@/lib/admin/rules";
 import { ilikeAny, searchTerm } from "@/lib/admin/search";
@@ -57,7 +59,7 @@ export default async function AdminRoomsPage({ searchParams }: PageProps<"/admin
     <>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold">방 관리</h1>
+          <h1 className="text-title">방 관리</h1>
           <p className="text-muted-foreground">모든 강사의 방을 보고, 필요하면 강제로 종료하거나 삭제할 수 있어요.</p>
         </div>
         <form className="relative w-full max-w-xs" action="/admin/rooms">
@@ -76,9 +78,9 @@ export default async function AdminRoomsPage({ searchParams }: PageProps<"/admin
         ))}
       </nav>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-soft">
+      <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
         <table className="w-full min-w-[860px] text-left text-sm">
-          <thead className="border-b border-border bg-muted/50 text-xs text-muted-foreground">
+          <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
             <tr>
               <th className="px-4 py-3">방</th>
               <th className="px-4 py-3">강사</th>
@@ -91,15 +93,15 @@ export default async function AdminRoomsPage({ searchParams }: PageProps<"/admin
           <tbody>
             {rooms.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
-                  {q ? `"${q}"에 맞는 방이 없어요.` : "방이 없어요."}
+                <td colSpan={6} className="px-4 py-4">
+                  <EmptyState art={q ? <NoResultsArt /> : undefined}>{q ? `"${q}"에 맞는 방이 없어요.` : "방이 없어요."}</EmptyState>
                 </td>
               </tr>
             )}
             {rooms.map((r) => {
               const owner = owners.get(r.owner_id);
               return (
-                <tr key={r.id} className="border-b border-border/60 last:border-0">
+                <tr key={r.id} className="border-b border-border last:border-0">
                   <td className="px-4 py-2.5">
                     <span className="font-semibold">{r.title}</span>
                     <span className="ml-2 font-mono text-xs text-muted-foreground">{r.join_code}</span>

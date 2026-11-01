@@ -58,15 +58,15 @@ export function AiClusterButton({ className }: { className?: string }) {
             <DialogTitle>✨ 비슷한 질문 묶음</DialogTitle>
             <DialogDescription>Q&A와 채팅 질문을 AI가 묶었어요. 많이 나온 순서예요.</DialogDescription>
           </DialogHeader>
-          <ol className="space-y-3">
+          <ol className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
             {clusters?.map((c, i) => (
-              <li key={i} className="rounded-xl border border-border p-3">
+              <li key={i} className="py-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="text-xs font-semibold text-primary">{c.title}</p>
-                    <p className="font-bold">{c.representative}</p>
+                    <p className="font-semibold">{c.representative}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-primary-soft px-2.5 py-0.5 text-sm font-bold text-primary-hover">{c.count}개</span>
+                  <span className="shrink-0 rounded-sm bg-primary-soft px-1.5 py-0.5 text-sm font-medium text-primary-ink tabular-nums">{c.count}개</span>
                 </div>
                 <details className="mt-2 text-sm text-muted-foreground">
                   <summary className="cursor-pointer">원래 질문 보기{c.votes > 0 && ` · 👍 ${c.votes}`}</summary>

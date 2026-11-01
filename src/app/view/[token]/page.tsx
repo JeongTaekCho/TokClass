@@ -41,18 +41,18 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
   return (
     <div className="min-h-dvh">
       <AutoRefresh />
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-border bg-surface">
         <div className="mx-auto flex h-14 max-w-6xl items-center gap-2 px-4">
           <LogoMark className="size-8" />
-          <h1 className="min-w-0 flex-1 truncate font-bold">{room.title}</h1>
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+          <h1 className="min-w-0 flex-1 truncate font-semibold">{room.title}</h1>
+          <span className="inline-flex items-center gap-1 rounded-sm bg-sunken px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
             <Eye className="size-3.5" aria-hidden /> 읽기 전용
           </span>
         </div>
       </header>
       {announcements[0] && (
-        <p className="flex items-start gap-2 border-b border-border bg-coral-soft/70 px-4 py-2 text-sm">
-          <Megaphone className="mt-0.5 size-4 shrink-0 text-coral" aria-hidden />
+        <p className="flex items-start gap-2 border-b border-border bg-coral-soft px-4 py-2 text-sm">
+          <Megaphone className="mt-0.5 size-4 shrink-0 text-coral-ink" aria-hidden />
           {announcements[0].body}
         </p>
       )}
@@ -66,11 +66,11 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
               </p>
             </section>
           )}
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-            <h2 className="mb-3 font-bold">산출물 ({submissions.length})</h2>
+          <section className="border-t border-border pt-4">
+            <h2 className="mb-3 font-semibold">산출물 ({submissions.length})</h2>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {submissions.map((s) => (
-                <li key={s.id} className="overflow-hidden rounded-xl border border-border">
+                <li key={s.id} className="overflow-hidden rounded-md border border-border">
                   {s.kind === "image" && s.fileUrl ? <img src={s.fileUrl} alt={s.title || "산출물 이미지"} className="aspect-[4/3] w-full object-cover" /> : <div className="line-clamp-4 aspect-[4/3] bg-[#fffbeb] p-3 text-sm">{s.kind === "link" ? s.url : s.kind === "file" ? s.fileName : s.body}</div>}
                   <p className="truncate p-2 text-sm font-semibold">
                     {s.isBest && "🏆 "}
@@ -82,13 +82,13 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
           </section>
         </div>
         <div className="space-y-5">
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-            <h2 className="mb-3 flex items-center gap-1.5 font-bold">
-              <MessagesSquare className="size-4 text-primary" aria-hidden /> Q&A
+          <section className="border-t border-border pt-4">
+            <h2 className="mb-3 flex items-center gap-1.5 font-semibold">
+              <MessagesSquare className="size-4 text-muted-foreground" aria-hidden /> Q&A
             </h2>
-            <ul className="space-y-2 text-sm">
+            <ul className="divide-y divide-border text-sm">
               {questions.map((q) => (
-                <li key={q.id} className="rounded-xl bg-muted/60 p-2.5">
+                <li key={q.id} className="py-2.5">
                   <p>
                     <span className="mr-1.5 font-semibold">{q.anonymous ? "익명" : (q.participant?.nickname ?? "")}</span>
                     {q.body}
@@ -101,16 +101,16 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
               ))}
             </ul>
           </section>
-          <section className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-            <h2 className="mb-3 flex items-center gap-1.5 font-bold">
-              <MessageCircle className="size-4 text-primary" aria-hidden /> 채팅
+          <section className="border-t border-border pt-4">
+            <h2 className="mb-3 flex items-center gap-1.5 font-semibold">
+              <MessageCircle className="size-4 text-muted-foreground" aria-hidden /> 채팅
             </h2>
             <ul className="max-h-[480px] space-y-2 overflow-y-auto text-sm">
               {messages.map((m) => (
                 <li key={m.id}>
-                  <span className={m.author.kind === "instructor" ? "font-semibold text-coral" : "font-semibold"}>{m.author.nickname}</span>
+                  <span className={m.author.kind === "instructor" ? "font-semibold text-coral-ink" : "font-semibold"}>{m.author.nickname}</span>
                   <span className="ml-1.5 text-xs text-muted-foreground">{formatTime(m.createdAt)}</span>
-                  {m.imageUrl && <img src={m.imageUrl} alt="채팅 이미지" className="my-1 max-h-40 rounded-lg" />}
+                  {m.imageUrl && <img src={m.imageUrl} alt="채팅 이미지" className="my-1 max-h-40 rounded-md" />}
                   <MessageBody text={m.body} className="text-sm" />
                 </li>
               ))}

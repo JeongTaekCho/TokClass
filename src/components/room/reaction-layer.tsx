@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { AnimatePresence, motion } from "@/components/motion";
 import { useRoomEvent } from "@/lib/realtime/provider";
 
 type Floating = { id: number; emoji: string; left: number };
@@ -24,11 +25,21 @@ export function ReactionLayer() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      {items.map((i) => (
-        <span key={i.id} className="absolute bottom-4 animate-float-up text-4xl drop-shadow" style={{ left: `${i.left}%` }}>
-          {i.emoji}
-        </span>
-      ))}
+      <AnimatePresence>
+        {items.map((i) => (
+          <motion.span
+            key={i.id}
+            className="absolute bottom-4 text-4xl drop-shadow"
+            style={{ left: `${i.left}%` }}
+            initial={{ y: 0, scale: 0.6, opacity: 0 }}
+            animate={{ y: [0, -40, -220], x: [0, i.left > 50 ? -12 : 12, 0], scale: [0.6, 1.15, 1], opacity: [0, 1, 0] }}
+            transition={{ duration: 2.4, ease: "easeOut", times: [0, 0.2, 1] }}
+            exit={{ opacity: 0 }}
+          >
+            {i.emoji}
+          </motion.span>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

@@ -27,10 +27,12 @@ function toLocalInput(iso: string | null) {
 
 function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-5 shadow-soft sm:p-6">
-      <h2 className="text-lg font-bold">{title}</h2>
-      {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
-      <div className="mt-4">{children}</div>
+    <section className="grid gap-4 border-t border-border pt-6 md:grid-cols-[200px_minmax(0,1fr)] md:gap-8">
+      <div>
+        <h2 className="text-heading">{title}</h2>
+        {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
+      </div>
+      <div>{children}</div>
     </section>
   );
 }
@@ -92,7 +94,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
   const sections = room.settings.sections;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 border-b border-border pb-8">
       <Section title="기본 정보">
         <form
           className="grid gap-4 sm:grid-cols-2"
@@ -122,15 +124,15 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
       </Section>
 
       <Section title="탭 구성" description="수강생 화면 상단 탭이에요. 켜기/끄기, 순서, 첫 화면을 정할 수 있어요.">
-        <ol className="space-y-2">
+        <ol className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
           {tabs.map((t, i) => (
-            <li key={t.key} className={cn("flex items-center gap-3 rounded-xl border p-2 pl-3", t.enabled ? "border-border" : "border-dashed bg-muted/50")}>
+            <li key={t.key} className={cn("flex items-center gap-3 py-2 pl-1", !t.enabled && "text-muted-foreground")}>
               <Switch
                 aria-label={`${TAB_LABELS[t.key]} 탭 사용`}
                 checked={t.enabled}
                 onCheckedChange={(v) => setTabs(tabs.map((x) => (x.key === t.key ? { ...x, enabled: v } : x)))}
               />
-              <span className="flex-1 font-semibold">{TAB_LABELS[t.key]}</span>
+              <span className="flex-1 font-medium">{TAB_LABELS[t.key]}</span>
               <label className="flex min-h-10 cursor-pointer items-center gap-1.5 text-sm text-muted-foreground">
                 <input
                   type="radio"
@@ -158,7 +160,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
         >
           {saving === "tabs" && <Loader2 className="animate-spin" aria-hidden />}탭 저장
         </Button>
-        {enabledTabs.length === 0 && <p className="mt-2 text-sm text-coral">탭을 하나 이상 켜 주세요.</p>}
+        {enabledTabs.length === 0 && <p className="mt-2 text-sm text-coral-ink">탭을 하나 이상 켜 주세요.</p>}
       </Section>
 
       <Section title="수업 운영">
@@ -201,7 +203,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
         <div className="flex flex-wrap gap-2">
           {sections.length === 0 && <p className="text-sm text-muted-foreground">아직 섹션이 없어요.</p>}
           {sections.map((s) => (
-            <span key={s} className="inline-flex items-center gap-1 rounded-full bg-primary-soft py-1 pr-1 pl-3 text-sm font-semibold text-primary-hover">
+            <span key={s} className="inline-flex items-center gap-1 rounded-full bg-primary-soft py-1 pr-1 pl-3 text-sm font-semibold text-primary-ink">
               {s}
               <button
                 type="button"

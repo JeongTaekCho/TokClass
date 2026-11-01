@@ -18,9 +18,9 @@ export const metadata: Metadata = { title: "복습", robots: { index: false } };
 
 function Section({ icon: Icon, title, children }: { icon: typeof FileText; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-      <h2 className="mb-3 flex items-center gap-2 text-lg font-bold">
-        <Icon className="size-5 text-primary" aria-hidden /> {title}
+    <section className="border-t border-border pt-5">
+      <h2 className="mb-3 flex items-center gap-2 text-heading">
+        <Icon className="size-4 text-muted-foreground" aria-hidden /> {title}
       </h2>
       {children}
     </section>
@@ -47,7 +47,7 @@ export default async function ReviewPage({ params }: PageProps<"/r/[code]/review
 
   return (
     <div className="min-h-dvh">
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-border bg-surface">
         <div className="mx-auto flex h-14 max-w-4xl items-center gap-2 px-4">
           <LogoMark className="size-8" />
           <div className="min-w-0 flex-1">
@@ -63,26 +63,26 @@ export default async function ReviewPage({ params }: PageProps<"/r/[code]/review
           )}
         </div>
       </header>
-      <main className="mx-auto max-w-4xl space-y-5 px-4 py-6">
-        <h1 className="text-2xl font-extrabold">복습</h1>
+      <main className="mx-auto max-w-3xl space-y-8 px-4 py-6">
+        <h1 className="text-title">복습</h1>
 
         <Section icon={FileText} title="교안·자료">
           {materials.length === 0 && resources.length === 0 && <p className="text-sm text-muted-foreground">올라온 자료가 없어요.</p>}
-          <ul className="space-y-2">
+          <ul className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card empty:hidden">
             {materials.map((m) => (
               <li key={m.id}>
-                <a href={m.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center gap-3 rounded-xl border border-border p-3 hover:border-primary/40">
-                  <Download className="size-5 text-primary" aria-hidden />
-                  <span className="flex-1 font-semibold">{m.title}.pdf</span>
+                <a href={m.url ?? "#"} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center gap-3 px-1 py-3 transition-colors hover:bg-sunken/60">
+                  <Download className="size-4 text-muted-foreground" aria-hidden />
+                  <span className="flex-1 font-medium">{m.title}.pdf</span>
                   <span className="text-xs text-muted-foreground">{m.pageCount}쪽</span>
                 </a>
               </li>
             ))}
             {resources.map((r) => (
               <li key={r.id}>
-                <a href={r.url ?? "#"} target="_blank" rel="noopener noreferrer nofollow" className="flex min-h-12 items-center gap-3 rounded-xl border border-border p-3 hover:border-primary/40">
-                  {r.kind === "link" ? <ExternalLink className="size-5 text-primary" aria-hidden /> : <Download className="size-5 text-primary" aria-hidden />}
-                  <span className="flex-1 font-semibold">{r.title}</span>
+                <a href={r.url ?? "#"} target="_blank" rel="noopener noreferrer nofollow" className="flex min-h-12 items-center gap-3 px-1 py-3 transition-colors hover:bg-sunken/60">
+                  {r.kind === "link" ? <ExternalLink className="size-4 text-muted-foreground" aria-label="링크" /> : <Download className="size-4 text-muted-foreground" aria-label="파일" />}
+                  <span className="flex-1 font-medium">{r.title}</span>
                 </a>
               </li>
             ))}
@@ -93,7 +93,7 @@ export default async function ReviewPage({ params }: PageProps<"/r/[code]/review
           {notes.length === 0 && <p className="text-sm text-muted-foreground">교안 화면의 [메모]로 페이지마다 메모를 남길 수 있어요.</p>}
           <ul className="space-y-2">
             {notes.map((n) => (
-              <li key={`${n.material_id}-${n.page}`} className="rounded-xl bg-[#fffbeb] p-3">
+              <li key={`${n.material_id}-${n.page}`} className="rounded-sm bg-warning-soft p-3">
                 <p className="mb-1 text-xs font-semibold text-muted-foreground">
                   {matTitle.get(n.material_id) ?? "교안"} · {n.page}페이지
                 </p>
@@ -107,12 +107,12 @@ export default async function ReviewPage({ params }: PageProps<"/r/[code]/review
           {submissions.length === 0 && <p className="text-sm text-muted-foreground">올린 산출물이 없어요.</p>}
           <ul className="grid gap-3 sm:grid-cols-2">
             {submissions.map((s) => (
-              <li key={s.id} className="rounded-xl border border-border p-3">
+              <li key={s.id} className="border-t border-border pt-3">
                 <p className="font-semibold">
                   {s.isBest && "🏆 "}
                   {s.title || "제목 없음"} <span className="text-xs font-normal text-muted-foreground">· {formatDate(s.createdAt)}</span>
                 </p>
-                {s.kind === "image" && s.fileUrl && <img src={s.fileUrl} alt={s.title || "내 이미지"} className="mt-2 max-h-56 w-full rounded-lg object-contain" />}
+                {s.kind === "image" && s.fileUrl && <img src={s.fileUrl} alt={s.title || "내 이미지"} className="mt-2 max-h-56 w-full rounded-md object-contain" />}
                 {s.kind === "file" && s.fileUrl && (
                   <a href={s.fileUrl} className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-primary underline">
                     <Download className="size-4" aria-hidden /> {s.fileName}
@@ -134,12 +134,12 @@ export default async function ReviewPage({ params }: PageProps<"/r/[code]/review
 
         <Section icon={MessageCircleQuestion} title={`답변 달린 Q&A (${answered.length})`}>
           {answered.length === 0 && <p className="text-sm text-muted-foreground">답변 완료된 질문이 없어요.</p>}
-          <ul className="space-y-3">
+          <ul className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card empty:hidden">
             {answered.map((q) => (
-              <li key={q.id} className="rounded-xl border border-border p-3">
+              <li key={q.id} className="py-3">
                 <p className="font-medium">
                   Q. {q.body}
-                  {q.participant_id === participant.id && <span className="ml-1.5 rounded-full bg-primary-soft px-2 text-xs text-primary-hover">내 질문</span>}
+                  {q.participant_id === participant.id && <span className="ml-1.5 rounded-sm bg-coral-soft px-1.5 text-xs text-coral-ink">내 질문</span>}
                   {q.page && <span className="ml-1.5 text-xs text-muted-foreground">p.{q.page}</span>}
                 </p>
                 <p className="mt-1.5 text-sm whitespace-pre-wrap text-muted-foreground">{q.answer ? `A. ${q.answer}` : "수업 중에 말로 답변했어요."}</p>

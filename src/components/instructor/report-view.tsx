@@ -3,10 +3,11 @@
 import { useState } from "react";
 import useSWR from "swr";
 import JSZip from "jszip";
-import { Download, FileArchive, FileSpreadsheet, FileText, Loader2, ThumbsUp } from "lucide-react";
+import { Loader2, ThumbsUp } from "lucide-react";
 import { toast } from "sonner";
 
 import { ResultsView } from "@/components/room/activities/results-view";
+import { ReportSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { ACTIVITY_LABELS } from "@/lib/activities/schema";
 import { api, fetcher, setActingAs } from "@/lib/client/api";
@@ -29,16 +30,6 @@ const KIND_LABELS: Record<string, string> = {
   help: "도움 요청",
   reaction: "반응",
 };
-
-function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-2xl border border-border bg-card p-4 shadow-soft">
-      <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 text-3xl font-extrabold tabular-nums">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>}
-    </div>
-  );
-}
 
 const SERIES = [
   { key: "red", label: "막혔어요", emoji: "🔴", color: "#dc2626" },
@@ -119,7 +110,7 @@ function TrendChart({ data }: { data: UnderstandingBucket[] }) {
           })}
         </svg>
         {h && (
-          <div className="pointer-events-none absolute top-0 right-0 rounded-xl border border-border bg-card px-3 py-2 text-sm shadow-lifted">
+          <div className="pointer-events-none absolute top-0 right-0 rounded-lg border border-border bg-surface px-3 py-2 text-sm shadow-overlay">
             <p className="font-semibold">{formatTime(h.at)}</p>
             {SERIES.map((s) => (
               <p key={s.key}>
@@ -208,77 +199,83 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
   const exp = (type: string) => `/api/rooms/${roomId}/export?type=${type}`;
 
   return (
-    <div className="space-y-6">
-      <section aria-labelledby="export-title" className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-        <h2 id="export-title" className="text-lg font-bold">
+    <div className="space-y-10">
+      <section aria-labelledby="export-title">
+        <h2 id="export-title" className="text-heading">
           기록 내보내기
         </h2>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button asChild variant="outline" size="sm">
             <a href={exp("chat-txt")}>
-              <FileText aria-hidden /> 채팅 로그 (TXT)
+              채팅 로그 (TXT)
             </a>
           </Button>
           <Button asChild variant="outline" size="sm">
             <a href={exp("chat-csv")}>
-              <FileSpreadsheet aria-hidden /> 채팅 로그 (CSV)
+              채팅 로그 (CSV)
             </a>
           </Button>
           <Button asChild variant="outline" size="sm">
             <a href={exp("qa-csv")}>
-              <FileSpreadsheet aria-hidden /> Q&A (CSV)
+              Q&A (CSV)
             </a>
           </Button>
           <Button asChild variant="outline" size="sm">
             <a href={exp("activities-csv")}>
-              <FileSpreadsheet aria-hidden /> 투표·퀴즈 결과 (CSV)
+              투표·퀴즈 결과 (CSV)
             </a>
           </Button>
           <Button variant="outline" size="sm" onClick={downloadZip} disabled={zipping}>
-            {zipping ? <Loader2 className="animate-spin" aria-hidden /> : <FileArchive aria-hidden />} 산출물 전체 (ZIP)
+            {zipping && <Loader2 className="animate-spin" aria-hidden />} 산출물 전체 (ZIP)
           </Button>
         </div>
       </section>
 
       {isLoading || !r ? (
-        <Loader2 className="mx-auto size-8 animate-spin text-muted-foreground" aria-label="리포트 만드는 중" />
+        <ReportSkeleton />
       ) : (
         <>
-          <section aria-label="요약 지표" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Tile label="참여자" value={`${r.participants}명`} />
-            <Tile label="참여율" value={`${Math.round(r.participationRate * 100)}%`} sub="1회 이상 상호작용한 수강생" />
-            <Tile label="1인당 평균 상호작용" value={`${r.avgInteractions.toFixed(1)}회`} sub={`전체 ${r.totalInteractions}회`} />
-            <Tile label="질문" value={`${r.questionCount}개`} />
+          {/* 요약은 타일 대신 문장으로: 사람 수 → 참여 → 상호작용 → 질문 순서로 읽혀요. */}
+          <section aria-label="요약" className="rounded-lg border border-border/70 bg-surface px-5 shadow-card py-5">
+            <p className="text-lg leading-relaxed">
+              수강생 <strong className="font-semibold tabular-nums">{r.participants}명</strong> 중{" "}
+              <strong className="font-semibold tabular-nums">{Math.round(r.participationRate * 100)}%</strong>가 한 번 이상 참여했어요.
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              1인당 평균 상호작용 <span className="font-medium text-foreground tabular-nums">{r.avgInteractions.toFixed(1)}회</span> (전체{" "}
+              <span className="tabular-nums">{r.totalInteractions}</span>회) · 질문{" "}
+              <span className="font-medium text-foreground tabular-nums">{r.questionCount}개</span>
+            </p>
           </section>
 
-          <section className="rounded-2xl border border-border bg-card p-5 shadow-soft" aria-labelledby="trend-title">
-            <h2 id="trend-title" className="mb-3 text-lg font-bold">
+          <section aria-labelledby="trend-title">
+            <h2 id="trend-title" className="mb-3 text-heading">
               이해도 추이 (5분 단위)
             </h2>
             <TrendChart data={r.understandingTrend} />
           </section>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <section className="rounded-2xl border border-border bg-card p-5 shadow-soft" aria-labelledby="topq-title">
-              <h2 id="topq-title" className="mb-3 text-lg font-bold">
+          <div className="grid gap-10 border-t border-border pt-8 lg:grid-cols-2">
+            <section aria-labelledby="topq-title">
+              <h2 id="topq-title" className="mb-3 text-heading">
                 공감 많은 질문 TOP {r.topQuestions.length}
               </h2>
               {r.topQuestions.length === 0 && <p className="text-sm text-muted-foreground">질문이 없었어요.</p>}
-              <ol className="space-y-2">
+              <ol className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
                 {r.topQuestions.map((q, i) => (
-                  <li key={q.id} className="flex items-start gap-2">
-                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary-hover">{i + 1}</span>
+                  <li key={q.id} className="flex items-start gap-3 py-2.5">
+                    <span className="w-5 shrink-0 text-right text-sm text-muted-foreground tabular-nums">{i + 1}</span>
                     <span className="flex-1">{q.body}</span>
                     <span className="inline-flex shrink-0 items-center gap-1 text-sm text-muted-foreground">
                       <ThumbsUp className="size-3.5" aria-hidden /> {q.votes}
-                      {q.answered && <span className="ml-1 text-green-700">✓ 답변</span>}
+                      {q.answered && <span className="ml-1 text-success">✓ 답변</span>}
                     </span>
                   </li>
                 ))}
               </ol>
             </section>
-            <section className="rounded-2xl border border-border bg-card p-5 shadow-soft" aria-labelledby="kind-title">
-              <h2 id="kind-title" className="mb-3 text-lg font-bold">
+            <section aria-labelledby="kind-title">
+              <h2 id="kind-title" className="mb-3 text-heading">
                 상호작용 종류
               </h2>
               <table className="w-full text-left text-sm tabular-nums">
@@ -286,7 +283,7 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
                   {Object.entries(r.byKind)
                     .sort((a, b) => b[1] - a[1])
                     .map(([k, v]) => (
-                      <tr key={k} className="border-b border-border/60">
+                      <tr key={k} className="border-b border-border">
                         <th className="py-1.5 font-medium">{KIND_LABELS[k] ?? k}</th>
                         <td className="py-1.5 text-right">{v}회</td>
                       </tr>
@@ -301,18 +298,18 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
             </section>
           </div>
 
-          <section aria-labelledby="act-results-title">
-            <h2 id="act-results-title" className="mb-3 text-lg font-bold">
+          <section aria-labelledby="act-results-title" className="border-t border-border pt-8">
+            <h2 id="act-results-title" className="mb-3 text-heading">
               활동별 결과
             </h2>
             {r.activities.length === 0 && <p className="text-sm text-muted-foreground">진행한 활동이 없어요.</p>}
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-x-10 gap-y-8 lg:grid-cols-2">
               {r.activities.map(({ activity, results }) => (
-                <article key={activity.id} className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-                  <p className="text-sm font-semibold text-primary">
+                <article key={activity.id} className="border-t border-border pt-4">
+                  <p className="text-sm font-medium text-muted-foreground">
                     {ACTIVITY_LABELS[activity.type].emoji} {ACTIVITY_LABELS[activity.type].name}
                   </p>
-                  <h3 className="mb-3 font-bold">{activity.title}</h3>
+                  <h3 className="mb-3 font-semibold">{activity.title}</h3>
                   <ResultsView results={results} config={activity.config} />
                 </article>
               ))}
@@ -321,7 +318,6 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
         </>
       )}
       <p className="text-center text-xs text-muted-foreground">
-        <Download className="mr-1 inline size-3" aria-hidden />
         리포트는 집계 기반이에요 (AI 자동 리포트는 이후 버전에서 제공).
       </p>
     </div>

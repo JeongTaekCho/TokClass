@@ -12,13 +12,13 @@ import { Label } from "@/components/ui/label";
 function Feedback({ state }: { state: AuthState }) {
   if (state?.error)
     return (
-      <p role="alert" className="rounded-xl bg-coral-soft px-3 py-2 text-sm font-medium text-[#b42318]">
+      <p role="alert" className="rounded-lg bg-coral-soft px-3 py-2 text-sm font-medium text-destructive">
         {state.error}
       </p>
     );
   if (state?.message)
     return (
-      <p role="status" className="rounded-xl bg-primary-soft px-3 py-2 text-sm font-medium text-primary-hover">
+      <p role="status" className="rounded-lg bg-primary-soft px-3 py-2 text-sm font-medium text-primary-ink">
         {state.message}
       </p>
     );

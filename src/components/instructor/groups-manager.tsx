@@ -62,9 +62,9 @@ export function GroupsManager() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
       <div className="space-y-6">
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-soft">
+        <section className="border-t border-border pt-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">조 활동</h2>
+            <h2 className="text-heading">조 활동</h2>
             {active ? <Badge>진행 중</Badge> : <Badge variant="secondary">대기</Badge>}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">조 활동을 시작하면 수강생은 우리 조 채팅과 산출물 섹션을 따로 쓰게 돼요. 실시간 연결은 그대로 하나예요.</p>
@@ -88,8 +88,8 @@ export function GroupsManager() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-          <h2 className="text-lg font-bold">조 편성</h2>
+        <section className="border-t border-border pt-5">
+          <h2 className="text-heading">조 편성</h2>
           <form
             className="mt-3 flex items-end gap-2"
             onSubmit={async (e) => {
@@ -125,7 +125,7 @@ export function GroupsManager() {
                   aria-checked={mode === m.value}
                   disabled={busy}
                   onClick={() => action({ action: "set-mode", mode: m.value })}
-                  className={cn("min-h-11 cursor-pointer rounded-xl border p-3 text-left", mode === m.value ? "border-primary bg-primary-soft" : "border-border hover:border-primary/40")}
+                  className={cn("min-h-11 cursor-pointer rounded-md border p-3 text-left transition-colors", mode === m.value ? "border-primary bg-primary-soft" : "border-border hover:border-border-strong")}
                 >
                   <span className="block font-bold">{m.label}</span>
                   <span className="text-xs text-muted-foreground">{m.desc}</span>
@@ -138,12 +138,12 @@ export function GroupsManager() {
               {busy ? <Loader2 className="animate-spin" aria-hidden /> : <Shuffle aria-hidden />} 랜덤으로 나누기
             </Button>
           )}
-          {mode === "choice" && <p className="mt-3 rounded-xl bg-muted p-3 text-sm">수강생 화면에 조 고르기 버튼이 떠요. 조 활동을 시작하기 전에 골라 달라고 안내해 주세요.</p>}
+          {mode === "choice" && <p className="mt-3 rounded-md bg-sunken p-3 text-sm">수강생 화면에 조 고르기 버튼이 떠요. 조 활동을 시작하기 전에 골라 달라고 안내해 주세요.</p>}
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-soft">
-          <h2 className="text-lg font-bold">
-            참여자 {people.length}명 {unassigned.length > 0 && <span className="text-sm font-normal text-coral">· 미배정 {unassigned.length}명</span>}
+        <section className="border-t border-border pt-5">
+          <h2 className="text-heading">
+            참여자 {people.length}명 {unassigned.length > 0 && <span className="text-sm font-normal text-coral-ink">· 미배정 {unassigned.length}명</span>}
           </h2>
           {groups.length === 0 ? (
             <p className="mt-2 text-sm text-muted-foreground">먼저 조를 만들어 주세요.</p>
@@ -173,7 +173,7 @@ export function GroupsManager() {
         </section>
       </div>
 
-      <section className="flex min-h-[640px] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-soft">
+      <section className="flex min-h-[640px] flex-col overflow-hidden rounded-lg border border-border bg-surface">
         <div className="scrollbar-thin flex gap-1 overflow-x-auto border-b border-border p-2" role="tablist" aria-label="조 살펴보기">
           {groups.length === 0 && <p className="p-2 text-sm text-muted-foreground">조를 만들면 여기서 조별 채팅과 산출물을 오가며 볼 수 있어요.</p>}
           {groups.map((g) => (

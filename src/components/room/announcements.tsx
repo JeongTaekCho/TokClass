@@ -29,14 +29,14 @@ export function AnnouncementBar() {
   if (list.length === 0) return null;
   const [latest, ...rest] = list;
   return (
-    <div className="border-b border-border bg-coral-soft/70" role="region" aria-label="공지">
+    <div className="animate-fade-in border-b border-border bg-coral-soft" role="region" aria-label="공지">
       <div className="mx-auto flex max-w-5xl items-start gap-2 px-4 py-2">
-        <Megaphone className="mt-1 size-4 shrink-0 text-coral" aria-hidden />
+        <Megaphone className="mt-1 size-4 shrink-0 text-coral-ink" aria-hidden />
         <div className="min-w-0 flex-1 text-sm">
           <p className={cn("font-medium whitespace-pre-wrap", !open && "line-clamp-2")}>{latest!.body}</p>
           {open &&
             rest.map((a) => (
-              <p key={a.id} className="mt-1.5 border-t border-coral/20 pt-1.5 whitespace-pre-wrap text-muted-foreground">
+              <p key={a.id} className="mt-1.5 border-t border-coral/30 pt-1.5 whitespace-pre-wrap text-muted-foreground">
                 {a.body} <span className="text-xs">· {timeAgo(a.createdAt)}</span>
               </p>
             ))}
@@ -85,9 +85,9 @@ export function AnnouncementManager() {
           <Megaphone aria-hidden /> 공지 올리기
         </Button>
       </form>
-      <ul className="space-y-2">
+      <ul className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
         {(data?.announcements ?? []).map((a) => (
-          <li key={a.id} className="flex items-start gap-2 rounded-xl border border-border bg-card p-2.5 text-sm">
+          <li key={a.id} className="flex items-start gap-2 py-2 text-sm">
             <p className="flex-1 whitespace-pre-wrap">{a.body}</p>
             <Button
               variant="ghost"

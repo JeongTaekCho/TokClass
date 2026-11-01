@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { FileText, FolderOpen, LayoutGrid, MessageCircle, MessagesSquare } from "lucide-react";
+import { FolderOpen, MessageCircleQuestion, MessagesSquare, Presentation, StickyNote, type LucideIcon } from "lucide-react";
 
 import { LogoMark } from "@/components/brand/logo";
+import { ActiveIndicator, Pop } from "@/components/motion";
 import { AnnouncementBar } from "@/components/room/announcements";
 import { BoardPanel } from "@/components/room/board/board-panel";
 import { ChatPanel } from "@/components/room/chat-panel";
@@ -20,11 +21,11 @@ import { TAB_LABELS, type TabKey } from "@/lib/rooms/templates";
 import type { Group, Me, PublicRoom } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const TAB_ICONS: Record<TabKey, typeof FileText> = {
-  slides: FileText,
-  chat: MessageCircle,
-  qa: MessagesSquare,
-  board: LayoutGrid,
+const TAB_ICONS: Record<TabKey, LucideIcon> = {
+  slides: Presentation,
+  chat: MessagesSquare,
+  qa: MessageCircleQuestion,
+  board: StickyNote,
   resources: FolderOpen,
 };
 
@@ -91,40 +92,42 @@ export function ClassroomShell({
 
   return (
     <div className={cn("flex flex-col bg-background", heightClass)}>
-      <header className="z-20 border-b border-border bg-card">
-        <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-3">
+      <header className="z-20 border-b border-border bg-surface">
+        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-3 sm:px-4">
           {/* 강사 화면은 위에 사이트 헤더가 있어서 로고를 한 번만 보여줘요. */}
-          {!isInstructor && <LogoMark className="size-8 shrink-0" title="톡클" />}
+          {!isInstructor && <LogoMark className="size-9 shrink-0" title="톡클" />}
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[15px] leading-tight font-bold">{room.title}</h1>
-            <ConnectionBadge />
+            <h1 className="truncate text-base leading-tight font-bold">{room.title}</h1>
+            <ConnectionBadge className="mt-0.5" />
           </div>
           {headerActions}
         </div>
         {enabledTabs.length > 1 && (
-          <nav className="scrollbar-thin mx-auto flex max-w-5xl gap-1 overflow-x-auto px-2 pb-1.5" aria-label="수업 탭" role="tablist">
+          <nav className="scrollbar-none mx-auto flex max-w-5xl gap-1 overflow-x-auto px-2 pb-2 sm:px-3" aria-label="수업 탭" role="tablist">
             {enabledTabs.map((key) => {
-              const Icon = TAB_ICONS[key];
               const count = unread[key] ?? 0;
+              const Icon = TAB_ICONS[key];
+              const active = current === key;
               return (
                 <button
                   key={key}
                   role="tab"
-                  aria-selected={current === key}
+                  aria-selected={active}
                   aria-controls={`panel-${key}`}
                   id={`tab-${key}`}
                   onClick={() => selectTab(key)}
                   className={cn(
-                    "relative inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl px-3.5 text-sm font-semibold transition",
-                    current === key ? "bg-primary-soft text-primary-hover" : "text-muted-foreground hover:bg-muted",
+                    "press relative inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-3.5 text-[15px] transition-colors duration-150",
+                    active ? "font-semibold text-primary-foreground" : "font-medium text-muted-foreground hover:bg-sunken hover:text-foreground",
                   )}
                 >
-                  <Icon className="size-4" aria-hidden />
-                  {TAB_LABELS[key]}
+                  {active && <ActiveIndicator layoutId={`class-tab-${isInstructor ? "i" : "s"}`} className="absolute inset-0 rounded-md bg-primary shadow-brand" />}
+                  <Icon aria-hidden className="relative size-[18px]" strokeWidth={2} />
+                  <span className="relative">{TAB_LABELS[key]}</span>
                   {count > 0 && (
-                    <span className="ml-0.5 rounded-full bg-coral px-1.5 text-[11px] leading-5 font-bold text-white" aria-label={`새 소식 ${count}개`}>
+                    <Pop key={count} className="relative rounded-full bg-coral px-1.5 text-[11px] leading-5 font-bold text-ink tabular-nums" aria-label={`새 소식 ${count}개`}>
                       {count > 99 ? "99+" : count}
-                    </span>
+                    </Pop>
                   )}
                 </button>
               );
@@ -136,7 +139,7 @@ export function ClassroomShell({
 
       <AnnouncementBar />
       <GroupBanner me={me} />
-      {room.status === "ended" && <div className="bg-muted px-4 py-2 text-center text-sm">{endedNotice}</div>}
+      {room.status === "ended" && <div className="border-b border-border bg-sun-soft px-4 py-2 text-center text-sm font-medium">{endedNotice}</div>}
 
       <div className="flex min-h-0 flex-1">
         <main className="relative mx-auto flex min-h-0 w-full max-w-5xl min-w-0 flex-1 flex-col">
@@ -148,7 +151,7 @@ export function ClassroomShell({
                 role="tabpanel"
                 aria-labelledby={`tab-${key}`}
                 hidden={key !== current}
-                className={cn("min-h-0 flex-1 flex-col", key === current ? "flex" : "hidden")}
+                className={cn("min-h-0 flex-1 flex-col", key === current ? "flex animate-fade-in" : "hidden")}
               >
                 {key === "slides" && <ClassSlides />}
                 {key === "chat" && <ClassChat me={me} />}

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
-import { Loader2 } from "lucide-react";
 
+import { SlideSkeleton } from "@/components/skeletons";
 import { useElementSize } from "@/hooks/use-element-size";
 
 // 워커는 scripts/copy-pdf-worker.mjs가 public/으로 복사해 둬요 (같은 모듈에서 설정해야 해요).
@@ -38,7 +38,7 @@ export default function PdfView({ url, page, onLoad, fitWidthOnly = false, title
             console.error("[pdf] 불러오기 실패", e);
             setFailed(true);
           }}
-          loading={<Loader2 className="size-8 animate-spin text-muted-foreground" aria-label="교안 불러오는 중" />}
+          loading={<SlideSkeleton className="min-w-64" />}
           className="flex items-center justify-center"
         >
           {width > 0 && (
@@ -49,8 +49,8 @@ export default function PdfView({ url, page, onLoad, fitWidthOnly = false, title
               renderTextLayer={false}
               renderAnnotationLayer={false}
               onLoadSuccess={(p) => setAspect(p.originalWidth / p.originalHeight)}
-              loading={<div style={{ width: Math.floor(width), aspectRatio: aspect }} className="animate-pulse rounded-lg bg-muted" />}
-              className="overflow-hidden rounded-lg shadow-soft"
+              loading={<div style={{ width: Math.floor(width), aspectRatio: aspect }} className="animate-skeleton rounded-md bg-sunken" />}
+              className="overflow-hidden rounded-md"
             />
           )}
         </Document>
