@@ -53,7 +53,7 @@ export function JoinFlow({ code, room }: { code: string; room: RoomInfo }) {
   return (
     <main className="flex min-h-dvh flex-col bg-dots px-4 py-6 sm:items-center sm:py-12">
       <Logo size="sm" />
-      <section className="mt-6 w-full max-w-md rounded-2xl border border-border/70 bg-surface p-5 shadow-raised sm:mt-10 sm:p-7" aria-live="polite">
+      <section className="ring-brand mt-6 w-full max-w-md rounded-2xl bg-surface p-5 shadow-glow sm:mt-10 sm:p-7" aria-live="polite">
         {step === "choose" && <JoinPhoneArt className="mx-auto mb-2 max-w-48" />}
         <p className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-2.5 py-0.5 text-sm text-primary-ink">
           참여코드 <span className="font-mono font-bold tracking-wider tabular-nums">{code}</span>

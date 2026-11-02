@@ -7,7 +7,7 @@ import { ActiveIndicator } from "@/components/motion";
 import { cn } from "@/lib/utils";
 
 /*
- * 세그먼트 탭: 회색 홈 안에서 흰 알약(현재 탭)이 미끄러지듯 옮겨 가요.
+ * 세그먼트 탭: 연한 인디고 홈 안에서 흰 알약(현재 탭)이 미끄러지듯 옮겨 가요.
  * 현재 값을 알아야 알약을 그릴 수 있어서 Root가 값을 컨텍스트로 내려줘요(제어·비제어 모두 지원).
  */
 const TabsContext = React.createContext<{ value: string | undefined; id: string }>({ value: undefined, id: "" });
@@ -36,7 +36,7 @@ function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimi
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
-      className={cn("inline-flex w-fit items-center gap-0.5 rounded-md bg-sunken p-1 text-muted-foreground", className)}
+      className={cn("inline-flex w-fit items-center gap-0.5 rounded-md bg-primary-soft/70 p-1 text-muted-foreground", className)}
       {...props}
     />
   );
@@ -50,7 +50,7 @@ function TabsTrigger({ className, children, value, ...props }: React.ComponentPr
       data-slot="tabs-trigger"
       value={value}
       className={cn(
-        "relative isolate inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:font-semibold data-[state=active]:text-foreground [&_svg]:size-4 [&_svg]:shrink-0",
+        "relative isolate inline-flex min-h-9 cursor-pointer items-center justify-center gap-1.5 rounded-[8px] px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-150 outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:font-semibold data-[state=active]:text-primary-ink [&_svg]:size-4 [&_svg]:shrink-0",
         className,
       )}
       {...props}

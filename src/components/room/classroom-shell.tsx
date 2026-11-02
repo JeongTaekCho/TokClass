@@ -98,7 +98,7 @@ export function ClassroomShell({
 
   return (
     <div className={cn("flex flex-col", heightClass)}>
-      <header className="z-20 border-b border-border bg-surface">
+      <header className="hairline-brand surface-glass z-20">
         <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-3 sm:px-4">
           {/* 강사 화면은 위에 사이트 헤더가 있어서 로고를 한 번만 보여줘요. */}
           {!isInstructor && <LogoMark className="size-9 shrink-0" title="톡클" />}
@@ -124,10 +124,10 @@ export function ClassroomShell({
                   onClick={() => selectTab(key)}
                   className={cn(
                     "press relative isolate inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-3.5 text-[15px] transition-colors duration-150",
-                    active ? "font-semibold text-primary-foreground" : "font-medium text-muted-foreground hover:bg-sunken hover:text-foreground",
+                    active ? "font-semibold text-primary-foreground" : "font-medium text-muted-foreground hover:bg-primary-soft/60 hover:text-primary-ink",
                   )}
                 >
-                  {active && <ActiveIndicator layoutId={`class-tab-${isInstructor ? "i" : "s"}`} className="absolute inset-0 -z-10 rounded-md bg-primary shadow-brand" />}
+                  {active && <ActiveIndicator layoutId={`class-tab-${isInstructor ? "i" : "s"}`} className="absolute inset-0 -z-10 rounded-md bg-brand shadow-brand" />}
                   <Icon aria-hidden className="relative size-[18px]" strokeWidth={2} />
                   <span className="relative">{TAB_LABELS[key]}</span>
                   {count > 0 && (

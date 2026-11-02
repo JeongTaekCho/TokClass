@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Loading() {
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-      <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-primary-soft via-surface to-coral-soft shadow-card">
+      <div className="relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-br from-primary-soft via-surface to-coral-soft shadow-glow">
         <div className="grid items-center gap-4 p-6 sm:p-8 md:grid-cols-[minmax(0,1fr)_240px]">
           <div>
             <Skeleton className="h-5 w-36 bg-surface/80" />

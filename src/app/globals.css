@@ -26,6 +26,7 @@
   --primary-hover: #4338ca;
   --primary-foreground: #ffffff;
   --primary-soft: #ecebff;
+  --primary-2: #7c4dff; /* 그라데이션 끝색(바이올렛). 주요 버튼·강조 띠에만 써요. */
   --primary-ink: #3730a3;
 
   --secondary: var(--surface-sunken);
@@ -66,7 +67,7 @@
 
   --border: #e6e6f5;
   --border-strong: #d0d1ea;
-  --input: #8f94aa;
+  --input: #8d90b5;
   --ring: #4f46e5;
 
   /* 이해도 신호등 (색 + 이모지 + 텍스트를 함께 표시) */
@@ -109,6 +110,7 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-soft: var(--primary-soft);
   --color-primary-ink: var(--primary-ink);
+  --color-primary-2: var(--primary-2);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -157,6 +159,7 @@
   --shadow-raised: 0 2px 4px rgb(49 46 129 / 0.05), 0 16px 32px -12px rgb(79 70 229 / 0.24);
   --shadow-overlay: 0 2px 6px rgb(49 46 129 / 0.07), 0 24px 56px -14px rgb(49 46 129 / 0.32);
   --shadow-brand: 0 8px 20px -8px rgb(79 70 229 / 0.55);
+  --shadow-glow: 0 0 0 1px rgb(79 70 229 / 0.06), 0 18px 40px -16px rgb(79 70 229 / 0.35);
 
   /* 타이포 단계: 제목은 600~700, 800은 쓰지 않아요 */
   --text-display: 2.5rem;
@@ -306,6 +309,62 @@
   .origin-box {
     transform-box: fill-box;
     transform-origin: center;
+  }
+  /* 브랜드 그라데이션 (주요 버튼·강조 띠·배너) */
+  .bg-brand {
+    background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
+  }
+  .bg-brand-vivid {
+    background-image: linear-gradient(120deg, var(--primary) 0%, var(--brand-mix) 55%, var(--accent-coral) 100%);
+  }
+  .text-brand {
+    background-image: linear-gradient(100deg, var(--accent-coral-ink), var(--brand-mix) 45%, var(--primary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* 반투명 유리 면: 헤더·떠 있는 막대. 뒤의 색 번짐이 비쳐요. */
+  .surface-glass {
+    background-color: rgb(255 255 255 / 0.72);
+    -webkit-backdrop-filter: saturate(1.6) blur(16px);
+    backdrop-filter: saturate(1.6) blur(16px);
+  }
+  /* 아래 경계선을 브랜드 색 그라데이션 머리카락 선으로 */
+  .hairline-brand {
+    position: relative;
+  }
+  .hairline-brand::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgb(79 70 229 / 0.28) 20%, rgb(255 107 74 / 0.24) 80%, transparent);
+    pointer-events: none;
+  }
+  /* 그라데이션 테두리 (흰 카드의 테두리만 브랜드 색) */
+  .ring-brand {
+    position: relative;
+    isolation: isolate;
+  }
+  .ring-brand::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1.5px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgb(79 70 229 / 0.55), rgb(139 63 184 / 0.35) 45%, rgb(255 107 74 / 0.5));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: -1;
+  }
+  /* 색 번짐 덩어리 (장식). 부모는 relative + overflow-hidden */
+  .blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(56px);
+    pointer-events: none;
   }
   /* 히어로·인증 화면 배경의 은은한 점 무늬 */
   .bg-dots {

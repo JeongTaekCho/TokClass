@@ -57,8 +57,11 @@ export default async function DashboardPage() {
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
         {/* 인사 배너: 오늘의 요약 + 새 방 만들기 */}
-        <FadeIn className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-primary-soft via-surface to-coral-soft shadow-card">
-          <div className="grid items-center gap-4 p-6 sm:p-8 md:grid-cols-[minmax(0,1fr)_240px]">
+        <FadeIn className="relative overflow-hidden rounded-3xl border border-white/80 bg-gradient-to-br from-primary-soft via-surface to-coral-soft shadow-glow">
+          <div aria-hidden className="blob -top-20 -left-16 size-72 bg-primary/20" />
+          <div aria-hidden className="blob -right-10 -bottom-24 size-72 bg-coral/20" />
+          <div aria-hidden className="absolute inset-0 bg-dots opacity-60 [mask-image:radial-gradient(ellipse_at_80%_50%,black,transparent_65%)]" />
+          <div className="relative grid items-center gap-4 p-6 sm:p-8 md:grid-cols-[minmax(0,1fr)_240px]">
             <div>
               <p className="text-sm font-semibold text-primary">{name ? `${name}님, 반가워요 👋` : "반가워요 👋"}</p>
               <h1 id="rooms-title" className="mt-1 text-title sm:text-[1.75rem]">
@@ -82,7 +85,7 @@ export default async function DashboardPage() {
         <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_300px]">
           <section aria-labelledby="rooms-title">
             {list.length === 0 ? (
-              <div className="rounded-2xl border border-border/70 bg-surface py-12 shadow-card">
+              <div className="rounded-2xl border border-dashed border-primary/25 bg-surface/80 py-12 shadow-card">
                 <FadeIn className="flex flex-col items-center px-4 text-center">
                   <EmptyRoomsArt className="max-w-64" />
                   <p className="mt-4 text-heading">아직 만든 방이 없어요</p>
@@ -115,7 +118,7 @@ export default async function DashboardPage() {
             )}
           </section>
 
-          <aside aria-labelledby="tpl-title" className="h-fit space-y-3 rounded-2xl border border-border/70 bg-surface p-5 shadow-card">
+          <aside aria-labelledby="tpl-title" className="h-fit space-y-3 rounded-2xl border border-border/60 bg-gradient-to-b from-lilac-soft/70 via-surface to-surface p-5 shadow-card">
             <div className="flex items-center gap-3">
               <IconChip icon={LayoutTemplate} tone="lilac" />
               <h2 id="tpl-title" className="text-heading">
@@ -137,7 +140,9 @@ function RoomCard({ r }: { r: RoomListRow }) {
   const active = r.status === "active";
   const fill = Math.min(100, Math.round((count / Math.max(1, r.capacity)) * 100));
   return (
-    <StaggerItem className="group flex flex-col rounded-lg border border-border/70 bg-surface p-5 shadow-card transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-raised">
+    <StaggerItem className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-surface p-5 shadow-card transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-1 hover:border-primary/25 hover:shadow-raised">
+      {/* 진행 중인 방은 위쪽에 브랜드 색 띠 */}
+      <span aria-hidden className={active ? "bg-brand absolute inset-x-0 top-0 h-1" : "absolute inset-x-0 top-0 h-1 bg-border"} />
       <div className="flex items-start justify-between gap-2">
         <IconChip icon={MonitorPlay} tone={active ? "primary" : "muted"} />
         {active ? <Badge variant="success">진행 중</Badge> : <Badge variant="secondary">종료</Badge>}
@@ -150,9 +155,9 @@ function RoomCard({ r }: { r: RoomListRow }) {
         {tplName} · {r.starts_at ? formatDateTime(r.starts_at) : `${formatDate(r.created_at)} 생성`}
       </p>
       <dl className="mt-4 grid grid-cols-2 gap-2 text-sm">
-        <div className="rounded-md bg-sunken px-3 py-2">
+        <div className="rounded-md border border-dashed border-primary/30 bg-primary-soft/50 px-3 py-2">
           <dt className="text-xs text-muted-foreground">참여코드</dt>
-          <dd className="font-mono text-base font-bold tracking-wider tabular-nums">{r.join_code}</dd>
+          <dd className="font-mono text-base font-bold tracking-wider text-primary-ink tabular-nums">{r.join_code}</dd>
         </div>
         <div className="rounded-md bg-sunken px-3 py-2">
           <dt className="text-xs text-muted-foreground">참여자 / 정원</dt>
@@ -160,7 +165,7 @@ function RoomCard({ r }: { r: RoomListRow }) {
             <span className="text-base font-bold">{count}</span> <span className="text-muted-foreground">/ {r.capacity}명</span>
           </dd>
           <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-border" aria-hidden>
-            <div className="h-full origin-left rounded-full bg-primary" style={{ transform: `scaleX(${fill / 100})` }} />
+            <div className="bg-brand h-full origin-left rounded-full" style={{ transform: `scaleX(${fill / 100})` }} />
           </div>
         </div>
       </dl>
