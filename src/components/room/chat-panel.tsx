@@ -196,7 +196,7 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
     <div className={cn("flex min-h-0 flex-1 flex-col", className)}>
       <div
         ref={scrollRef}
-        className="scrollbar-thin relative min-h-0 flex-1 overflow-y-auto bg-background px-3 pt-1 pb-4"
+        className="scrollbar-thin relative min-h-0 flex-1 overflow-y-auto px-3 pt-1 pb-4"
         onScroll={(e) => {
           const el = e.currentTarget;
           nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;

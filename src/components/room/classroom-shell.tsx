@@ -97,7 +97,7 @@ export function ClassroomShell({
   useRoomEvent("submission.changed", () => bump("board"));
 
   return (
-    <div className={cn("flex flex-col bg-background", heightClass)}>
+    <div className={cn("flex flex-col", heightClass)}>
       <header className="z-20 border-b border-border bg-surface">
         <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-3 sm:px-4">
           {/* 강사 화면은 위에 사이트 헤더가 있어서 로고를 한 번만 보여줘요. */}
