@@ -14,7 +14,7 @@ export const POST = roomHandler({ roles: ["instructor"], body: materialCreateSch
   try {
     assertRoomPath(roomId, body.path, "material");
   } catch {
-    throw new ApiError(400, "교안 파일을 다시 올려 주세요.");
+    throw new ApiError(400, "슬라이드 파일을 다시 올려 주세요.");
   }
   const { count } = await db().from("materials").select("id", { count: "exact", head: true }).eq("room_id", roomId);
   const row = must(
@@ -24,7 +24,7 @@ export const POST = roomHandler({ roles: ["instructor"], body: materialCreateSch
       .select("id")
       .single(),
   ) as { id: string };
-  // 첫 교안이면 바로 진행 교안으로
+  // 첫 슬라이드면 바로 진행 슬라이드로
   if (!actor.room.current_material_id) {
     const room = must(await db().from("rooms").update({ current_material_id: row.id, current_page: 1 }).eq("id", roomId).select("*").single()) as RoomRow;
     await broadcast(roomId, "room.updated", { room: toPublicRoom(room) });

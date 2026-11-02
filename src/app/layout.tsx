@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     default: "톡클 | 함께 만드는 수업",
     template: "%s | 톡클",
   },
-  description: "참여코드 하나로 채팅·교안·투표·산출물 공유를 한 화면에서. 설치·가입 없는 양방향 강의 플랫폼, 톡클.",
+  description: "참여코드 하나로 채팅·슬라이드·투표·산출물 공유를 한 화면에서. 설치·가입 없는 양방향 강의 플랫폼, 톡클.",
   applicationName: "톡클",
 };
 

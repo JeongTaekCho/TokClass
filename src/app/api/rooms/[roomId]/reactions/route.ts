@@ -4,7 +4,7 @@ import { broadcastMany } from "@/lib/realtime/server";
 import { db } from "@/lib/supabase/admin";
 import { reactionSchema } from "@/lib/validation/slides";
 
-/** 이모지 반응: 교안 위에 떠오르고, 페이지가 있으면 페이지 핀으로 저장해요. */
+/** 이모지 반응: 슬라이드 위에 떠오르고, 페이지가 있으면 페이지 핀으로 저장해요. */
 export const POST = roomHandler({ body: reactionSchema, tab: "slides" }, async ({ actor, roomId, body }) => {
   await limitParticipant(actor, "page-react", 10, 15);
   const materialId = body.materialId ?? null;

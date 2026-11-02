@@ -45,7 +45,7 @@ export const GET = roomHandler({ roles: ["instructor"], allowEnded: true }, asyn
     return file(
       `${base}_QnA.csv`,
       toCsv(
-        ["시각", "작성자", "질문", "공감", "답변 완료", "답변", "교안 페이지", "숨김"],
+        ["시각", "작성자", "질문", "공감", "답변 완료", "답변", "슬라이드 페이지", "숨김"],
         rows.map((r) => [formatDateTimeFull(r.created_at), r.anonymous && !canRevealAnonymousAuthor(actor.settings, r.created_at) ? "익명" : (r.participant?.nickname ?? ""), r.body, r.vote_count, r.answered ? "O" : "", r.answer ?? "", r.page ?? "", r.hidden ? "O" : ""]),
       ),
       "text/csv",

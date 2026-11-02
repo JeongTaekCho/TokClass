@@ -7,7 +7,7 @@ import { useRoomEvent } from "@/lib/realtime/provider";
 
 type Floating = { id: number; emoji: string; left: number };
 
-/** 이모지 반응이 교안 위로 잠깐 떠올라요. 부모는 relative여야 해요. */
+/** 이모지 반응이 슬라이드 위로 잠깐 떠올라요. 부모는 relative여야 해요. */
 export function ReactionLayer() {
   const [items, setItems] = useState<Floating[]>([]);
   const seq = useRef(0);

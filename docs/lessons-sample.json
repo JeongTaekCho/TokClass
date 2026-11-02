@@ -1,0 +1,49 @@
+{
+  "packs": [
+    {
+      "title": "형식 확인용 예시 묶음",
+      "intro": "관리자 JSON 가져오기 형식을 확인하려고 만든 예시예요. 실제 수업 내용으로 바꿔 쓰세요.",
+      "categories": ["참고 문서", "프롬프트"],
+      "cards": [
+        {
+          "kind": "link",
+          "name": "MDN 웹 문서",
+          "org": "Mozilla",
+          "description": "HTML·CSS·JavaScript 기능을 찾아볼 때 여는 참고 문서예요.",
+          "url": "https://developer.mozilla.org/ko/",
+          "icon": "📘",
+          "color": "blue",
+          "category": "참고 문서"
+        },
+        {
+          "kind": "link",
+          "name": "Python 공식 튜토리얼",
+          "org": "Python",
+          "description": "실습 중에 문법이 헷갈리면 바로 열어 확인해요.",
+          "url": "https://docs.python.org/ko/3/tutorial/",
+          "icon": "Py",
+          "color": "green",
+          "category": "참고 문서"
+        },
+        {
+          "kind": "copy",
+          "name": "회의록 요약 요청",
+          "description": "긴 회의 메모를 붙여 넣고 핵심만 정리해 달라고 할 때 써요.",
+          "body": "아래는 [회의 이름] 회의 메모야.\n결정된 일, 담당자, 마감일을 표로 정리하고\n아직 정하지 못한 질문은 따로 목록으로 뽑아 줘.\n\n[회의 메모를 여기에 붙여 넣기]",
+          "icon": "📝",
+          "color": "purple",
+          "category": "프롬프트"
+        },
+        {
+          "kind": "copy",
+          "name": "실습 폴더 만들기",
+          "org": "터미널",
+          "description": "실습 시작할 때 폴더를 만들고 들어가는 명령어예요.",
+          "body": "mkdir -p ~/[실습 폴더 이름] && cd ~/[실습 폴더 이름]",
+          "icon": ">_",
+          "color": "slate"
+        }
+      ]
+    }
+  ]
+}

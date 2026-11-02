@@ -34,7 +34,7 @@ export function EmptyRoomsArt(props: IllustrationProps) {
   );
 }
 
-/** 교안을 올려 주세요: 화면 위로 올라가는 문서 */
+/** 슬라이드를 올려 주세요: 화면 위로 올라가는 문서 */
 export function UploadSlidesArt(props: IllustrationProps) {
   return (
     <Illustration viewBox="0 0 240 180" {...props}>
@@ -423,7 +423,7 @@ export function ClassroomHeroArt({ className, title }: IllustrationProps) {
       <Blob cx={250} cy={190} r={170} tone="primary" />
       <circle cx={420} cy={70} r={34} className="fill-sun-soft" />
 
-      {/* 칠판과 교안 */}
+      {/* 칠판과 슬라이드 */}
       <Board x={62} y={40} w={236} h={150}>
         <rect x={80} y={58} width={108} height={70} rx={6} className="fill-sky-soft" />
         <path d="M92 112 l22 -22 l16 14 l24 -28 l22 20" className="fill-none stroke-sky" strokeWidth={5} />

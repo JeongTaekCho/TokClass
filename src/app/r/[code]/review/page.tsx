@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Download, ExternalLink, FileText, MessageCircleQuestion, NotebookPen, Trophy } from "lucide-react";
+import { ArrowLeft, BookMarked, Download, ExternalLink, FileText, MessageCircleQuestion, NotebookPen, Trophy } from "lucide-react";
 
 import { LogoMark } from "@/components/brand/logo";
+import { LessonBoard } from "@/components/lessons/lesson-board";
 import { MessageBody } from "@/components/room/message-body";
 import { Button } from "@/components/ui/button";
 import { must } from "@/lib/api/handler";
+import { listRoomLessons } from "@/lib/data/lessons";
 import { listMaterials } from "@/lib/data/materials";
 import { listResources } from "@/lib/data/resources";
 import { SUBMISSION_SELECT, toSubmissions, type SubmissionRow } from "@/lib/data/submissions";
@@ -27,20 +29,23 @@ function Section({ icon: Icon, title, children }: { icon: typeof FileText; title
   );
 }
 
-/** 수강생 복습 페이지: 교안, 내 메모, 내 산출물, 답변 달린 Q&A */
+/** 수강생 복습 페이지: 슬라이드, 교안, 내 메모, 내 산출물, 답변 달린 Q&A */
 export default async function ReviewPage({ params }: PageProps<"/r/[code]/review">) {
   const { code } = await params;
   const { room, participant } = await requireParticipant(code);
   const d = db();
-  const [materials, resources, notesRes, subRows, qaRes] = await Promise.all([
+  const settings = normalizeSettings(room.settings);
+  // 교안은 탭이 켜져 있을 때만 보여요 (수강생 API와 같은 기준). 숨긴 묶음·카드는 빼요.
+  const lessonsOn = settings.tabs.some((t) => t.key === "lessons" && t.enabled);
+  const [materials, resources, lessons, notesRes, subRows, qaRes] = await Promise.all([
     listMaterials(room.id),
     listResources(room.id),
+    lessonsOn ? listRoomLessons(room.id, false) : Promise.resolve([]),
     d.from("notes").select("material_id, page, body").eq("participant_id", participant.id).order("page"),
     d.from("submissions").select(SUBMISSION_SELECT).eq("room_id", room.id).eq("participant_id", participant.id).order("created_at", { ascending: false }),
     d.from("questions").select("id, body, answer, page, vote_count, participant_id").eq("room_id", room.id).eq("hidden", false).eq("answered", true).order("vote_count", { ascending: false }).limit(200),
   ]);
   const notes = must(notesRes) as { material_id: string; page: number; body: string }[];
-  const settings = normalizeSettings(room.settings);
   const submissions = await toSubmissions(must(subRows) as unknown as SubmissionRow[], { kind: "participant", participant, room, settings });
   const answered = must(qaRes) as { id: string; body: string; answer: string | null; page: number | null; vote_count: number; participant_id: string | null }[];
   const matTitle = new Map(materials.map((m) => [m.id, m.title]));
@@ -66,7 +71,7 @@ export default async function ReviewPage({ params }: PageProps<"/r/[code]/review
       <main className="mx-auto max-w-3xl space-y-8 px-4 py-6">
         <h1 className="text-title">복습</h1>
 
-        <Section icon={FileText} title="교안·자료">
+        <Section icon={FileText} title="슬라이드·자료">
           {materials.length === 0 && resources.length === 0 && <p className="text-sm text-muted-foreground">올라온 자료가 없어요.</p>}
           <ul className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card empty:hidden">
             {materials.map((m) => (
@@ -89,13 +94,19 @@ export default async function ReviewPage({ params }: PageProps<"/r/[code]/review
           </ul>
         </Section>
 
+        {lessons.length > 0 && (
+          <Section icon={BookMarked} title="교안">
+            <LessonBoard groups={lessons} idPrefix="review-lesson" />
+          </Section>
+        )}
+
         <Section icon={NotebookPen} title={`내 메모 (${notes.length})`}>
-          {notes.length === 0 && <p className="text-sm text-muted-foreground">교안 화면의 [메모]로 페이지마다 메모를 남길 수 있어요.</p>}
+          {notes.length === 0 && <p className="text-sm text-muted-foreground">슬라이드 화면의 [메모]로 페이지마다 메모를 남길 수 있어요.</p>}
           <ul className="space-y-2">
             {notes.map((n) => (
               <li key={`${n.material_id}-${n.page}`} className="rounded-sm bg-warning-soft p-3">
                 <p className="mb-1 text-xs font-semibold text-muted-foreground">
-                  {matTitle.get(n.material_id) ?? "교안"} · {n.page}페이지
+                  {matTitle.get(n.material_id) ?? "슬라이드"} · {n.page}페이지
                 </p>
                 <p className="whitespace-pre-wrap">{n.body}</p>
               </li>

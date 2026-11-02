@@ -1,12 +1,13 @@
-export const TAB_KEYS = ["slides", "chat", "qa", "board", "resources"] as const;
+export const TAB_KEYS = ["slides", "chat", "qa", "board", "resources", "lessons"] as const;
 export type TabKey = (typeof TAB_KEYS)[number];
 
 export const TAB_LABELS: Record<TabKey, string> = {
-  slides: "교안",
+  slides: "슬라이드",
   chat: "채팅",
   qa: "Q&A",
   board: "산출물",
   resources: "자료실",
+  lessons: "교안",
 };
 
 export type TabSetting = { key: TabKey; enabled: boolean };
@@ -31,13 +32,14 @@ export type BuiltinTemplate = (typeof BUILTIN_TEMPLATES)[number];
 export const TEMPLATE_INFO: Record<BuiltinTemplate, { name: string; description: string; tabs: TabSetting[]; defaultTab: TabKey }> = {
   lecture: {
     name: "강의형",
-    description: "교안 중심 강의. 교안·Q&A·채팅·자료실을 켜요.",
+    description: "슬라이드 중심 강의. 슬라이드·Q&A·채팅·자료실을 켜요.",
     tabs: [
       { key: "slides", enabled: true },
       { key: "qa", enabled: true },
       { key: "chat", enabled: true },
       { key: "resources", enabled: true },
       { key: "board", enabled: false },
+      { key: "lessons", enabled: false },
     ],
     defaultTab: "slides",
   },
@@ -46,6 +48,7 @@ export const TEMPLATE_INFO: Record<BuiltinTemplate, { name: string; description:
     description: "따라 하며 결과물을 공유해요. 모든 탭을 켜요.",
     tabs: [
       { key: "slides", enabled: true },
+      { key: "lessons", enabled: true },
       { key: "board", enabled: true },
       { key: "chat", enabled: true },
       { key: "qa", enabled: true },
@@ -58,6 +61,7 @@ export const TEMPLATE_INFO: Record<BuiltinTemplate, { name: string; description:
     description: "토론·아이디어 중심. 산출물 보드가 첫 화면이에요.",
     tabs: [
       { key: "board", enabled: true },
+      { key: "lessons", enabled: true },
       { key: "chat", enabled: true },
       { key: "qa", enabled: true },
       { key: "slides", enabled: true },

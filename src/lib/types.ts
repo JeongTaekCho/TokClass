@@ -1,3 +1,4 @@
+import type { LessonColor } from "@/lib/lessons/rules";
 import type { RoomSettings } from "@/lib/rooms/templates";
 
 export type RoomRow = {
@@ -154,3 +155,35 @@ export type Submission = {
 export type SubmissionComment = { id: string; body: string; author: { kind: "instructor" | "participant"; nickname: string }; mine: boolean; createdAt: string };
 
 export type Group = { id: string; name: string; memberCount: number };
+
+/** 교안 카드 (방 사본·라이브러리 공용 모양). link는 url, copy는 body가 있어요. hidden은 방 카드에만 의미가 있어요. */
+export type LessonCard = {
+  id: string;
+  kind: "link" | "copy";
+  name: string;
+  org: string | null;
+  description: string;
+  url: string | null;
+  body: string | null;
+  icon: string;
+  color: LessonColor;
+  category: string | null;
+  hidden: boolean;
+};
+
+/** 교안 묶음: 방 그룹이거나 라이브러리 묶음이에요. 화면은 같은 모양으로 그려요. */
+export type LessonGroup = {
+  id: string;
+  title: string;
+  intro: string;
+  categories: string[];
+  hidden: boolean;
+  cards: LessonCard[];
+};
+
+export type RoomLessonGroup = LessonGroup & { sourcePackId: string | null };
+
+/** 라이브러리 묶음. ownerId가 null이면 공용(관리자 관리)이에요. */
+export type LessonPack = LessonGroup & { ownerId: string | null; isPublished: boolean; updatedAt: string };
+
+export type LessonPackSummary = Omit<LessonPack, "cards"> & { cardCount: number };

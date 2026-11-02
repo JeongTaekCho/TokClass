@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSupabaseSession } from "@/lib/supabase/proxy";
 
 /** 승인된 강사만 쓰는 화면 */
-const APPROVED_PREFIXES = ["/dashboard", "/rooms", "/manage", "/admin"];
+const APPROVED_PREFIXES = ["/dashboard", "/rooms", "/manage", "/lessons", "/admin"];
 /** 로그인만 필요한 화면 (승인 안내) */
 const LOGIN_PREFIXES = ["/pending"];
 

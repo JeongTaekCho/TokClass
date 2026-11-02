@@ -3,7 +3,7 @@ import { z } from "zod";
 export const REACTION_EMOJIS = ["👍", "👏", "❤️", "😮", "😂", "🤔"] as const;
 
 export const materialCreateSchema = z.object({
-  title: z.string().trim().min(1, "교안 이름을 입력해 주세요.").max(100),
+  title: z.string().trim().min(1, "슬라이드 이름을 입력해 주세요.").max(100),
   path: z.string().min(1).max(300),
   pageCount: z.number().int().min(1).max(2000),
   sizeBytes: z.number().int().min(0),

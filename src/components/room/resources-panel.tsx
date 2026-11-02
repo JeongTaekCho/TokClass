@@ -86,7 +86,7 @@ export function ResourcesPanel({ manage = false }: { manage?: boolean }) {
 
       {(mat?.materials.length ?? 0) > 0 && (
         <section>
-          <h3 className="mb-1 text-sm font-medium text-muted-foreground">교안</h3>
+          <h3 className="mb-1 text-sm font-medium text-muted-foreground">슬라이드</h3>
           <ul className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
             {mat!.materials.map((m) => (
               <li key={m.id}>

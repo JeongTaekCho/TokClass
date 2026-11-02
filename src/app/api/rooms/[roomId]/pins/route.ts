@@ -5,7 +5,7 @@ import { db } from "@/lib/supabase/admin";
 
 export type PagePins = Record<number, { questions: number; reactions: Record<string, number>; total: number }>;
 
-/** 교안 페이지별 질문·반응 개수 (강사) */
+/** 슬라이드 페이지별 질문·반응 개수 (강사) */
 export const GET = roomHandler({ roles: ["instructor"], allowEnded: true }, async ({ roomId, search }) => {
   const materialId = search.get("materialId");
   if (!isUuid(materialId)) throw badRequest();

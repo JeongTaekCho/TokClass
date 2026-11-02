@@ -16,6 +16,7 @@ export function AdminNav({ pendingCount }: { pendingCount: number }) {
       ),
     },
     { href: "/admin/rooms", label: "방", icon: "rooms" },
+    { href: "/admin/lessons", label: "공용 교안", icon: "lessons" },
     { href: "/admin/audit", label: "감사 로그", icon: "audit" },
   ];
   return <HeaderNav items={items} group="admin" label="관리자 메뉴" className="border-l border-border pl-3" />;

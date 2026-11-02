@@ -10,6 +10,7 @@ export function InstructorHeader({ name, isAdmin = false, children }: { name?: s
   const items: HeaderNavItem[] = [
     { href: "/dashboard", label: "내 방", icon: "house" },
     { href: "/manage", label: "수강생 관리", icon: "users" },
+    { href: "/lessons", label: "교안", icon: "lessons" },
     ...(isAdmin ? [{ href: "/admin", label: "관리자", icon: "shield" } as const] : []),
   ];
   return (

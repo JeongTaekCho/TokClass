@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import useSWR from "swr";
-import { FolderOpen, MessageCircleQuestion, MessagesSquare, Presentation, StickyNote, type LucideIcon } from "lucide-react";
+import { BookMarked, FolderOpen, MessageCircleQuestion, MessagesSquare, Presentation, StickyNote, type LucideIcon } from "lucide-react";
 
 import { LogoMark } from "@/components/brand/logo";
 import { ActiveIndicator, Pop } from "@/components/motion";
@@ -10,6 +10,7 @@ import { AnnouncementBar } from "@/components/room/announcements";
 import { BoardPanel } from "@/components/room/board/board-panel";
 import { ChatPanel } from "@/components/room/chat-panel";
 import { ConnectionBadge } from "@/components/room/connection-badge";
+import { LessonsPanel } from "@/components/room/lessons-panel";
 import { QaPanel } from "@/components/room/qa-panel";
 import { ResourcesPanel } from "@/components/room/resources-panel";
 import { ClassSlides } from "@/components/room/slides/class-slides";
@@ -27,6 +28,7 @@ const TAB_ICONS: Record<TabKey, LucideIcon> = {
   qa: MessageCircleQuestion,
   board: StickyNote,
   resources: FolderOpen,
+  lessons: BookMarked,
 };
 
 /** 내 정보(조 배정 등)는 바뀔 수 있어서 따로 받아와요. */
@@ -39,7 +41,7 @@ export function useMe() {
 
 /**
  * 수업 화면 (강사·수강생 공용).
- * 탭 구성·순서·첫 화면, 교안·채팅·Q&A·산출물·자료실, 공지·조 안내가 모두 같은 모양이라
+ * 탭 구성·순서·첫 화면, 슬라이드·교안·채팅·Q&A·산출물·자료실, 공지·조 안내가 모두 같은 모양이라
  * 강사가 보는 화면 그대로 수강생이 따라 할 수 있어요. 역할별 기능만 슬롯으로 끼워 넣어요.
  * - headerActions: 제목 줄 오른쪽 (수강생: 1:1·프로필 / 강사: 접속 수·강사 도구 열기)
  * - toolbar: 강사 전용 진행 도구 줄
@@ -162,6 +164,7 @@ export function ClassroomShell({
                 {key === "qa" && <QaPanel />}
                 {key === "board" && <BoardPanel />}
                 {key === "resources" && <ResourcesPanel manage={isInstructor} />}
+                {key === "lessons" && <LessonsPanel manage={isInstructor} />}
               </section>
             ) : null,
           )}

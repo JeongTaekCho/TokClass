@@ -39,8 +39,8 @@ function passGate(ref: { current: number }) {
 }
 
 /**
- * 교안 화면 (강사·수강생 공용). 교안 영역과 페이지 이동은 같은 모양이고,
- * 강사는 교안 관리·페이지별 반응을, 수강생은 따라가기·반응·질문·메모를 더 봐요.
+ * 슬라이드 화면 (강사·수강생 공용). 슬라이드 영역과 페이지 이동은 같은 모양이고,
+ * 강사는 슬라이드 관리·페이지별 반응을, 수강생은 따라가기·반응·질문·메모를 더 봐요.
  * 강사가 넘기면 따라가기를 켠 수강생 화면도 같은 페이지로 넘어가요.
  */
 export function ClassSlides() {
@@ -85,13 +85,13 @@ export function ClassSlides() {
     return isInstructor ? (
       <div className="flex min-h-0 flex-1 flex-col p-3">
         <InstructorMaterialBar materials={materials} material={null} onChanged={mutate} onGo={go} stageRef={stageRef} />
-        <EmptyState className="m-auto max-w-sm" art={<UploadSlidesArt />} title="교안 PDF를 올려 주세요">
+        <EmptyState className="m-auto max-w-sm" art={<UploadSlidesArt />} title="슬라이드 PDF를 올려 주세요">
           최대 30MB. 넘기면 수강생 화면도 함께 넘어가요.
         </EmptyState>
       </div>
     ) : (
-      <EmptyState className="m-auto" art={<UploadSlidesArt />} title="아직 올라온 교안이 없어요">
-        강사님이 교안을 올리면 여기에 바로 떠요.
+      <EmptyState className="m-auto" art={<UploadSlidesArt />} title="아직 올라온 슬라이드가 없어요">
+        강사님이 슬라이드를 올리면 여기에 바로 떠요.
       </EmptyState>
     );
   }
@@ -111,7 +111,7 @@ export function ClassSlides() {
             </div>
             {!follow && materials.length > 1 && material && (
               <Select value={material.id} onValueChange={(v) => setOwn({ materialId: v, page: 1 })}>
-                <SelectTrigger className="h-10 w-auto max-w-[12rem]" aria-label="교안 선택">
+                <SelectTrigger className="h-10 w-auto max-w-[12rem]" aria-label="슬라이드 선택">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -167,7 +167,7 @@ function useSlidePersist(roomId: string) {
   };
 }
 
-/** 강사 전용: 교안 고르기·올리기·삭제·발표 화면 */
+/** 강사 전용: 슬라이드 고르기·올리기·삭제·발표 화면 */
 function InstructorMaterialBar({
   materials,
   material,
@@ -193,11 +193,11 @@ function InstructorMaterialBar({
       });
       const up = await uploadFile(roomId, "material", file);
       const res = await api<{ id: string; materials: Material[] }>(`/api/rooms/${roomId}/materials`, {
-        body: { title: file.name.replace(/\.pdf$/i, "").slice(0, 100) || "교안", path: up.path, pageCount, sizeBytes: up.size },
+        body: { title: file.name.replace(/\.pdf$/i, "").slice(0, 100) || "슬라이드", path: up.path, pageCount, sizeBytes: up.size },
       });
       await onChanged({ materials: res.materials }, { revalidate: false });
       onGo(res.id, 1);
-      toast.success(`교안을 올렸어요 (${pageCount}쪽)`);
+      toast.success(`슬라이드를 올렸어요 (${pageCount}쪽)`);
     } catch (e) {
       if (e instanceof Error && !("status" in e)) toast.error(e.message);
       else toastError(e);
@@ -210,7 +210,7 @@ function InstructorMaterialBar({
     <div className="flex w-full flex-wrap items-center gap-2">
       {materials.length > 0 && material && (
         <Select value={material.id} onValueChange={(v) => onGo(v, 1)}>
-          <SelectTrigger className="h-10 w-auto max-w-xs" aria-label="교안 선택">
+          <SelectTrigger className="h-10 w-auto max-w-xs" aria-label="슬라이드 선택">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -238,7 +238,7 @@ function InstructorMaterialBar({
       </Button>
       {material && (
         <ConfirmButton
-          title="교안을 삭제할까요?"
+          title="슬라이드를 삭제할까요?"
           description={`'${material.title}'과 페이지 반응·메모가 함께 삭제돼요.`}
           confirmLabel="삭제"
           destructive
@@ -253,7 +253,7 @@ function InstructorMaterialBar({
             }
           }}
         >
-          <Button variant="ghost" size="icon-sm" aria-label="교안 삭제">
+          <Button variant="ghost" size="icon-sm" aria-label="슬라이드 삭제">
             <Trash2 aria-hidden />
           </Button>
         </ConfirmButton>
