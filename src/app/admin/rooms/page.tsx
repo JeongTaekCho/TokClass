@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { School, Search } from "lucide-react";
 
+import { PageHeader } from "@/components/page-header";
 import { RoomActions } from "@/components/admin/room-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,10 +59,7 @@ export default async function AdminRoomsPage({ searchParams }: PageProps<"/admin
   return (
     <>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-title">방 관리</h1>
-          <p className="text-muted-foreground">모든 강사의 방을 보고, 필요하면 강제로 종료하거나 삭제할 수 있어요.</p>
-        </div>
+        <PageHeader icon={School} title="방 관리" description="모든 강사의 방을 보고, 필요하면 강제로 종료하거나 삭제할 수 있어요." className="mb-0" />
         <form className="relative w-full max-w-xs" action="/admin/rooms">
           <input type="hidden" name="status" value={status} />
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -78,9 +76,9 @@ export default async function AdminRoomsPage({ searchParams }: PageProps<"/admin
         ))}
       </nav>
 
-      <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface shadow-card">
         <table className="w-full min-w-[860px] text-left text-sm">
-          <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
+          <thead className="border-b border-border bg-primary-soft/50 text-xs font-semibold text-primary-ink/80">
             <tr>
               <th className="px-4 py-3">방</th>
               <th className="px-4 py-3">강사</th>
@@ -101,7 +99,7 @@ export default async function AdminRoomsPage({ searchParams }: PageProps<"/admin
             {rooms.map((r) => {
               const owner = owners.get(r.owner_id);
               return (
-                <tr key={r.id} className="border-b border-border last:border-0">
+                <tr key={r.id} className="border-b border-border transition-colors last:border-0 hover:bg-primary-soft/30">
                   <td className="px-4 py-2.5">
                     <span className="font-semibold">{r.title}</span>
                     <span className="ml-2 font-mono text-xs text-muted-foreground">{r.join_code}</span>

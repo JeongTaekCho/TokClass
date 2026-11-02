@@ -104,9 +104,9 @@ export default async function AdminInstructorDetailPage({ params }: PageProps<"/
           <h2 id="rooms-title" className="mb-3 text-heading">
             보유 방
           </h2>
-          <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
+          <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface shadow-card">
             <table className="w-full min-w-[560px] text-left text-sm">
-              <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
+              <thead className="border-b border-border bg-primary-soft/50 text-xs font-semibold text-primary-ink/80">
                 <tr>
                   <th className="px-4 py-3">방</th>
                   <th className="px-4 py-3">상태</th>
@@ -123,7 +123,7 @@ export default async function AdminInstructorDetailPage({ params }: PageProps<"/
                   </tr>
                 )}
                 {roomList.map((r) => (
-                  <tr key={r.id} className="border-b border-border last:border-0">
+                  <tr key={r.id} className="border-b border-border transition-colors last:border-0 hover:bg-primary-soft/30">
                     <td className="px-4 py-2.5">
                       <span className="font-semibold">{r.title}</span>
                       <span className="ml-2 font-mono text-xs text-muted-foreground">{r.join_code}</span>

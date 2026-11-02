@@ -201,9 +201,9 @@ export function ManageApp() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface shadow-card">
         <table className="w-full min-w-[880px] text-left text-sm">
-          <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
+          <thead className="border-b border-border bg-primary-soft/50 text-xs font-semibold text-primary-ink/80">
             <tr>
               <th className="w-10 px-4 py-3">
                 <Checkbox
@@ -239,7 +239,7 @@ export function ManageApp() {
               const room = roomMap.get(p.roomId);
               const st = participantState(p, online);
               return (
-                <tr key={p.id} className={cn("border-b border-border last:border-0 hover:bg-sunken/50", selected.has(p.id) && "bg-primary-soft hover:bg-primary-soft")}>
+                <tr key={p.id} className={cn("border-b border-border transition-colors last:border-0 hover:bg-primary-soft/30", selected.has(p.id) && "bg-primary-soft hover:bg-primary-soft")}>
                   <td className="px-4 py-2">
                     <Checkbox checked={selected.has(p.id)} onCheckedChange={(v) => toggle(p.id, v === true)} aria-label={`${p.nickname} 선택`} />
                   </td>

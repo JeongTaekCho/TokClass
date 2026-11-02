@@ -22,6 +22,13 @@ import { cn } from "@/lib/utils";
  *   수업 리포트의 시간대별 이해도 추이가 돼요. 다른 수강생에게는 보이지 않아요.
  * - 도움 요청: 강사님 대기열에 이름이 올라가서 직접 도움을 받는 손들기예요.
  */
+/** 누르기 전에도 신호등 색이 은은하게 보여서 어느 버튼인지 바로 알아봐요. */
+const IDLE: Record<UnderstandingStatus, string> = {
+  green: "bg-success-soft/60 hover:bg-success-soft",
+  yellow: "bg-warning-soft/70 hover:bg-warning-soft",
+  red: "bg-destructive-soft/60 hover:bg-destructive-soft",
+};
+
 export function BottomBar() {
   const { roomId, room, me } = useRoom();
   const { data: u, mutate: mutateU } = useSWR<{ status: UnderstandingStatus | null }>(`/api/rooms/${roomId}/understanding`, fetcher);
@@ -71,7 +78,7 @@ export function BottomBar() {
   }
 
   return (
-    <div className="safe-bottom z-20 border-t border-border bg-surface shadow-[0_-8px_24px_-16px_rgb(25_27_42/0.25)]">
+    <div className="safe-bottom surface-glass z-20 border-t border-border/70 shadow-[0_-8px_24px_-16px_rgb(49_46_129/0.25)]">
       <div className="mx-auto flex max-w-5xl items-center gap-1 px-3 pt-1.5 text-xs text-muted-foreground">
         <span id="understanding-caption">
           {current ? "지금 내 이해도를 강사님께 보여주고 있어요" : "지금 수업, 잘 따라오고 있나요? 눌러서 강사님께 알려 주세요"}
@@ -91,7 +98,7 @@ export function BottomBar() {
               disabled={pending !== null}
               className={cn(
                 "press flex min-h-13 flex-1 cursor-pointer flex-col items-center justify-center rounded-lg border-2 px-1 text-[13px] leading-tight font-semibold transition-colors duration-150 sm:flex-row sm:gap-1.5 sm:text-sm",
-                active ? cn(s.soft, "shadow-card") : "border-transparent bg-sunken text-muted-foreground hover:text-foreground",
+                active ? cn(s.soft, "shadow-card") : cn("border-transparent text-foreground/75 hover:text-foreground", IDLE[s.status]),
               )}
             >
               <motion.span

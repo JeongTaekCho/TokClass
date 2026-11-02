@@ -1,5 +1,6 @@
-import { GraduationCap, MonitorPlay, UserCheck, Users } from "lucide-react";
+import { GraduationCap, MonitorPlay, ShieldCheck, UserCheck, Users } from "lucide-react";
 
+import { PageHeader } from "@/components/page-header";
 import { IconChip } from "@/components/icon-chip";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -14,8 +15,7 @@ const STATS = [
 export default function Loading() {
   return (
     <>
-      <h1 className="mb-1 text-title">관리자</h1>
-      <p className="mb-8 text-muted-foreground">강사 승인, 방 관리, 작업 기록을 한곳에서 볼 수 있어요.</p>
+      <PageHeader icon={ShieldCheck} title="관리자" description="강사 승인, 방 관리, 작업 기록을 한곳에서 볼 수 있어요." />
       <div role="status" aria-live="polite" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <span className="sr-only">현황을 불러오고 있어요</span>
         {STATS.map((st) => (
