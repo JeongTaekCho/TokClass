@@ -121,9 +121,13 @@ export function LessonBoard({
   );
 }
 
-function GroupSection({ group: g, anchorId, editor, first, last, searching }: { group: LessonGroup; anchorId: string; editor?: LessonEditor; first: boolean; last: boolean; searching: boolean }) {
+/** 화면에 먼저 띄운 항목(서버에 아직 저장 중). 저장이 끝나기 전에는 편집 도구를 숨겨요. */
+const isPending = (id: string) => id.startsWith("temp-");
+
+function GroupSection({ group: g, anchorId, editor: groupEditor, first, last, searching }: { group: LessonGroup; anchorId: string; editor?: LessonEditor; first: boolean; last: boolean; searching: boolean }) {
   const [filter, setFilter] = useState<string | null>(null);
-  const categories = g.categories.filter((c) => g.cards.some((card) => card.category === c) || editor);
+  const editor = groupEditor && !isPending(g.id) ? groupEditor : undefined;
+  const categories = g.categories.filter((c) => g.cards.some((card) => card.category === c) || groupEditor);
   const current = filter && categories.includes(filter) ? filter : null;
   const shown = current ? g.cards.filter((c) => c.category === current) : g.cards;
   const uncategorized = g.cards.filter((c) => !c.category || !g.categories.includes(c.category));
@@ -140,14 +144,16 @@ function GroupSection({ group: g, anchorId, editor, first, last, searching }: { 
         <LessonCardView
           card={c}
           tools={
-            editor && {
-              first: i === 0,
-              last: i === g.cards.length - 1,
-              onMove: (dir) => editor.moveCard(c, g, dir),
-              onEdit: () => editor.editCard(c, g),
-              onDelete: () => editor.deleteCard(c, g),
-              onToggleHidden: editor.toggleCardHidden && (() => editor.toggleCardHidden!(c, g)),
-            }
+            editor && !isPending(c.id)
+              ? {
+                  first: i === 0,
+                  last: i === g.cards.length - 1,
+                  onMove: (dir) => editor.moveCard(c, g, dir),
+                  onEdit: () => editor.editCard(c, g),
+                  onDelete: () => editor.deleteCard(c, g),
+                  onToggleHidden: editor.toggleCardHidden && (() => editor.toggleCardHidden!(c, g)),
+                }
+              : undefined
           }
         />
       </li>
