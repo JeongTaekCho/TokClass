@@ -21,9 +21,24 @@ export const LESSON_COLOR_CLASS: Record<LessonColor, string> = {
   red: "bg-destructive-soft text-destructive",
 };
 
+/** 카드 위쪽을 아이콘 색으로 은은하게 물들여요. */
+const LESSON_WASH: Record<LessonColor, string> = {
+  indigo: "from-primary-soft/80",
+  coral: "from-coral-soft/80",
+  purple: "from-lilac-soft/80",
+  green: "from-mint-soft/80",
+  blue: "from-sky-soft/80",
+  orange: "from-sun-soft/80",
+  slate: "from-sunken",
+  red: "from-destructive-soft/80",
+};
+
 export function LessonIcon({ icon, color, className }: { icon: string; color: LessonColor; className?: string }) {
   return (
-    <span aria-hidden className={cn("inline-flex size-10 shrink-0 items-center justify-center rounded-[10px] text-base leading-none font-bold", LESSON_COLOR_CLASS[color], className)}>
+    <span
+      aria-hidden
+      className={cn("inline-flex size-10 shrink-0 items-center justify-center rounded-[12px] text-base leading-none font-bold shadow-[inset_0_0_0_1px_rgb(255_255_255/0.6),0_2px_6px_-3px_rgb(49_46_129/0.3)]", LESSON_COLOR_CLASS[color], className)}
+    >
       {icon}
     </span>
   );
@@ -39,7 +54,8 @@ export type LessonCardTools = {
   onToggleHidden?: () => void;
 };
 
-const CARD = "flex h-full flex-col gap-2 rounded-lg border border-border/70 bg-surface p-4 text-left shadow-card";
+const CARD = "flex h-full flex-col gap-2 rounded-2xl border border-border/60 bg-surface bg-gradient-to-b via-surface via-45% to-surface p-4 text-left shadow-card";
+const LIFT = "transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-raised motion-reduce:hover:translate-y-0";
 
 function CardHead({ card }: { card: LessonCard }) {
   return (
@@ -77,16 +93,13 @@ export function LessonCardView({ card, tools }: { card: LessonCard; tools?: Less
     return (
       <div className={cn("flex h-full flex-col", hiddenCls)}>
         {tools || !card.url ? (
-          <div className={cn(CARD, "flex-1")}>{inner}</div>
+          <div className={cn(CARD, LESSON_WASH[card.color], "flex-1")}>{inner}</div>
         ) : (
           <a
             href={card.url}
             target="_blank"
             rel="noopener noreferrer"
-            className={cn(
-              CARD,
-              "flex-1 transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-raised focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none motion-reduce:hover:translate-y-0",
-            )}
+            className={cn(CARD, LESSON_WASH[card.color], LIFT, "flex-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none")}
           >
             {inner}
             <span className="sr-only">(새 탭에서 열려요)</span>
@@ -98,7 +111,7 @@ export function LessonCardView({ card, tools }: { card: LessonCard; tools?: Less
   }
   return (
     <div className={cn("flex h-full flex-col", hiddenCls)}>
-      <div className={cn(CARD, "flex-1")}>
+      <div className={cn(CARD, LESSON_WASH[card.color], !tools && LIFT, "flex-1")}>
         <CardHead card={card} />
         <CopyBody body={card.body ?? ""} name={card.name} />
       </div>
@@ -147,7 +160,7 @@ function CopyBody({ body, name }: { body: string; name: string }) {
           {state === "copied" ? "복사했어요" : state === "manual" ? "Ctrl+C로 복사하세요" : ""}
         </span>
       </div>
-      <details ref={detailsRef} className="group/details rounded-md bg-sunken/60">
+      <details ref={detailsRef} className="group/details rounded-lg border border-border/60 bg-surface/80">
         <summary className="cursor-pointer list-none px-3 py-2 text-sm font-medium text-muted-foreground select-none hover:text-foreground [&::-webkit-details-marker]:hidden">
           <span className="group-open/details:hidden">내용 보기</span>
           <span className="hidden group-open/details:inline">내용 접기</span>

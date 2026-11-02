@@ -43,7 +43,7 @@ export function HeaderNav({ items, group, label, className, compact = false }: {
             aria-current={active ? "page" : undefined}
             className={cn(
               "relative isolate inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm transition-colors duration-150",
-              active ? "font-semibold text-primary-ink" : "font-medium text-muted-foreground hover:bg-sunken hover:text-foreground",
+              active ? "font-semibold text-primary-ink" : "font-medium text-muted-foreground hover:bg-primary-soft/60 hover:text-primary-ink",
             )}
           >
             {active && <ActiveIndicator layoutId={`nav-${group}`} className="absolute inset-0 -z-10 rounded-md bg-primary-soft" />}

@@ -117,7 +117,7 @@ export function LiveShell() {
         <aside
           aria-label="강사 도구"
           className={cn(
-            "min-h-0 flex-col border-l border-border bg-background",
+            "min-h-0 flex-col border-l border-border bg-surface lg:bg-surface/70 lg:supports-[backdrop-filter]:backdrop-blur-sm",
             mobileOpen ? "fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] animate-in shadow-overlay duration-300 ease-out slide-in-from-right" : "hidden",
             desktopOpen ? "lg:static lg:z-auto lg:flex lg:w-[400px] lg:max-w-none lg:shrink-0 lg:animate-none lg:shadow-none" : "lg:hidden",
           )}

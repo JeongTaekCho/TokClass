@@ -166,6 +166,7 @@ function GroupSection({ group: g, anchorId, editor: groupEditor, first, last, se
       <div className="flex flex-wrap items-start gap-2">
         <div className="min-w-0 flex-1">
           <h2 id={titleId} className="flex items-center gap-2 text-heading">
+            <span aria-hidden className="bg-brand h-5 w-1 shrink-0 rounded-full" />
             {g.title}
             {g.hidden && <span className="rounded-sm bg-sunken px-1.5 py-0.5 text-xs font-medium text-muted-foreground">숨김</span>}
           </h2>
