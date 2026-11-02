@@ -12,7 +12,19 @@ export type AuditAction =
   | "instructor.grant_admin"
   | "instructor.revoke_admin"
   | "room.end"
-  | "room.delete";
+  | "room.delete"
+  | "lesson.create"
+  | "lesson.update"
+  | "lesson.publish"
+  | "lesson.unpublish"
+  | "lesson.delete"
+  | "lesson.reorder"
+  | "lesson.card_create"
+  | "lesson.card_update"
+  | "lesson.card_delete"
+  | "lesson.import";
+
+export type AuditTargetType = "instructor" | "room" | "lesson_pack";
 
 export const AUDIT_ACTION_LABEL: Record<AuditAction, string> = {
   "instructor.approve": "강사 승인",
@@ -23,6 +35,16 @@ export const AUDIT_ACTION_LABEL: Record<AuditAction, string> = {
   "instructor.revoke_admin": "관리자 회수",
   "room.end": "방 강제 종료",
   "room.delete": "방 삭제",
+  "lesson.create": "공용 교안 만들기",
+  "lesson.update": "공용 교안 수정",
+  "lesson.publish": "공용 교안 게시",
+  "lesson.unpublish": "공용 교안 게시 중단",
+  "lesson.delete": "공용 교안 삭제",
+  "lesson.reorder": "공용 교안 순서 변경",
+  "lesson.card_create": "공용 교안 카드 추가",
+  "lesson.card_update": "공용 교안 카드 수정",
+  "lesson.card_delete": "공용 교안 카드 삭제",
+  "lesson.import": "공용 교안 가져오기",
 };
 
 export type AuditLog = {
@@ -30,7 +52,7 @@ export type AuditLog = {
   actor_id: string | null;
   actor_email: string;
   action: AuditAction;
-  target_type: "instructor" | "room";
+  target_type: AuditTargetType;
   target_id: string;
   target_label: string;
   reason: string | null;
@@ -41,7 +63,7 @@ export type AuditLog = {
 /** 관리자 작업 기록. 실패하면 요청도 실패로 돌려서 기록 없는 작업이 조용히 지나가지 않게 해요. */
 export async function writeAudit(
   actor: InstructorAccess,
-  entry: { action: AuditAction; targetType: "instructor" | "room"; targetId: string; targetLabel: string; reason?: string | null; meta?: Record<string, unknown> },
+  entry: { action: AuditAction; targetType: AuditTargetType; targetId: string; targetLabel: string; reason?: string | null; meta?: Record<string, unknown> },
 ) {
   must(
     await db()

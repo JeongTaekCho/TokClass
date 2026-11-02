@@ -56,7 +56,7 @@ export default async function AdminAuditPage({ searchParams }: PageProps<"/admin
                 <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">{formatDateTimeFull(l.created_at)}</td>
                 <td className="px-4 py-2.5 break-all">{l.actor_email || "알 수 없음"}</td>
                 <td className="px-4 py-2.5">
-                  <Badge variant={l.action === "room.delete" || l.action === "instructor.suspend" || l.action === "instructor.reject" ? "coral-soft" : "soft"}>{AUDIT_ACTION_LABEL[l.action] ?? l.action}</Badge>
+                  <Badge variant={l.action === "room.delete" || l.action === "lesson.delete" || l.action === "instructor.suspend" || l.action === "instructor.reject" ? "coral-soft" : "soft"}>{AUDIT_ACTION_LABEL[l.action] ?? l.action}</Badge>
                 </td>
                 <td className="px-4 py-2.5">
                   {l.target_type === "instructor" ? (
@@ -66,7 +66,7 @@ export default async function AdminAuditPage({ searchParams }: PageProps<"/admin
                   ) : (
                     <span>
                       {l.target_label || l.target_id}
-                      <span className="ml-1 text-xs text-muted-foreground">(방)</span>
+                      <span className="ml-1 text-xs text-muted-foreground">{l.target_type === "lesson_pack" ? "(공용 교안)" : "(방)"}</span>
                     </span>
                   )}
                 </td>

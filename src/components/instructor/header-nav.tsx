@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, House, LayoutDashboard, MonitorPlay, School, ScrollText, Settings2, Shapes, ShieldCheck, UserCog, Users } from "lucide-react";
+import { BarChart3, BookMarked, House, LayoutDashboard, MonitorPlay, School, ScrollText, Settings2, Shapes, ShieldCheck, UserCog, Users } from "lucide-react";
 
 import { ActiveIndicator } from "@/components/motion";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,7 @@ const ICONS = {
   instructors: UserCog,
   rooms: School,
   audit: ScrollText,
+  lessons: BookMarked,
 };
 
 export type HeaderNavItem = { href: string; label: string; icon: keyof typeof ICONS; exact?: boolean; badge?: React.ReactNode };

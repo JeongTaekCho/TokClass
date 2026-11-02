@@ -27,9 +27,9 @@ export default function PdfView({ url, page, onLoad, fitWidthOnly = false, title
   const width = fitWidthOnly || size.height === 0 ? maxW : Math.min(maxW, size.height * aspect);
 
   return (
-    <div ref={ref} className="flex h-full w-full items-center justify-center overflow-hidden" role="img" aria-label={title ? `${title} ${page}페이지` : `교안 ${page}페이지`}>
+    <div ref={ref} className="flex h-full w-full items-center justify-center overflow-hidden" role="img" aria-label={title ? `${title} ${page}페이지` : `슬라이드 ${page}페이지`}>
       {failed ? (
-        <p className="p-6 text-center text-muted-foreground">교안을 불러오지 못했어요. 새로고침해 주세요.</p>
+        <p className="p-6 text-center text-muted-foreground">슬라이드를 불러오지 못했어요. 새로고침해 주세요.</p>
       ) : (
         <Document
           file={url}

@@ -24,7 +24,7 @@ export const PUT = roomHandler({ roles: ["participant"], body: noteSchema, allow
     return { ok: true };
   }
   const { data } = await db().from("materials").select("id").eq("id", body.materialId).eq("room_id", roomId).maybeSingle();
-  if (!data) throw new ApiError(404, "교안을 찾을 수 없어요.");
+  if (!data) throw new ApiError(404, "슬라이드를 찾을 수 없어요.");
   must(
     await db()
       .from("notes")

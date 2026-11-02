@@ -74,7 +74,7 @@ export function BoardGridSkeleton({ count = 6 }: { count?: number }) {
   );
 }
 
-/** 자료실·교안 목록 행 */
+/** 자료실·슬라이드 목록 행 */
 export function ResourceListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <Loading label="자료를 불러오는 중이에요" className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
@@ -231,11 +231,29 @@ export function ClassroomSkeleton() {
   );
 }
 
-/** 교안 한 장: 4:3 비율 자리. 교안이 뜨면 같은 자리에 들어와요. */
+/** 슬라이드 한 장: 4:3 비율 자리. 슬라이드가 뜨면 같은 자리에 들어와요. */
 export function SlideSkeleton({ className }: { className?: string }) {
   return (
-    <Loading label="교안을 불러오는 중이에요" className={cn("w-full", className)}>
+    <Loading label="슬라이드를 불러오는 중이에요" className={cn("w-full", className)}>
       <Skeleton className="mx-auto aspect-[4/3] w-full max-w-3xl" />
+    </Loading>
+  );
+}
+
+/** 교안 카드: 아이콘 칩 + 이름 + 설명 두 줄. 실제 그리드와 같은 열 수예요 (모바일 1열, 태블릿 2열, 데스크톱 3열). */
+export function LessonGridSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <Loading label="교안을 불러오는 중이에요" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: count }, (_, i) => (
+        <div key={i} className="flex min-h-32 flex-col gap-3 rounded-lg border border-border/70 bg-surface p-4 shadow-card">
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-10 shrink-0 rounded-[10px]" />
+            <Skeleton className={cn("h-4", i % 2 ? "w-1/2" : "w-2/3")} />
+          </div>
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-3/4" />
+        </div>
+      ))}
     </Loading>
   );
 }

@@ -22,7 +22,7 @@ const URL_TTL = 5 * 60 * 60 * 1000; // 서명 URL은 6시간 유효
 const now = () => Date.now();
 
 /**
- * 서명 URL은 다시 받아올 때마다 바뀌어서, 교안별로 처음 받은 URL을 유지해 PDF를 다시 내려받지 않게 해요.
+ * 서명 URL은 다시 받아올 때마다 바뀌어서, 슬라이드별로 처음 받은 URL을 유지해 PDF를 다시 내려받지 않게 해요.
  * (URL이 만료되기 전까지만)
  */
 export function useStableMaterialUrl(material: Material | null | undefined) {

@@ -77,7 +77,7 @@ export function RoomActions({ roomId, title, status }: { roomId: string; title: 
         <DialogContent>
           <DialogHeader>
             <DialogTitle>방을 삭제할까요?</DialogTitle>
-            <DialogDescription>채팅·산출물·교안 파일까지 모두 지워지고 되돌릴 수 없어요. 확인을 위해 방 제목을 그대로 입력해 주세요.</DialogDescription>
+            <DialogDescription>채팅·산출물·슬라이드 파일까지 모두 지워지고 되돌릴 수 없어요. 확인을 위해 방 제목을 그대로 입력해 주세요.</DialogDescription>
           </DialogHeader>
           <form
             className="space-y-3"

@@ -36,12 +36,14 @@ src/
     view/[token]/                  읽기 전용
     api/
       join/...                     입장(코드 확인, 새로 참여, 비밀번호, 자동 재입장)
-      rooms/[roomId]/...           방 단위 API (채팅, Q&A, 교안, 활동, 산출물 ...)
+      rooms/[roomId]/...           방 단위 API (채팅, Q&A, 슬라이드, 교안, 활동, 산출물 ...)
+      lessons/...                  교안 라이브러리 API (내 교안·공용 교안, 승인된 강사)
       view/[token]/                읽기 전용 데이터
   components/
     ui/                            shadcn/ui 컴포넌트
     brand/                         로고
-    room/                          강사·수강생 공용 (채팅, 교안 뷰어, Q&A ...)
+    room/                          강사·수강생 공용 (채팅, 슬라이드 뷰어, Q&A ...)
+    lessons/                       교안 보드·카드·편집 폼·라이브러리 (방·읽기 전용·복습·/lessons 공용)
     instructor/                    강사 전용 패널
     student/                       수강생 전용 화면
   lib/
@@ -77,9 +79,11 @@ auth.users (강사)
   │     │                   │        └──< submissions ──< submission_comments / submission_stickers
   │     ├──< announcements
   │     ├──< materials (PDF)          ├──< resources (파일/링크)
+  │     ├──< room_lesson_groups ──< room_lesson_cards (교안 사본)
   │     ├──< activities               ├──< groups
   │     └──< ai_usage (day)
-  └──< room_templates
+  ├──< room_templates
+  └──< lesson_packs ──< lesson_cards (교안 라이브러리, owner_id null = 공용)
 ```
 
 | 테이블 | 핵심 컬럼 | 비고 |
@@ -93,8 +97,12 @@ auth.users (강사)
 | direct_messages | room_id, participant_id, from_instructor, body | 강사 ↔ 수강생 1:1 |
 | questions | room_id, participant_id, anonymous, body, material_id, page, answer, answered, hidden, vote_count | 익명 Q&A, 페이지 질문 핀 겸용 |
 | question_votes | question_id, participant_id | 공감(👍) |
-| materials | room_id, title, storage_path, page_count, position | 교안 PDF |
+| materials | room_id, title, storage_path, page_count, position | 슬라이드 PDF |
 | resources | room_id, kind(file/link), title, url, storage_path | 자료실 |
+| lesson_packs | owner_id(null=공용), title, intro, categories[], is_published, position | 교안 라이브러리 묶음. 공용은 게시한 것만 강사에게 보여요 |
+| lesson_cards | pack_id, kind(link/copy), name, org, description, url, body, icon, color, category, position | 라이브러리 카드 |
+| room_lesson_groups | room_id, source_pack_id(FK 없음), title, intro, categories[], position, hidden | 방에 넣은 묶음 (사본) |
+| room_lesson_cards | room_id, group_id, kind, name, …, position, hidden | 방에 넣은 카드 (사본). 라이브러리를 고쳐도 바뀌지 않아요 |
 | page_reactions | room_id, material_id, page, participant_id, emoji | 페이지별 이모지 핀 |
 | notes | participant_id, material_id, page, body | 본인만 |
 | understanding_current | room_id, participant_id, status(green/yellow/red) | 현재 상태 |
@@ -181,8 +189,9 @@ Supabase Auth(이메일+비밀번호). 인증·비밀번호 재설정 메일 링
 | `dm.new` | 서버 | `{participantId}` (내용 없음) | 해당 수강생/강사만 다시 조회 |
 | `qa.changed` | 서버 | 공개용 질문(익명이면 작성자 제거) | 목록 갱신 |
 | `slide.page` | 강사 클라이언트 | `{materialId, page}` | 따라가기 켠 수강생 이동 |
-| `material.changed` | 서버 | `{}` | 교안 목록 재조회 |
-| `reaction.float` | 서버 | `{emoji, materialId, page}` | 교안 위 떠오르는 효과 |
+| `material.changed` | 서버 | `{}` | 슬라이드 목록 재조회 |
+| `lesson.changed` | 서버 | `{}` | 교안 목록 재조회 |
+| `reaction.float` | 서버 | `{emoji, materialId, page}` | 슬라이드 위 떠오르는 효과 |
 | `pins.changed` | 서버 | `{materialId}` | 강사 화면 페이지별 개수 재조회 |
 | `understanding.counts` | 서버 | `{green, yellow, red}` 합계만 | 강사 비율 바 (개인 상태는 보내지 않음) |
 | `help.changed` | 서버 | `{participantId, status}` | 강사 대기열 재조회 |
@@ -198,7 +207,7 @@ Supabase Auth(이메일+비밀번호). 인증·비밀번호 재설정 메일 링
 
 ## 6. 파일 업로드
 1. 클라이언트에서 MIME + 확장자 검증, 이미지는 긴 변 1920px로 리사이즈 후 WebP(미지원 시 JPEG) 압축.
-2. `POST /api/rooms/[roomId]/uploads` → 서버가 용도별 크기(이미지·파일 10MB, 교안 PDF 30MB)와 타입을 다시 검증하고 `createSignedUploadUrl` 발급.
+2. `POST /api/rooms/[roomId]/uploads` → 서버가 용도별 크기(이미지·파일 10MB, 슬라이드 PDF 30MB)와 타입을 다시 검증하고 `createSignedUploadUrl` 발급.
 3. 브라우저가 `uploadToSignedUrl`로 Storage에 직접 업로드 → 결과 path로 메시지/산출물 생성 API 호출(서버가 path가 그 방 폴더인지 확인).
 - 버킷: `materials`(비공개, PDF 30MB), `uploads`(비공개, 10MB). 경로는 `{roomId}/{용도}/{uuid}.{ext}`.
 

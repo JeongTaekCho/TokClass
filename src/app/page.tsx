@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { JoinCodeForm } from "@/components/student/join-code-form";
 
 const steps = [
-  { icon: QrCode, tone: "primary", title: "강사가 방을 열어요", body: "참여코드와 QR이 바로 생겨요. 교안 PDF를 올려 두면 넘기는 대로 모두의 화면이 따라와요." },
+  { icon: QrCode, tone: "primary", title: "강사가 방을 열어요", body: "참여코드와 QR이 바로 생겨요. 슬라이드 PDF를 올려 두면 넘기는 대로 모두의 화면이 따라와요." },
   { icon: Smartphone, tone: "coral", title: "수강생은 코드만 넣어요", body: "설치·가입 없이 닉네임만 정하면 들어와요. 다음에는 받은 비밀번호로 이어서 들어와요." },
   { icon: Sparkles, tone: "sun", title: "함께 반응해요", body: "이해도 신호등, 익명 Q&A, 투표, 산출물 공유로 듣기만 하던 시간이 대화가 돼요." },
 ] as const;

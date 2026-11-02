@@ -333,7 +333,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
           )}
           <ConfirmButton
             title="전체 초기화할까요?"
-            description="참여자, 채팅, Q&A, 산출물, 활동 응답, 이해도 기록이 모두 지워져요. 교안·자료실·활동 구성은 남아요. 되돌릴 수 없어요."
+            description="참여자, 채팅, Q&A, 산출물, 활동 응답, 이해도 기록이 모두 지워져요. 슬라이드·교안·자료실·활동 구성은 남아요. 되돌릴 수 없어요."
             confirmLabel="전체 초기화"
             destructive
             onConfirm={async () => {

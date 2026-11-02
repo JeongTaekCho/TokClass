@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Eye, Megaphone, MessageCircle, MessagesSquare, ThumbsUp } from "lucide-react";
+import { BookMarked, Eye, Megaphone, MessageCircle, MessagesSquare, ThumbsUp } from "lucide-react";
 
 import { LogoMark } from "@/components/brand/logo";
+import { LessonBoard } from "@/components/lessons/lesson-board";
 import { MessageBody } from "@/components/room/message-body";
 import { AutoRefresh } from "@/components/view/auto-refresh";
 import { ReadonlySlide } from "@/components/view/readonly-slide";
 import { must } from "@/lib/api/handler";
 import { toChatMessages, MESSAGE_SELECT, type MessageRow } from "@/lib/data/chat";
 import { listAnnouncements } from "@/lib/data/announcements";
+import { listRoomLessons } from "@/lib/data/lessons";
 import { listMaterials } from "@/lib/data/materials";
 import { SUBMISSION_SELECT, toSubmissions, type SubmissionRow } from "@/lib/data/submissions";
 import { formatTime } from "@/lib/format";
@@ -30,9 +32,10 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
   const enabled = new Set<TabKey>(normalizeSettings(room.settings).tabs.filter((t) => t.enabled).map((t) => t.key));
   const off = Promise.resolve({ data: [], error: null });
   const d = db();
-  const [announcements, materials, msgRows, qRows, sRows] = await Promise.all([
+  const [announcements, materials, lessons, msgRows, qRows, sRows] = await Promise.all([
     listAnnouncements(room.id),
     enabled.has("slides") ? listMaterials(room.id) : Promise.resolve([]),
+    enabled.has("lessons") ? listRoomLessons(room.id, false) : Promise.resolve([]),
     !enabled.has("chat") ? off : d.from("messages").select(MESSAGE_SELECT).eq("room_id", room.id).is("group_id", null).eq("hidden", false).order("created_at", { ascending: false }).limit(80),
     !enabled.has("qa") ? off : d.from("questions").select("id, body, anonymous, vote_count, answered, answer, participant:participants!questions_participant_id_fkey(nickname)").eq("room_id", room.id).eq("hidden", false).order("vote_count", { ascending: false }).limit(100),
     !enabled.has("board") ? off : d.from("submissions").select(SUBMISSION_SELECT).eq("room_id", room.id).eq("hidden", false).order("created_at", { ascending: false }).limit(60),
@@ -63,11 +66,19 @@ export default async function ReadonlyPage({ params }: PageProps<"/view/[token]"
       <main className="mx-auto grid max-w-6xl gap-5 px-4 py-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <div className="space-y-5">
           {current?.url && (
-            <section aria-label="교안">
+            <section aria-label="슬라이드">
               <ReadonlySlide url={current.url} page={current.id === room.current_material_id ? room.current_page : 1} title={current.title} />
               <p className="mt-1 text-center text-sm text-muted-foreground">
                 {current.title} · {current.id === room.current_material_id ? room.current_page : 1} / {current.pageCount}
               </p>
+            </section>
+          )}
+          {lessons.length > 0 && (
+            <section className="border-t border-border pt-4">
+              <h2 className="mb-3 flex items-center gap-1.5 font-semibold">
+                <BookMarked className="size-4 text-muted-foreground" aria-hidden /> 교안
+              </h2>
+              <LessonBoard groups={lessons} idPrefix="view-lesson" />
             </section>
           )}
           {enabled.has("board") && <section className="border-t border-border pt-4">

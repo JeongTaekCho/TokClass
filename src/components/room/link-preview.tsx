@@ -8,12 +8,17 @@ import { fetcher } from "@/lib/client/api";
 import { useRoom } from "@/lib/realtime/provider";
 import { cn } from "@/lib/utils";
 
-type Preview = { url: string; title: string; description: string | null; image: string | null; siteName: string };
+export type Preview = { url: string; title: string; description: string | null; image: string | null; siteName: string };
 
 /** 링크의 제목·설명·대표 이미지(og). 같은 주소는 한 번만 받아요. */
 export function useLinkPreview(url: string | null) {
   const { roomId } = useRoom();
-  const { data, isLoading } = useSWR<{ preview: Preview | null }>(url ? `/api/rooms/${roomId}/link-preview?url=${encodeURIComponent(url)}` : null, fetcher, {
+  return useLinkPreviewFrom(`/api/rooms/${roomId}/link-preview`, url);
+}
+
+/** 미리보기 API 주소를 직접 줘요. 방 밖(내 교안 라이브러리)에서는 `/api/lessons/link-preview`를 써요. */
+export function useLinkPreviewFrom(endpoint: string, url: string | null) {
+  const { data, isLoading } = useSWR<{ preview: Preview | null }>(url ? `${endpoint}?url=${encodeURIComponent(url)}` : null, fetcher, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
     shouldRetryOnError: false,

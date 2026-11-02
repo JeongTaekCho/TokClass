@@ -25,6 +25,8 @@ export type RoomEvents = {
   "slide.page": { materialId: string; page: number };
   "material.changed": Record<string, never>;
   "resource.changed": Record<string, never>;
+  /** 방 교안(그룹·카드)이 바뀌었어요. 받으면 목록을 다시 불러와요. */
+  "lesson.changed": Record<string, never>;
   /** nonce: 보낸 사람 화면은 누르자마자 띄웠으니, 돌아온 같은 이벤트는 건너뛰어요. */
   "reaction.float": { emoji: string; materialId: string | null; page: number | null; nonce?: string };
   "pins.changed": { materialId: string };
