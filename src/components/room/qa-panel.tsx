@@ -91,7 +91,7 @@ export function QaPanel({ readOnly = false }: { readOnly?: boolean }) {
         ))}
         {isInstructor && !readOnly && <AiClusterButton className="ml-auto" />}
       </div>
-      <ul className="scrollbar-thin min-h-0 flex-1 divide-y divide-border overflow-y-auto px-3" aria-label="질문 목록">
+      <ul className="scrollbar-thin min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-3" aria-label="질문 목록">
         {isLoading && <QuestionListSkeleton />}
         {!isLoading && questions.length === 0 && (
           <li>
@@ -176,7 +176,7 @@ function QuestionItem({
   }
 
   return (
-    <li className={cn("animate-enter-up py-3", q.hidden && "-mx-3 bg-sunken px-3")}>
+    <li className={cn("animate-enter-up rounded-xl border p-3 shadow-card transition-[border-color,box-shadow] duration-150 hover:border-primary/25", q.hidden ? "border-dashed border-border bg-sunken shadow-none" : q.answered ? "border-success/25 bg-gradient-to-b from-success-soft/50 to-surface" : "border-border/60 bg-surface")}>
       <div className="flex items-start gap-2">
         {!isInstructor ? (
           <button
@@ -204,7 +204,7 @@ function QuestionItem({
             {q.voteCount}
           </button>
         ) : (
-          <span className="flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-center rounded-md bg-sunken text-xs font-semibold tabular-nums" aria-label={`공감 ${q.voteCount}개`}>
+          <span className="flex min-h-11 min-w-11 shrink-0 flex-col items-center justify-center rounded-md bg-primary-soft text-xs font-semibold text-primary-ink tabular-nums" aria-label={`공감 ${q.voteCount}개`}>
             <ThumbsUp className="size-4" aria-hidden />
             {q.voteCount}
           </span>

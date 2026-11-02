@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Search, ShieldCheck } from "lucide-react";
+import { Search, ShieldCheck, UserCog } from "lucide-react";
 
+import { PageHeader } from "@/components/page-header";
 import { InstructorActions } from "@/components/admin/instructor-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,10 +48,7 @@ export default async function AdminInstructorsPage({ searchParams }: PageProps<"
   return (
     <>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-title">강사 관리</h1>
-          <p className="text-muted-foreground">이메일 인증을 마친 가입 신청을 승인하거나, 문제가 있는 계정을 정지할 수 있어요.</p>
-        </div>
+        <PageHeader icon={UserCog} title="강사 관리" description="이메일 인증을 마친 가입 신청을 승인하거나, 문제가 있는 계정을 정지할 수 있어요." className="mb-0" />
         <form className="relative w-full max-w-xs" action="/admin/instructors">
           <input type="hidden" name="status" value={status} />
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
@@ -69,9 +67,9 @@ export default async function AdminInstructorsPage({ searchParams }: PageProps<"
         ))}
       </nav>
 
-      <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface shadow-card">
         <table className="w-full min-w-[860px] text-left text-sm">
-          <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
+          <thead className="border-b border-border bg-primary-soft/50 text-xs font-semibold text-primary-ink/80">
             <tr>
               <th className="px-4 py-3">이름</th>
               <th className="px-4 py-3">이메일</th>
@@ -91,7 +89,7 @@ export default async function AdminInstructorsPage({ searchParams }: PageProps<"
               </tr>
             )}
             {profiles.map((p) => (
-              <tr key={p.userId} className="border-b border-border last:border-0">
+              <tr key={p.userId} className="border-b border-border transition-colors last:border-0 hover:bg-primary-soft/30">
                 <td className="px-4 py-2.5 font-semibold">
                   <Link href={`/admin/instructors/${p.userId}`} className="hover:text-primary hover:underline">
                     {p.name || "(이름 없음)"}

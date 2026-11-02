@@ -3,9 +3,10 @@
 import { useState } from "react";
 import useSWR from "swr";
 import JSZip from "jszip";
-import { Loader2, ThumbsUp } from "lucide-react";
+import { Activity, BarChart3, Download, FileArchive, Gauge, Loader2, MessageCircleQuestion, ThumbsUp, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { IconChip, type IconChipTone } from "@/components/icon-chip";
 import { ResultsView } from "@/components/room/activities/results-view";
 import { ReportSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,37 @@ const SERIES = [
   { key: "yellow", label: "헷갈려요", emoji: "🟡", color: "#ca8a04", hatch: true },
   { key: "green", label: "이해했어요", emoji: "🟢", color: "#16a34a" },
 ] as const;
+
+/** 리포트 구역 카드: 아이콘 칩 제목 + 내용 */
+function Panel({ id, icon, tone, title, className, children }: { id: string; icon: LucideIcon; tone: IconChipTone; title: React.ReactNode; className?: string; children: React.ReactNode }) {
+  return (
+    <section aria-labelledby={id} className={`rounded-2xl border border-border/60 bg-surface p-5 shadow-card sm:p-6 ${className ?? ""}`}>
+      <h2 id={id} className="mb-4 flex items-center gap-2.5 text-heading">
+        <IconChip icon={icon} tone={tone} size="sm" />
+        {title}
+      </h2>
+      {children}
+    </section>
+  );
+}
+
+/** 참여율 고리 */
+function Ring({ value }: { value: number }) {
+  const R = 34;
+  const C = 2 * Math.PI * R;
+  return (
+    <svg viewBox="0 0 84 84" className="size-24 shrink-0 -rotate-90" aria-hidden>
+      <defs>
+        <linearGradient id="tk-ring" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0%" stopColor="var(--primary)" />
+          <stop offset="100%" stopColor="var(--primary-2)" />
+        </linearGradient>
+      </defs>
+      <circle cx="42" cy="42" r={R} fill="none" stroke="var(--primary-soft)" strokeWidth="10" />
+      <circle cx="42" cy="42" r={R} fill="none" stroke="url(#tk-ring)" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${C * value} ${C}`} />
+    </svg>
+  );
+}
 
 /** 이해도 추이: 5분 구간 누적 막대 (색 + 무늬 + 범례 + 표로 구분) */
 function TrendChart({ data }: { data: UnderstandingBucket[] }) {
@@ -200,44 +232,41 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
   const exp = (type: string) => `/api/rooms/${roomId}/export?type=${type}`;
 
   return (
-    <div className="space-y-10">
-      <section aria-labelledby="export-title">
-        <h2 id="export-title" className="text-heading">
-          기록 내보내기
-        </h2>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button asChild variant="outline" size="sm">
-            <a href={exp("chat-txt")}>
-              채팅 로그 (TXT)
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <a href={exp("chat-csv")}>
-              채팅 로그 (CSV)
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <a href={exp("qa-csv")}>
-              Q&A (CSV)
-            </a>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <a href={exp("activities-csv")}>
-              투표·퀴즈 결과 (CSV)
-            </a>
-          </Button>
+    <div className="space-y-5">
+      <Panel id="export-title" icon={Download} tone="primary" title="기록 내보내기">
+        <div className="flex flex-wrap gap-2">
+          {(
+            [
+              ["chat-txt", "채팅 로그 (TXT)"],
+              ["chat-csv", "채팅 로그 (CSV)"],
+              ["qa-csv", "Q&A (CSV)"],
+              ["activities-csv", "투표·퀴즈 결과 (CSV)"],
+            ] as const
+          ).map(([type, label]) => (
+            <Button key={type} asChild variant="outline" size="sm">
+              <a href={exp(type)}>
+                <Download aria-hidden /> {label}
+              </a>
+            </Button>
+          ))}
           <Button variant="outline" size="sm" onClick={downloadZip} disabled={zipping}>
-            {zipping && <Loader2 className="animate-spin" aria-hidden />} 산출물 전체 (ZIP)
+            {zipping ? <Loader2 className="animate-spin" aria-hidden /> : <FileArchive aria-hidden />} 산출물 전체 (ZIP)
           </Button>
         </div>
-      </section>
+      </Panel>
 
       {isLoading || !r ? (
         <ReportSkeleton />
       ) : (
         <>
-          {/* 요약은 타일 대신 문장으로: 사람 수 → 참여 → 상호작용 → 질문 순서로 읽혀요. */}
-          <section aria-label="요약" className="rounded-lg border border-border/70 bg-surface px-5 shadow-card py-5">
+          {/* 요약은 타일 대신 문장으로: 사람 수 → 참여 → 상호작용 → 질문 순서로 읽혀요. 옆의 고리가 참여율을 보여 줘요. */}
+          <section aria-label="요약" className="relative flex items-center gap-5 overflow-hidden rounded-2xl border border-white/80 bg-gradient-to-br from-primary-soft via-surface to-mint-soft p-5 shadow-glow sm:p-6">
+            <div aria-hidden className="blob -top-16 -right-10 size-56 bg-primary/15" />
+            <div className="relative">
+              <Ring value={r.participationRate} />
+              <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-primary-ink tabular-nums">{Math.round(r.participationRate * 100)}%</span>
+            </div>
+            <div className="relative min-w-0">
             <p className="text-lg leading-relaxed">
               수강생 <strong className="font-semibold tabular-nums">{r.participants}명</strong> 중{" "}
               <strong className="font-semibold tabular-nums">{Math.round(r.participationRate * 100)}%</strong>가 한 번 이상 참여했어요.
@@ -247,22 +276,17 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
               <span className="tabular-nums">{r.totalInteractions}</span>회) · 질문{" "}
               <span className="font-medium text-foreground tabular-nums">{r.questionCount}개</span>
             </p>
+            </div>
           </section>
 
-          <section aria-labelledby="trend-title">
-            <h2 id="trend-title" className="mb-3 text-heading">
-              이해도 추이 (5분 단위)
-            </h2>
+          <Panel id="trend-title" icon={Gauge} tone="mint" title="이해도 추이 (5분 단위)">
             <TrendChart data={r.understandingTrend} />
-          </section>
+          </Panel>
 
-          <div className="grid gap-10 border-t border-border pt-8 lg:grid-cols-2">
-            <section aria-labelledby="topq-title">
-              <h2 id="topq-title" className="mb-3 text-heading">
-                공감 많은 질문{r.topQuestions.length > 0 && ` TOP ${r.topQuestions.length}`}
-              </h2>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Panel id="topq-title" icon={MessageCircleQuestion} tone="coral" title={<>공감 많은 질문{r.topQuestions.length > 0 && ` TOP ${r.topQuestions.length}`}</>}>
               {r.topQuestions.length === 0 && <p className="text-sm text-muted-foreground">질문이 없었어요.</p>}
-              <ol className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
+              <ol className="divide-y divide-border rounded-xl border border-border/60 px-4 empty:hidden">
                 {r.topQuestions.map((q, i) => (
                   <li key={q.id} className="flex items-start gap-3 py-2.5">
                     <span className="w-5 shrink-0 text-right text-sm text-muted-foreground tabular-nums">{i + 1}</span>
@@ -274,11 +298,8 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
                   </li>
                 ))}
               </ol>
-            </section>
-            <section aria-labelledby="kind-title">
-              <h2 id="kind-title" className="mb-3 text-heading">
-                상호작용 종류
-              </h2>
+            </Panel>
+            <Panel id="kind-title" icon={BarChart3} tone="sky" title="상호작용 종류">
               <table className="w-full text-left text-sm tabular-nums">
                 <tbody>
                   {Object.entries(r.byKind)
@@ -296,17 +317,14 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
                   참여가 적었던 수강생: {r.leastActive.map((p) => `${p.nickname}(${p.count})`).join(", ")}
                 </p>
               )}
-            </section>
+            </Panel>
           </div>
 
-          <section aria-labelledby="act-results-title" className="border-t border-border pt-8">
-            <h2 id="act-results-title" className="mb-3 text-heading">
-              활동별 결과
-            </h2>
+          <Panel id="act-results-title" icon={Activity} tone="lilac" title="활동별 결과">
             {r.activities.length === 0 && <p className="text-sm text-muted-foreground">진행한 활동이 없어요.</p>}
             <div className="grid gap-x-10 gap-y-8 lg:grid-cols-2">
               {r.activities.map(({ activity, results }) => (
-                <article key={activity.id} className="border-t border-border pt-4">
+                <article key={activity.id} className="rounded-xl border border-border/60 p-4">
                   <p className="text-sm font-medium text-muted-foreground">
                     {ACTIVITY_LABELS[activity.type].emoji} {ACTIVITY_LABELS[activity.type].name}
                   </p>
@@ -315,7 +333,7 @@ export function ReportView({ roomId, title }: { roomId: string; title: string })
                 </article>
               ))}
             </div>
-          </section>
+          </Panel>
         </>
       )}
       <p className="text-center text-xs text-muted-foreground">

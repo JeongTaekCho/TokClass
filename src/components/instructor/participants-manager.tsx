@@ -68,9 +68,9 @@ export function ParticipantsManager() {
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface shadow-card">
         <table className="w-full min-w-[720px] text-left text-sm">
-          <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
+          <thead className="border-b border-border bg-primary-soft/50 text-xs font-semibold text-primary-ink/80">
             <tr>
               <th className="px-4 py-3">닉네임</th>
               <th className="px-4 py-3">접속</th>
@@ -95,7 +95,7 @@ export function ParticipantsManager() {
               const sig = SIGNALS.find((s) => s.status === p.understanding);
               const isOn = online.has(p.id);
               return (
-                <tr key={p.id} className="border-b border-border last:border-0">
+                <tr key={p.id} className="border-b border-border transition-colors last:border-0 hover:bg-primary-soft/30">
                   <td className="px-4 py-2.5 font-semibold">
                     {p.nickname}
                     {p.needsHelp && (

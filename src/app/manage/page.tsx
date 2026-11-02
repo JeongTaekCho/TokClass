@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Users } from "lucide-react";
 
+import { PageHeader } from "@/components/page-header";
 import { ManageApp } from "@/components/instructor/manage/manage-app";
 import { requireApprovedInstructor } from "@/lib/supabase/server";
 
@@ -10,8 +12,7 @@ export default async function ManagePage() {
   await requireApprovedInstructor("/manage");
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
-        <h1 className="mb-1 text-title">수강생 관리</h1>
-        <p className="mb-6 text-muted-foreground">내 방의 수강생을 한곳에서 찾고, 비밀번호 재발급·강퇴·조 이동을 할 수 있어요.</p>
+        <PageHeader icon={Users} title="수강생 관리" description="내 방의 수강생을 한곳에서 찾고, 비밀번호 재발급·강퇴·조 이동을 할 수 있어요." />
         <ManageApp />
     </main>
   );

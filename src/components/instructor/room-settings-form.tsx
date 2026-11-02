@@ -2,9 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, Copy, Link2, Loader2, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Copy, Eye, Info, LayoutPanelTop, LayoutTemplate, Link2, Loader2, Plus, SlidersHorizontal, StickyNote, TriangleAlert, X, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { IconChip, type IconChipTone } from "@/components/icon-chip";
 import { Button } from "@/components/ui/button";
 import { ConfirmButton } from "@/components/ui/confirm-button";
 import { Input } from "@/components/ui/input";
@@ -26,14 +27,37 @@ function toLocalInput(iso: string | null) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+/** 설정 구역: 흰 카드 + 아이콘 칩 제목. danger면 붉은 경고 카드예요. */
+function Section({
+  title,
+  description,
+  icon,
+  tone = "primary",
+  danger = false,
+  children,
+}: {
+  title: string;
+  description?: string;
+  icon: LucideIcon;
+  tone?: IconChipTone;
+  danger?: boolean;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="grid gap-4 border-t border-border pt-6 md:grid-cols-[200px_minmax(0,1fr)] md:gap-8">
-      <div>
-        <h2 className="text-heading">{title}</h2>
-        {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
+    <section
+      className={cn(
+        "grid gap-4 rounded-2xl border p-5 shadow-card sm:p-6 md:grid-cols-[220px_minmax(0,1fr)] md:gap-8",
+        danger ? "border-destructive/25 bg-destructive-soft/40" : "border-border/60 bg-surface",
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <IconChip icon={icon} tone={danger ? "coral" : tone} />
+        <div>
+          <h2 className={cn("text-heading", danger && "text-destructive")}>{title}</h2>
+          {description && <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>}
+        </div>
       </div>
-      <div>{children}</div>
+      <div className="min-w-0">{children}</div>
     </section>
   );
 }
@@ -99,8 +123,8 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
   const sections = room.settings.sections;
 
   return (
-    <div className="space-y-8 border-b border-border pb-8">
-      <Section title="기본 정보">
+    <div className="space-y-5 pb-8">
+      <Section title="기본 정보" icon={Info}>
         <form
           className="grid gap-4 sm:grid-cols-2"
           onSubmit={(e) => {
@@ -128,8 +152,8 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
         </form>
       </Section>
 
-      <Section title="탭 구성" description="수강생 화면 상단 탭이에요. 켜기/끄기, 순서, 첫 화면을 정할 수 있어요.">
-        <ol className="divide-y divide-border rounded-lg border border-border/70 bg-surface px-4 shadow-card">
+      <Section title="탭 구성" icon={LayoutPanelTop} tone="sky" description="수강생 화면 상단 탭이에요. 켜기/끄기, 순서, 첫 화면을 정할 수 있어요.">
+        <ol className="divide-y divide-border rounded-xl border border-border/60 bg-primary-soft/25 px-4">
           {tabs.map((t, i) => (
             <li key={t.key} className={cn("flex items-center gap-3 py-2 pl-1", !t.enabled && "text-muted-foreground")}>
               <Switch
@@ -168,7 +192,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
         {enabledTabs.length === 0 && <p className="mt-2 text-sm text-coral-ink">탭을 하나 이상 켜 주세요.</p>}
       </Section>
 
-      <Section title="수업 운영">
+      <Section title="수업 운영" icon={SlidersHorizontal} tone="mint">
         <div className="divide-y divide-border">
           <ToggleRow id="t-lock" label="입장 마감 (방 잠금)" description="새로운 수강생이 들어올 수 없어요. 이미 참여한 사람은 다시 들어올 수 있어요." checked={room.locked} onChange={(v) => patch({ locked: v }, "lock", v ? "입장을 마감했어요." : "입장을 다시 열었어요.")} />
           <ToggleRow id="t-focus" label="집중 모드" description="수강생 채팅을 잠시 잠가요." checked={room.focusMode} onChange={(v) => patch({ focusMode: v }, "focus", v ? "집중 모드를 켰어요." : "집중 모드를 껐어요.")} />
@@ -204,7 +228,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
         </div>
       </Section>
 
-      <Section title="산출물 보드 섹션" description="주차·조별처럼 보드를 나눠 볼 섹션이에요. 조 활동을 마치면 조 이름 섹션이 자동으로 생겨요.">
+      <Section title="산출물 보드 섹션" icon={StickyNote} tone="sun" description="주차·조별처럼 보드를 나눠 볼 섹션이에요. 조 활동을 마치면 조 이름 섹션이 자동으로 생겨요.">
         <div className="flex flex-wrap gap-2">
           {sections.length === 0 && <p className="text-sm text-muted-foreground">아직 섹션이 없어요.</p>}
           {sections.map((s) => (
@@ -237,7 +261,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
         </form>
       </Section>
 
-      <Section title="읽기 전용 링크" description="청강생·관계자에게 수업 내용을 보여주는 링크예요. 채팅·투표 등 참여는 할 수 없어요.">
+      <Section title="읽기 전용 링크" icon={Eye} tone="lilac" description="청강생·관계자에게 수업 내용을 보여주는 링크예요. 채팅·투표 등 참여는 할 수 없어요.">
         {token ? (
           <div className="space-y-3">
             <div className="flex gap-2">
@@ -294,7 +318,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
         )}
       </Section>
 
-      <Section title="템플릿으로 저장" description="지금 방의 탭 구성과 운영 설정을 다음 방에서 그대로 쓸 수 있어요.">
+      <Section title="템플릿으로 저장" icon={LayoutTemplate} tone="lilac" description="지금 방의 탭 구성과 운영 설정을 다음 방에서 그대로 쓸 수 있어요.">
         <form
           className="flex gap-2"
           onSubmit={async (e) => {
@@ -315,7 +339,7 @@ export function RoomSettingsForm({ initialRoom, readonlyToken }: { initialRoom: 
         </form>
       </Section>
 
-      <Section title="수업 종료·초기화·삭제">
+      <Section title="수업 종료·초기화·삭제" icon={TriangleAlert} danger description="되돌리기 어려운 작업이에요. 확인 창이 한 번 더 떠요.">
         <div className="flex flex-wrap gap-2">
           {room.status === "active" ? (
             <ConfirmButton

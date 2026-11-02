@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { ScrollText } from "lucide-react";
+
 import Link from "next/link";
 
+import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AUDIT_ACTION_LABEL, type AuditLog } from "@/lib/admin/server";
@@ -30,11 +33,10 @@ export default async function AdminAuditPage({ searchParams }: PageProps<"/admin
 
   return (
     <>
-      <h1 className="mb-1 text-title">감사 로그</h1>
-      <p className="mb-6 text-muted-foreground">관리자가 한 모든 작업이 기록돼요. 기록은 지울 수 없어요.</p>
-      <div className="overflow-x-auto rounded-lg border border-border/70 bg-surface shadow-card">
+      <PageHeader icon={ScrollText} title="감사 로그" description="관리자가 한 모든 작업이 기록돼요. 기록은 지울 수 없어요." />
+      <div className="overflow-x-auto rounded-2xl border border-border/60 bg-surface shadow-card">
         <table className="w-full min-w-[860px] text-left text-sm">
-          <thead className="border-b border-border bg-sunken text-xs text-muted-foreground">
+          <thead className="border-b border-border bg-primary-soft/50 text-xs font-semibold text-primary-ink/80">
             <tr>
               <th className="px-4 py-3">언제</th>
               <th className="px-4 py-3">누가</th>
@@ -52,7 +54,7 @@ export default async function AdminAuditPage({ searchParams }: PageProps<"/admin
               </tr>
             )}
             {logs.map((l) => (
-              <tr key={l.id} className="border-b border-border align-top last:border-0">
+              <tr key={l.id} className="border-b border-border align-top transition-colors last:border-0 hover:bg-primary-soft/30">
                 <td className="px-4 py-2.5 whitespace-nowrap text-muted-foreground">{formatDateTimeFull(l.created_at)}</td>
                 <td className="px-4 py-2.5 break-all">{l.actor_email || "알 수 없음"}</td>
                 <td className="px-4 py-2.5">

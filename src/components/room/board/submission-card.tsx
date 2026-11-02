@@ -12,22 +12,22 @@ export function SubmissionCard({ s, onOpen }: { s: Submission; onOpen: () => voi
     <button
       onClick={onOpen}
       className={cn(
-        "group flex w-full cursor-pointer flex-col overflow-hidden rounded-md border bg-surface text-left transition-colors duration-150 hover:border-border-strong",
-        s.isBest ? "border-2 border-coral hover:border-coral" : "border-border",
+        "group flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-surface text-left shadow-card transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-raised motion-reduce:hover:translate-y-0",
+        s.isBest ? "border-2 border-coral shadow-[0_8px_24px_-12px_rgb(255_107_74/0.55)] hover:border-coral" : "border-border/60 hover:border-primary/25",
         s.hidden && "opacity-60",
       )}
       aria-haspopup="dialog"
     >
       {s.kind === "image" && s.fileUrl && <img src={s.fileUrl} alt="" loading="lazy" className="aspect-[4/3] w-full bg-sunken object-cover" />}
       {s.kind === "file" && (
-        <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 bg-sunken p-4 text-center">
-          <FileText className="size-9 text-muted-foreground" aria-hidden />
+        <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-sky-soft to-primary-soft/60 p-4 text-center">
+          <FileText className="size-9 text-sky-ink" aria-hidden />
           <span className="line-clamp-2 text-sm font-medium break-all">{s.fileName}</span>
         </div>
       )}
       {s.kind === "link" && s.url && <LinkThumb url={s.url} />}
       {s.kind === "text" && (
-        <div className="aspect-[4/3] w-full overflow-hidden bg-warning-soft p-4">
+        <div className="aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-sun-soft to-warning-soft p-4">
           <MessageBody text={s.body} className="line-clamp-[8] text-sm" />
         </div>
       )}
