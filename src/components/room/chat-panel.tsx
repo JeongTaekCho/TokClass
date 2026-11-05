@@ -303,7 +303,7 @@ function Composer({ roomId, onSend }: { roomId: string; onSend: (body: string, i
   const canSend = !sending && !!text.trim();
   return (
     <form
-      className="safe-bottom border-t border-border/70 bg-surface px-3 pt-2.5 pb-2.5"
+      className="border-t border-border/70 bg-surface px-3 pt-3 pb-[max(0.875rem,env(safe-area-inset-bottom))]"
       onSubmit={(e) => {
         e.preventDefault();
         void send();

@@ -14,24 +14,36 @@ import { useRoom, useRoomEvent } from "@/lib/realtime/provider";
 import type { DirectMessage } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+/** clientKey: 보낸 말풍선이 임시 id → 실제 id로 바뀌어도 같은 key를 써서 다시 그려지지(깜빡이지) 않게 해요. */
+type Msg = DirectMessage & { clientKey?: string };
+
 /** 강사 ↔ 수강생 1:1 대화. 강사 화면이면 participantId를 넘겨요. */
 export function DmThread({ participantId, onRead }: { participantId?: string; onRead?: () => void }) {
   const { roomId, me, room } = useRoom();
   const key = participantId ? `/api/rooms/${roomId}/dms?participantId=${participantId}` : `/api/rooms/${roomId}/dms?markRead=1`;
-  const { data, mutate, isLoading } = useSWR<{ messages: DirectMessage[] }>(key, fetcher);
+  const { data, mutate, isLoading } = useSWR<{ messages: Msg[] }>(key, fetcher);
   const [text, setText] = useState("");
-  const [pending, setPending] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+  const mineIsInstructor = me.kind === "instructor";
+  const onReadRef = useRef(onRead);
+  useEffect(() => {
+    onReadRef.current = onRead;
+  });
 
   useRoomEvent("dm.new", (p) => {
+    // 내가 보낸 건 이미 화면에 있어서 다시 불러오지 않아요.
+    if (p.fromInstructor === mineIsInstructor) return;
     if (me.kind === "participant" ? p.participantId === me.id : p.participantId === participantId) void mutate();
   });
+  const count = data?.messages.length ?? 0;
+  const loaded = Boolean(data);
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
-    if (data) onRead?.();
-  }, [data, onRead]);
+  }, [count]);
+  useEffect(() => {
+    if (loaded) onReadRef.current?.();
+  }, [loaded, count]);
 
-  const mineIsInstructor = me.kind === "instructor";
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="scrollbar-thin min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
@@ -42,7 +54,7 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
         {data?.messages.map((m) => {
           const mine = m.fromInstructor === mineIsInstructor;
           return (
-            <div key={m.id} className={cn("flex animate-enter-up flex-col", mine ? "items-end" : "items-start", m.id.startsWith("pending-") && "opacity-70")}>
+            <div key={m.clientKey ?? m.id} className={cn("flex animate-enter-up flex-col", mine ? "items-end" : "items-start", m.id.startsWith("pending-") && "opacity-70")}>
               <div className={cn("max-w-[85%] rounded-[18px] px-3.5 py-2 text-[15px] whitespace-pre-wrap", mine ? "rounded-br-[6px] bg-coral-soft" : "rounded-bl-[6px] bg-primary-soft")}>{m.body}</div>
               {m.id.startsWith("pending-") ? (
                 <Loader2 className="mt-1 size-3.5 animate-spin text-muted-foreground motion-reduce:animate-none" role="status" aria-label="보내는 중" />
@@ -56,7 +68,7 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
       </div>
       {room.status === "active" && (
         <form
-          className="flex items-end gap-1.5 border-t border-border p-2"
+          className="flex items-end gap-1.5 border-t border-border px-3 pt-3 pb-[max(0.875rem,env(safe-area-inset-bottom))]"
           onSubmit={async (e) => {
             e.preventDefault();
             const body = text.trim();
@@ -64,20 +76,19 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
             // 보내는 말풍선을 바로 띄우고 입력창을 비워요(낙관적 업데이트). 실패하면 글을 되돌려 놓아요.
             const temp: DirectMessage = { id: `pending-${crypto.randomUUID()}`, participantId: participantId ?? me.id, fromInstructor: mineIsInstructor, body, createdAt: new Date().toISOString(), readAt: null };
             setText("");
-            setPending(true);
             try {
               await mutate(
                 async (prev) => {
-                  await api(`/api/rooms/${roomId}/dms`, { body: { participantId, body } });
-                  return prev;
+                  const res = await api<{ message: DirectMessage }>(`/api/rooms/${roomId}/dms`, { body: { participantId, body } });
+                  // 서버 응답으로 임시 말풍선만 바꿔 끼워요(전체를 다시 불러오지 않아요).
+                  const rest = (prev?.messages ?? []).filter((x) => x.id !== res.message.id);
+                  return { messages: [...rest, { ...res.message, clientKey: temp.id }] };
                 },
-                { optimisticData: (prev) => ({ messages: [...(prev?.messages ?? []), temp] }), rollbackOnError: true, revalidate: true },
+                { optimisticData: (prev) => ({ messages: [...(prev?.messages ?? []), temp] }), rollbackOnError: true, revalidate: false, populateCache: true },
               );
             } catch (err) {
               setText((t) => (t ? t : body));
               toastError(err);
-            } finally {
-              setPending(false);
             }
           }}
         >
@@ -96,8 +107,8 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
             aria-label="1:1 메시지 입력"
             className="max-h-32 min-h-11 flex-1 resize-none py-2.5"
           />
-          <Button type="submit" size="icon" aria-label="보내기" disabled={pending || !text.trim()}>
-            {pending ? <Loader2 className="animate-spin" aria-hidden /> : <Send aria-hidden />}
+          <Button type="submit" size="icon" aria-label="보내기" disabled={!text.trim()}>
+            <Send aria-hidden />
           </Button>
         </form>
       )}
