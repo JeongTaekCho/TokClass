@@ -289,7 +289,7 @@ function PagePinsBar({ materialId, page, pageCount, onGo }: { materialId: string
 
   return (
     <div className="px-3 py-2">
-      <div className="scrollbar-thin flex gap-1.5 overflow-x-auto pb-1" aria-label="페이지별 반응">
+      <div className="scrollbar-thin flex gap-2 overflow-x-auto pt-2.5 pr-2 pb-1.5" aria-label="페이지별 반응">
         {Array.from({ length: pageCount }, (_, i) => i + 1).map((p) => {
           const pin = pins[p];
           return (
@@ -305,7 +305,7 @@ function PagePinsBar({ materialId, page, pageCount, onGo }: { materialId: string
             >
               {p}
               {pin && pin.total > 0 && (
-                <span className={cn("absolute -top-1.5 -right-1.5 rounded-full px-1.5 text-[10px] leading-4 font-semibold", pin.questions > 0 ? "bg-coral text-ink" : "bg-primary-soft text-primary-ink")}>
+                <span className={cn("absolute -top-2 -right-2 min-w-5 rounded-full px-1 text-center text-[11px] leading-5 font-bold tabular-nums ring-2 ring-surface", pin.questions > 0 ? "bg-coral text-ink" : "bg-primary-soft text-primary-ink")}>
                   {pin.total}
                 </span>
               )}
