@@ -1,18 +1,13 @@
 # syntax=docker/dockerfile:1
 
-# ── 1) 의존성 설치 ───────────────────────────────────────
-FROM node:24-alpine AS deps
+# ── 1) 의존성 설치 + 빌드 ────────────────────────────────
+# node_modules를 단계 사이에 복사하지 않도록 한 단계에서 설치·빌드해요.
+FROM node:24-alpine AS builder
 RUN corepack enable
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
-
-# ── 2) 빌드 ──────────────────────────────────────────────
-FROM node:24-alpine AS builder
-RUN corepack enable
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # NEXT_PUBLIC_* 값은 빌드할 때 번들에 박혀요. 값이 바뀌면 이미지를 다시 빌드해야 해요.
@@ -26,7 +21,7 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
 
 RUN pnpm build
 
-# ── 3) 실행 ──────────────────────────────────────────────
+# ── 2) 실행 ──────────────────────────────────────────────
 FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
