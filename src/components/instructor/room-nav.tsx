@@ -15,7 +15,7 @@ export function RoomNav({ roomId, title }: { roomId: string; title: string }) {
       <span className="hidden max-w-[14rem] items-center border-l border-border pl-4 font-semibold xl:flex" title={title}>
         <span className="truncate">{title}</span>
       </span>
-      <HeaderNav items={items} group="room" label="방 메뉴" />
+      <HeaderNav items={items} group="room" label="방 메뉴" compact />
     </div>
   );
 }

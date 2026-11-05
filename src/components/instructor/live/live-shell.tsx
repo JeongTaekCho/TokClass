@@ -3,7 +3,7 @@
 import { useState } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { Eye, Focus, Gauge, Hand, Lock, LockOpen, Megaphone, PanelRightClose, PanelRightOpen, Rocket, X } from "lucide-react";
+import { Eye, Focus, Gauge, Hand, Lock, LockOpen, Megaphone, MessagesSquare, PanelRightClose, PanelRightOpen, Rocket, X } from "lucide-react";
 
 import { ActivityPanel } from "@/components/instructor/live/activity-panel";
 import { DmInbox } from "@/components/instructor/live/dm-inbox";
@@ -40,7 +40,7 @@ export function LiveShell() {
   const { data: dmData, mutate: mutateDm } = useSWR<{ threads: { participantId: string; unread: number }[] }>(`/api/rooms/${roomId}/dms`, fetcher);
   const dmUnread = (dmData?.threads ?? []).reduce((n, t) => n + t.unread, 0);
   const openMessages = () => {
-    setToolTab("messages");
+    setToolTab("dm");
     setDesktopOpen(true);
     setMobileOpen(true);
   };
@@ -96,12 +96,12 @@ export function LiveShell() {
       }
       toolbar={
         <div className="border-t border-dashed border-border bg-primary-soft/40">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-3 py-2 sm:px-4">
-            <span className="inline-flex items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-xs font-semibold text-primary-ink shadow-card">
+          <div className="scrollbar-none mx-auto flex max-w-5xl items-center gap-2 overflow-x-auto px-3 py-1.5 sm:px-4 sm:py-2 [&>*]:shrink-0">
+            <span className="hidden items-center gap-1 rounded-full bg-surface px-2 py-0.5 text-xs font-semibold text-primary-ink shadow-card md:inline-flex">
               <Eye aria-hidden className="size-3.5" /> 강사만 보여요
             </span>
             <JoinInfo />
-            <div className="ml-auto flex flex-wrap items-center gap-2">
+            <div className="ml-auto flex items-center gap-2">
               <Button variant={room.focusMode ? "default" : "outline"} size="sm" aria-pressed={room.focusMode} onClick={() => toggle({ focusMode: !room.focusMode })}>
                 <Focus aria-hidden /> 집중 모드 {room.focusMode ? "켜짐" : "꺼짐"}
               </Button>
@@ -119,7 +119,7 @@ export function LiveShell() {
           className={cn(
             "min-h-0 flex-col border-l border-border bg-surface lg:bg-surface/70 lg:supports-[backdrop-filter]:backdrop-blur-sm",
             mobileOpen ? "fixed inset-y-0 right-0 z-50 flex w-full max-w-[420px] animate-in shadow-overlay duration-300 ease-out slide-in-from-right" : "hidden",
-            desktopOpen ? "lg:static lg:z-auto lg:flex lg:w-[400px] lg:max-w-none lg:shrink-0 lg:animate-none lg:shadow-none" : "lg:hidden",
+            desktopOpen ? "lg:static lg:z-auto lg:flex lg:w-[340px] lg:max-w-none xl:w-[400px] lg:shrink-0 lg:animate-none lg:shadow-none" : "lg:hidden",
           )}
         >
           <ToolsPanel tab={toolTab} onTab={setToolTab} onHelpCount={setHelpCount} helpBadge={helpBadge} dmBadge={dmBadge} onClose={() => setMobileOpen(false)} />
@@ -149,18 +149,21 @@ function ToolsPanel({
   return (
     <Tabs value={tab} onValueChange={onTab} className="flex min-h-0 flex-1 flex-col gap-0">
       <div className="flex items-center gap-1 border-b border-border p-3">
-        <TabsList className="grid flex-1 grid-cols-4">
-          <TabsTrigger value="understanding" className="px-1.5">
+        <TabsList className="scrollbar-none flex min-w-0 flex-1 justify-between overflow-x-auto">
+          <TabsTrigger value="understanding" className="shrink-0 px-2">
             <Gauge aria-hidden /> 이해도
           </TabsTrigger>
-          <TabsTrigger value="help" aria-label="도움 요청" className="px-1.5">
+          <TabsTrigger value="help" aria-label="도움 요청" className="shrink-0 px-2">
             <Hand aria-hidden /> 도움 {helpBadge}
           </TabsTrigger>
-          <TabsTrigger value="activity" className="px-1.5">
+          <TabsTrigger value="activity" className="shrink-0 px-2">
             <Rocket aria-hidden /> 활동
           </TabsTrigger>
-          <TabsTrigger value="messages" aria-label="공지와 1:1 메시지" className="px-1.5">
-            <Megaphone aria-hidden /> 공지 {dmBadge}
+          <TabsTrigger value="messages" className="shrink-0 px-2">
+            <Megaphone aria-hidden /> 공지
+          </TabsTrigger>
+          <TabsTrigger value="dm" aria-label="1:1 대화" className="shrink-0 px-2">
+            <MessagesSquare aria-hidden /> 1:1 {dmBadge}
           </TabsTrigger>
         </TabsList>
         <Button variant="ghost" size="icon-sm" className="lg:hidden" aria-label="강사 도구 닫기" onClick={onClose}>
@@ -177,14 +180,13 @@ function ToolsPanel({
         <p className="mb-3 rounded-md bg-sunken px-3 py-2 text-xs text-muted-foreground">활동을 시작하면 수강생 화면에 팝업으로 떠요.</p>
         <ActivityPanel />
       </TabsContent>
-      <TabsContent value="messages" className="scrollbar-thin flex min-h-0 flex-col overflow-y-auto data-[state=inactive]:hidden">
-        <div className="border-b border-border p-4">
-          <h3 className="mb-2 flex items-center gap-1.5 font-semibold">
-            <Megaphone aria-hidden className="size-4 text-coral-ink" /> 공지
-          </h3>
-          <AnnouncementManager />
-        </div>
-        <h3 className="px-4 pt-4 font-semibold">1:1 메시지</h3>
+      <TabsContent value="messages" className="scrollbar-thin min-h-0 overflow-y-auto p-4 data-[state=inactive]:hidden">
+        <h3 className="mb-2 flex items-center gap-1.5 font-semibold">
+          <Megaphone aria-hidden className="size-4 text-coral-ink" /> 공지
+        </h3>
+        <AnnouncementManager />
+      </TabsContent>
+      <TabsContent value="dm" className="flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
         <DmInbox />
       </TabsContent>
     </Tabs>

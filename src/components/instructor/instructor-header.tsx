@@ -15,10 +15,10 @@ export function InstructorHeader({ name, isAdmin = false, children }: { name?: s
   ];
   return (
     <header className="hairline-brand surface-glass sticky top-0 z-30">
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-2 px-3 sm:gap-3 sm:px-6">
         <Logo href="/dashboard" size="sm" />
         <div className="flex min-w-0 flex-1 items-center gap-2">{children}</div>
-        <HeaderNav items={items} group="site" label="강사 메뉴" compact className="hidden sm:flex" />
+        <HeaderNav items={items} group="site" label="강사 메뉴" compact className="shrink-0" />
         {name && (
           <span className="hidden items-center gap-2 border-l border-border pl-3 text-sm text-muted-foreground md:inline-flex">
             <span aria-hidden className="inline-flex size-7 items-center justify-center rounded-full bg-brand-vivid text-xs font-bold text-white shadow-[0_2px_6px_-2px_rgb(79_70_229/0.6)]">
