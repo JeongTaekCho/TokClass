@@ -4,6 +4,8 @@ const nextConfig: NextConfig = {
   // 실시간 수업 앱이라 대부분의 화면이 요청 시점 데이터(세션 쿠키)에 의존해요.
   // Cache Components는 쓰지 않고 기본 동적 렌더링을 사용합니다.
   poweredByHeader: false,
+  // Docker 배포용: 필요한 파일만 모은 독립 실행 서버(.next/standalone)를 만들어요.
+  output: "standalone",
   turbopack: {
     rules: {
       "*.css": {
