@@ -170,23 +170,23 @@ function ToolsPanel({
           <X aria-hidden />
         </Button>
       </div>
-      <TabsContent value="understanding" forceMount hidden={tab !== "understanding"} className="scrollbar-thin min-h-0 overflow-y-auto p-4 data-[state=inactive]:hidden">
+      <TabsContent value="understanding" forceMount hidden={tab !== "understanding"} className="scrollbar-thin min-h-0 overflow-x-hidden overflow-y-auto p-4 data-[state=active]:animate-fade-in data-[state=inactive]:hidden">
         <UnderstandingPanel />
       </TabsContent>
-      <TabsContent value="help" forceMount hidden={tab !== "help"} className="scrollbar-thin min-h-0 overflow-y-auto p-4 data-[state=inactive]:hidden">
+      <TabsContent value="help" forceMount hidden={tab !== "help"} className="scrollbar-thin min-h-0 overflow-x-hidden overflow-y-auto p-4 data-[state=active]:animate-fade-in data-[state=inactive]:hidden">
         <HelpQueue onCount={onHelpCount} />
       </TabsContent>
-      <TabsContent value="activity" forceMount hidden={tab !== "activity"} className="scrollbar-thin min-h-0 overflow-y-auto p-4 data-[state=inactive]:hidden">
+      <TabsContent value="activity" forceMount hidden={tab !== "activity"} className="scrollbar-thin min-h-0 overflow-x-hidden overflow-y-auto p-4 data-[state=active]:animate-fade-in data-[state=inactive]:hidden">
         <p className="mb-3 rounded-md bg-sunken px-3 py-2 text-xs text-muted-foreground">활동을 시작하면 수강생 화면에 팝업으로 떠요.</p>
         <ActivityPanel />
       </TabsContent>
-      <TabsContent value="messages" className="scrollbar-thin min-h-0 overflow-y-auto p-4 data-[state=inactive]:hidden">
+      <TabsContent value="messages" className="scrollbar-thin min-h-0 overflow-x-hidden overflow-y-auto p-4 data-[state=active]:animate-fade-in data-[state=inactive]:hidden">
         <h3 className="mb-2 flex items-center gap-1.5 font-semibold">
           <Megaphone aria-hidden className="size-4 text-coral-ink" /> 공지
         </h3>
         <AnnouncementManager />
       </TabsContent>
-      <TabsContent value="dm" className="flex min-h-0 flex-1 flex-col data-[state=inactive]:hidden">
+      <TabsContent value="dm" className="flex min-h-0 flex-1 flex-col overflow-hidden data-[state=active]:animate-fade-in data-[state=inactive]:hidden">
         <DmInbox />
       </TabsContent>
     </Tabs>

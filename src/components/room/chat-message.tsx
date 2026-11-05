@@ -27,13 +27,13 @@ function toneFor(id: string) {
 function Avatar({ m }: { m: ChatMessage }) {
   if (m.author.kind === "instructor") {
     return (
-      <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-brand" aria-hidden>
-        <GraduationCap className="size-4" />
+      <span className="flex size-9 items-center justify-center rounded-full bg-brand text-primary-foreground shadow-brand ring-2 ring-surface" aria-hidden>
+        <GraduationCap className="size-[18px]" />
       </span>
     );
   }
   return (
-    <span className={cn("flex size-8 items-center justify-center rounded-full text-sm font-bold", toneFor(m.author.id ?? m.author.nickname))} aria-hidden>
+    <span className={cn("flex size-9 items-center justify-center rounded-full text-sm font-bold ring-2 ring-surface", toneFor(m.author.id ?? m.author.nickname))} aria-hidden>
       {[...m.author.nickname][0] ?? "?"}
     </span>
   );
@@ -75,14 +75,14 @@ export function MessageItem({ m, hidden, mine, first, last, pending = false, rea
 
   return (
     <motion.div
-      className={cn("group/msg flex gap-2 transition-opacity", mine && "flex-row-reverse", first ? "pt-3" : "pt-1", pending && "opacity-70")}
+      className={cn("group/msg flex gap-2 transition-opacity", mine && "flex-row-reverse", first ? "pt-4" : "pt-0.5", pending && "opacity-70")}
       aria-busy={pending || undefined}
       initial={{ opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={spring}
       style={{ originX: mine ? 1 : 0, originY: 1 }}
     >
-      {!mine && <div className="w-8 shrink-0">{first && <Avatar m={m} />}</div>}
+      {!mine && <div className="w-9 shrink-0">{first && <Avatar m={m} />}</div>}
       <div className={cn("flex max-w-[84%] min-w-0 flex-col", mine ? "items-end" : "items-start")}>
         {first && !mine && (
           <p className="mb-1 flex items-center gap-1.5 px-1 text-[13px]">
@@ -93,15 +93,15 @@ export function MessageItem({ m, hidden, mine, first, last, pending = false, rea
         <div className={cn("flex max-w-full items-end gap-1.5", mine && "flex-row-reverse")}>
           <div
             className={cn(
-              "max-w-full min-w-0 rounded-[20px] px-3.5 py-2 [overflow-wrap:anywhere]",
+              "max-w-full min-w-0 rounded-[22px] px-4 py-2.5 leading-relaxed [overflow-wrap:anywhere]",
               // 이어 보낸 말풍선은 보낸 사람 쪽 모서리를 좁혀서 한 묶음으로 보이게 해요.
               mine ? cn("rounded-br-md", !first && "rounded-tr-md") : cn("rounded-bl-md", !first && "rounded-tl-md"),
               hidden
                 ? "border border-dashed border-border-strong bg-sunken text-muted-foreground"
                 : mine
-                  ? "bg-primary text-primary-foreground shadow-brand"
+                  ? "bg-brand text-primary-foreground shadow-brand"
                   : isInstructor
-                    ? "bg-primary-soft text-foreground ring-1 ring-primary/15"
+                    ? "bg-primary-soft text-foreground shadow-card ring-1 ring-primary/20"
                     : "bg-surface text-foreground shadow-card ring-1 ring-border/60",
             )}
           >

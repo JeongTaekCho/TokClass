@@ -196,7 +196,7 @@ export function ChatPanel({ groupId = null, readOnly = false, className }: { gro
     <div className={cn("flex min-h-0 flex-1 flex-col", className)}>
       <div
         ref={scrollRef}
-        className="scrollbar-thin relative min-h-0 flex-1 overflow-y-auto px-3 pt-1 pb-4"
+        className="scrollbar-thin relative min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-primary-soft/30 to-background px-3 pt-1 pb-4 sm:px-4"
         onScroll={(e) => {
           const el = e.currentTarget;
           nearBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
@@ -303,7 +303,7 @@ function Composer({ roomId, onSend }: { roomId: string; onSend: (body: string, i
   const canSend = !sending && !!text.trim();
   return (
     <form
-      className="border-t border-border/70 bg-surface px-3 pt-3 pb-[max(0.875rem,env(safe-area-inset-bottom))]"
+      className="bg-background px-3 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-12px_24px_-16px_rgb(79_70_229/0.18)] sm:px-4"
       onSubmit={(e) => {
         e.preventDefault();
         void send();
@@ -330,7 +330,7 @@ function Composer({ roomId, onSend }: { roomId: string; onSend: (body: string, i
           }
         }}
       />
-      <div className="flex items-end gap-0.5 rounded-[22px] border border-border-strong bg-background p-1 transition-[border-color,box-shadow] focus-within:border-primary focus-within:bg-surface focus-within:ring-4 focus-within:ring-primary/15">
+      <div className="flex items-end gap-0.5 rounded-[26px] border border-border-strong bg-surface p-1.5 shadow-card transition-[border-color,box-shadow] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15">
         <Button type="button" variant="ghost" size="icon" className="size-9 shrink-0 rounded-full" aria-label="이미지 보내기" disabled={sending} onClick={() => fileRef.current?.click()}>
           <ImagePlus aria-hidden />
         </Button>
