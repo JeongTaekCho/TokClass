@@ -4,6 +4,8 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
 import { Loader2, Send } from "lucide-react";
 
+import { EmptyState } from "@/components/empty-state";
+import { DmEmptyArt } from "@/components/illustrations";
 import { DayDivider } from "@/components/room/chat-message";
 import { ChatSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
@@ -48,12 +50,12 @@ export function DmThread({ participantId, onRead }: { participantId?: string; on
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto bg-gradient-to-b from-primary-soft/30 to-background px-3 pt-1 pb-4 sm:px-4">
+      <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto bg-doodle px-3 pt-1 pb-4 sm:px-4">
         {isLoading && <ChatSkeleton rows={3} />}
         {data?.messages.length === 0 && (
-          <p className="mx-auto mt-10 max-w-[18rem] rounded-2xl bg-surface px-4 py-3 text-center text-sm text-muted-foreground shadow-card">
+          <EmptyState className="mt-4" art={<DmEmptyArt />} title="둘만의 대화방이에요">
             {mineIsInstructor ? "이 수강생에게만 보이는 메시지를 보내요." : "궁금한 점을 강사님께 따로 물어볼 수 있어요. 다른 수강생에게는 보이지 않아요."}
-          </p>
+          </EmptyState>
         )}
         {data?.messages.map((m, i, all) => {
           const mine = m.fromInstructor === mineIsInstructor;

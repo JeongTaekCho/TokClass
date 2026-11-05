@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { ArrowLeft, Search } from "lucide-react";
 
+import { EmptyState } from "@/components/empty-state";
+import { NoStudentsArt } from "@/components/illustrations";
 import { DmThread } from "@/components/room/dm-thread";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,7 +69,13 @@ export function DmInbox({ openWith, onOpenChange }: { openWith?: string | null; 
         </div>
       </div>
       <ul className="scrollbar-thin min-h-0 flex-1 divide-y divide-border overflow-y-auto">
-        {rooms.length === 0 && <li className="p-4 text-sm text-muted-foreground">아직 입장한 수강생이 없어요.</li>}
+        {rooms.length === 0 && (
+          <li>
+            <EmptyState art={<NoStudentsArt />} title="아직 입장한 수강생이 없어요">
+              수강생이 들어오면 여기에 1:1 대화방이 생겨요.
+            </EmptyState>
+          </li>
+        )}
         {rooms.length > 0 && shown.length === 0 && <li className="p-4 text-sm text-muted-foreground">찾는 수강생이 없어요.</li>}
         {shown.map((r) => (
           <li key={r.id}>

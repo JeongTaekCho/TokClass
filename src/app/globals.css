@@ -249,6 +249,40 @@
   html {
     -webkit-text-size-adjust: 100%;
   }
+  /*
+   * 서비스 전체 공통 스크롤바 (페이지·패널·텍스트 입력 모두). 브라우저 기본 막대는 쓰지 않아요.
+   * Chrome·Safari·Edge는 ::-webkit-scrollbar로 알약 모양 막대를, 그 밖의 브라우저(Firefox)는 표준 속성으로 같은 색을 써요.
+   * (표준 속성을 같이 두면 Chrome이 ::-webkit-scrollbar를 무시해서 둘을 갈라 놓아요.)
+   */
+  @supports selector(::-webkit-scrollbar) {
+    *::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    *::-webkit-scrollbar-track,
+    *::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+    *::-webkit-scrollbar-thumb {
+      background-color: var(--border-strong);
+      border: 3px solid transparent;
+      background-clip: content-box;
+      border-radius: 999px;
+    }
+    *::-webkit-scrollbar-thumb:hover {
+      background-color: var(--primary);
+      opacity: 0.8;
+    }
+    *::-webkit-scrollbar-thumb:active {
+      background-color: var(--primary-hover);
+    }
+  }
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+  }
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-size: 16px;
@@ -284,9 +318,9 @@
 }
 
 @layer utilities {
+  /* 공통 스크롤바가 전역으로 적용돼서 이 클래스는 모양을 바꾸지 않아요(예전 코드와의 호환용). */
   .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-gutter: auto;
   }
   /* 가로로 넘기는 탭 줄: 스크롤바 없이 손가락·휠로 넘겨요 */
   .scrollbar-none {
@@ -311,6 +345,13 @@
     transform-origin: center;
   }
   /* 브랜드 그라데이션 (주요 버튼·강조 띠·배너) */
+  /* 채팅 배경: 말풍선·반짝이·하트 낙서가 연하게 깔린 무늬 */
+  .bg-doodle {
+    background-color: color-mix(in srgb, var(--primary-soft) 38%, var(--background));
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200' fill='none' stroke='%234f46e5' stroke-opacity='.11' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M24 30h36a8 8 0 0 1 8 8v16a8 8 0 0 1-8 8H44l-10 8v-8h-10a8 8 0 0 1-8-8V38a8 8 0 0 1 8-8z'/%3E%3Cpath d='M146 24v22M135 35h22'/%3E%3Cpath d='M160 124c-11-8-18-13-18-21a9 9 0 0 1 18-2 9 9 0 0 1 18 2c0 8-7 13-18 21z' stroke='%23ff6b4a' stroke-opacity='.2'/%3E%3Ccircle cx='44' cy='146' r='10' stroke='%234ea5ff' stroke-opacity='.2'/%3E%3Cpath d='M78 104q9-10 18 0t18 0'/%3E%3Cpath d='M104 168l7-12 7 12z' stroke='%232fc28b' stroke-opacity='.22'/%3E%3Ccircle cx='96' cy='52' r='2.5' fill='%23ff6b4a' fill-opacity='.25' stroke='none'/%3E%3Ccircle cx='178' cy='170' r='2.5' fill='%234f46e5' fill-opacity='.2' stroke='none'/%3E%3Ccircle cx='20' cy='100' r='2' fill='%23ffc23d' fill-opacity='.4' stroke='none'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    background-attachment: local;
+  }
   .bg-brand {
     background-image: linear-gradient(135deg, var(--primary) 0%, var(--primary-2) 100%);
   }

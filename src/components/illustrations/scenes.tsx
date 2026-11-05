@@ -474,3 +474,29 @@ export function ClassroomHeroArt({ className, title }: IllustrationProps) {
     </Illustration>
   );
 }
+
+/** 1:1 대화가 비어 있어요: 강사와 수강생이 둘만의 말풍선을 주고받아요 */
+export function DmEmptyArt(props: IllustrationProps) {
+  return (
+    <Illustration viewBox="0 0 240 180" {...props}>
+      <Blob cx={120} cy={96} r={78} tone="lilac" />
+      <Shadow cx={74} cy={160} rx={26} />
+      <Shadow cx={166} cy={160} rx={26} />
+      <Person x={74} y={112} body="primary" skin={2} hair="bun" mood="happy" scale={0.9} />
+      <Person x={166} y={112} body="coral" skin={1} hair="long" mood="grin" scale={0.9} />
+      <Float>
+        <Bubble x={34} y={30} w={64} h={36} tone="surface" tail="left">
+          <rect x={46} y={42} width={30} height={6} rx={3} className="fill-primary/30" />
+          <rect x={46} y={52} width={20} height={6} rx={3} className="fill-sunken" />
+        </Bubble>
+      </Float>
+      <Float delay={0.8}>
+        <Bubble x={138} y={22} w={64} h={36} tone="mint" tail="right">
+          <Glyph kind="check" x={170} y={40} />
+        </Bubble>
+      </Float>
+      <Sparkle x={120} y={60} size={7} tone="sun" delay={0.4} />
+      <Sparkle x={206} y={96} size={5} tone="coral" delay={1.2} />
+    </Illustration>
+  );
+}
